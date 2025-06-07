@@ -1,0 +1,256 @@
+/* Reusing colors from Home.css and Navbar.css */
+:root {
+  --primary-color: #2563eb;
+  --hover-color: #ffdd57;
+  --accent-color: #10b981;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Welcome Section */
+.welcome-section {
+  text-align: center;
+  padding: 2rem 0;
+  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-section p {
+  font-size: 1.2rem;
+  color: #e5e7eb;
+}
+
+/* Progress Section */
+.progress-section {
+  padding: 2rem 0;
+}
+
+.progress-section h2 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.progress-container {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.progress-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.progress-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.progress-card p {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  background: #e5e7eb;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  background: var(--accent-color);
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.progress-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.progress-link:hover {
+  background: var(--hover-color);
+  color: #1f2937;
+}
+
+/* Blog Section */
+.blog-section {
+  padding: 2rem 0;
+}
+
+.blog-section h2 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.blog-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.blog-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-5px);
+}
+
+.blog-category {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.blog-category.frontend {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.blog-category.backend {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.blog-category.databases {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.blog-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.blog-card p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.blog-link {
+  display: inline-block;
+  font-size: 1rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.blog-link:hover {
+  color: var(--hover-color);
+}
+
+/* Quick Links Section */
+.quick-links {
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.quick-links h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.quick-links-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.quick-link-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #1f2937;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.quick-link-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  background: var(--primary-color);
+  color: white;
+}
+
+.quick-link-icon {
+  font-size: 1.5rem;
+}
+
+.quick-link-text {
+  flex: 1;
+  text-align: left;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .welcome-section h1 {
+    font-size: 2rem;
+  }
+
+  .welcome-section p {
+    font-size: 1rem;
+  }
+
+  .progress-section h2,
+  .blog-section h2,
+  .quick-links h2 {
+    font-size: 1.8rem;
+  }
+
+  .progress-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .quick-links-container {
+    grid-template-columns: 1fr;
+  }
+}

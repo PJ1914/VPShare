@@ -1,0 +1,144 @@
+/* Reusing colors from Home.css, Navbar.css, Dashboard.css */
+:root {
+  --primary-color: #2563eb;
+  --hover-color: #ffdd57;
+  --accent-color: #10b981;
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated Background Effect */
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background-size: 30px 30px;
+  animation: moveBackground 20s linear infinite;
+}
+
+@keyframes moveBackground {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100px);
+  }
+}
+
+/* Login Card */
+.login-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Title and Subtitle */
+.login-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+/* Google Auth Button (Styled by GoogleLogin component, but container styled here) */
+.google-auth {
+  margin: 1.5rem 0;
+}
+
+/* Manual Form */
+.manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-input {
+  margin-bottom: 1rem;
+}
+
+.submit-button {
+  background: var(--primary-color) !important;
+  color: white !important;
+  padding: 0.75rem !important;
+  font-weight: 500 !important;
+  transition: background 0.3s ease, transform 0.2s ease !important;
+}
+
+.submit-button:hover {
+  background: var(--hover-color) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Toggle Text and Button */
+.toggle-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.toggle-button {
+  color: var(--primary-color) !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+}
+
+.toggle-button:hover {
+  color: var(--hover-color) !important;
+}
+
+/* Home Link */
+.home-link {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.home-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.home-link a:hover {
+  color: var(--hover-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .login-title {
+    font-size: 1.8rem;
+  }
+
+  .login-subtitle {
+    font-size: 1rem;
+  }
+}

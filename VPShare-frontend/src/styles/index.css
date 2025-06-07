@@ -1,0 +1,30 @@
+/* index.css - Global styles */
+:root {
+  --primary-color: #2563eb; /* Standardized to match Navbar.css */
+  --text-color: #333;
+  --background-color: #f9f9f9;
+  --hover-color: #ffdd57;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Remove global a:hover to avoid conflict with navbar */
+a:not(.nav-links li a):hover {
+  color: var(--hover-color);
+}

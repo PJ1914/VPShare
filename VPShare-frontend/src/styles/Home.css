@@ -1,0 +1,207 @@
+.home-main {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 8px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: #e5e7eb;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #059669;
+}
+
+.cta-button.secondary {
+  background-color: #6b7280;
+}
+
+.cta-button.secondary:hover {
+  background-color: #4b5563;
+}
+
+/* Vision Section */
+.vision {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.vision h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.vision p {
+  font-size: 1.2rem;
+  color: #555;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Learning Paths Section */
+.learning-paths {
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.learning-paths h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.paths-container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.path-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 350px;
+  transition: transform 0.3s ease;
+}
+
+.path-card:hover {
+  transform: translateY(-5px);
+}
+
+.path-card h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.path-card p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+/* Pricing Section */
+.pricing {
+  padding: 3rem 0;
+  text-align: center;
+  background: #f9fafb;
+}
+
+.pricing h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.pricing p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.pricing-container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pricing-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+}
+
+.pricing-card h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.pricing-card .price {
+  font-size: 2rem;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.pricing-card ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.pricing-card li {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+/* Call to Action Section */
+.cta {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.cta h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.cta p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .vision h2,
+  .learning-paths h2,
+  .pricing h2,
+  .cta h2 {
+    font-size: 2rem;
+  }
+
+  .paths-container,
+  .pricing-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}
