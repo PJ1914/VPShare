@@ -1,0 +1,141 @@
+/* Define colors for consistency */
+:root {
+  --primary-color: #2563eb;
+  --hover-color: #ffdd57;
+}
+
+/* Footer Styles */
+.footer {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2rem 0;
+  position: relative;
+  width: 100%;
+  margin-top: auto; /* Ensures footer stays at bottom */
+}
+
+/* Footer Container */
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 0 1rem;
+}
+
+/* Footer Sections */
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Footer Headings */
+.footer-heading {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+/* Footer Links */
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--hover-color);
+  transform: translateX(5px);
+}
+
+.footer-link:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+/* Contact Section */
+.footer-contact p {
+  margin: 0;
+}
+
+/* Social Links */
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.social-link:hover {
+  color: var(--hover-color);
+  transform: scale(1.2);
+}
+
+.social-link:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
+}
+
+.social-icon {
+  font-size: 1.5rem; /* Matches original icon size */
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer-bottom p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-section {
+    min-width: 100%;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+
+  .footer-link:hover,
+  .social-link:hover {
+    transform: none; /* Disable transform animations on mobile for better UX */
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .footer-link,
+  .social-link {
+    transition: color 0.3s ease;
+    transform: none;
+  }
+}
