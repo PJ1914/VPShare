@@ -1,31 +1,42 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { Box, Button, Typography, Paper, TextField, Fade } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
+import { auth } from '../config/firebase'; 
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { Box, Button, Typography, Paper, TextField, Fade, Alert } from '@mui/material';
 import '../styles/Login.css';
 
 function Login() {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login/register
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  // Placeholder for Google Auth success handler
-  const handleGoogleSuccess = (credentialResponse) => {
-    console.log('Google Auth Success:', credentialResponse);
-    // Replace with your AuthContext or backend API call (e.g., via src/services/)
-    // Example: navigate to /dashboard on success
+  // Handle Google Auth
+  const handleGoogleSuccess = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
-  // Placeholder for Google Auth error handler
-  const handleGoogleError = () => {
-    console.log('Google Auth Failed');
-  };
-
-  // Placeholder for manual login/register
-  const handleManualSubmit = (e) => {
+  // Handle manual login/register
+  const handleManualSubmit = async (e) => {
     e.preventDefault();
-    console.log(isLogin ? 'Login' : 'Register', { email, password });
-    // Replace with your AuthContext or backend API call
+    setError('');
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -36,18 +47,27 @@ function Login() {
             {isLogin ? 'Welcome Back' : 'Join VPShare'}
           </Typography>
           <Typography variant="body1" className="login-subtitle">
-            Sign in with Google to start your web development journey
+            Sign in to start your web development journey
           </Typography>
+
+          {/* Error Message */}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           {/* Google Auth Button */}
           <Box className="google-auth">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="filled_blue"
-              size="large"
-              text={isLogin ? 'signin_with' : 'signup_with'}
-            />
+            <Button
+              variant="contained"
+              startIcon={<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 20 }} />}
+              onClick={handleGoogleSuccess}
+              fullWidth
+              sx={{ mb: 2, backgroundColor: '#4285F4', '&:hover': { backgroundColor: '#357ae8' } }}
+            >
+              Sign in with Google
+            </Button>
           </Box>
 
           {/* Manual Login/Register Form */}
@@ -61,6 +81,7 @@ function Login() {
               margin="normal"
               variant="outlined"
               className="login-input"
+              required
             />
             <TextField
               label="Password"
@@ -71,6 +92,7 @@ function Login() {
               margin="normal"
               variant="outlined"
               className="login-input"
+              required
             />
             <Button
               type="submit"

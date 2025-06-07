@@ -1,13 +1,14 @@
-/* Define colors for consistency with Home.css */
+/* Define colors for consistency with Home.css, Dashboard.css, Courses.css */
 :root {
   --primary-color: #2563eb;
   --hover-color: #ffdd57;
+  --accent-color: #10b981;
 }
 
 /* Navbar Styles */
 .navbar {
   background-color: var(--primary-color);
-  padding: 1rem 0;
+  padding: 0.75rem 0; /* Reduced for slimmer height */
   color: white;
   position: sticky;
   top: 0;
@@ -15,51 +16,156 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* Navbar Container */
 .navbar-container {
   max-width: 1200px;
   margin: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 1rem;
+  padding: 0 1.5rem; /* Adjusted for balanced width */
 }
 
+/* Logo */
 .logo {
-  font-size: 2rem;
+  font-size: 1.75rem; /* Slightly smaller for proportionality */
   font-weight: 700;
   letter-spacing: 1px;
   color: white;
   text-decoration: none;
+  transition: color 0.3s ease;
 }
 
+.logo:hover {
+  color: var(--hover-color);
+}
+
+/* Navigation Links */
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 2rem;
+  gap: 2rem; /* Reduced for better spacing with more links */
+  align-items: center;
+  margin: 0;
+}
+
+/* Nav Link Items */
+.nav-links li {
+  position: relative;
 }
 
 .nav-links li a {
-  color: white;
+  color: white !important;
   font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 1.1rem; /* Slightly smaller for compactness */
   text-decoration: none;
+  padding: 0.5rem 0;
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .nav-links li a:hover,
 .nav-links li a.active {
-  color: var(--hover-color);
+  color: var(--hover-color) !important;
   transform: translateY(-2px);
+}
+
+.nav-links li a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--hover-color);
+}
+
+/* Profile Item */
+.profile-item {
+  position: relative;
+}
+
+.profile-link {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-picture {
+  width: 36px; /* Reduced to minimize vertical impact */
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent-color);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.profile-picture:hover {
+  transform: scale(1.1);
+  border-color: var(--hover-color);
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--primary-color);
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  padding: 0.5rem 0;
+  z-index: 1002;
+  min-width: 120px;
+}
+
+.profile-dropdown li {
+  margin: 0;
+}
+
+.dropdown-item {
+  display: block;
+  color: white !important;
+  font-size: 0.95rem; /* Slightly smaller for compactness */
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--hover-color);
+  color: #1f2937 !important;
+}
+
+.logout-button {
+  color: #ef4444 !important;
+}
+
+.logout-button:hover {
+  background: var(--hover-color);
+  color: #1f2937 !important;
 }
 
 /* Hamburger Menu for Mobile */
 .hamburger {
   display: none;
-  font-size: 1.5rem;
+  font-size: 1.6rem; /* Slightly smaller for balance */
   background: none;
   border: none;
   color: white;
   cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.hamburger:hover {
+  color: var(--hover-color);
 }
 
 /* Mobile Menu */
@@ -71,27 +177,48 @@
   left: 0;
   right: 0;
   background-color: var(--primary-color);
-  padding: 1rem;
+  padding: 1rem; /* Reduced for compactness */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease-in-out;
+  z-index: 1001;
   transform: translateY(0);
+  transition: transform 0.3s ease-in-out;
 }
 
 .nav-links.mobile-active li {
-  margin: 0.5rem 0;
+  margin: 0.75rem 0; /* Reduced for tighter mobile menu */
+}
+
+.nav-links.mobile-active li a {
+  font-size: 1.2rem; /* Adjusted for mobile */
+}
+
+.nav-links.mobile-active .profile-picture {
+  width: 40px; /* Slightly smaller for mobile */
+  height: 40px;
+}
+
+.nav-links.mobile-active .profile-dropdown {
+  position: static;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .nav-links {
     display: none;
+  }
+
+  .nav-links.mobile-active {
+    display: flex;
   }
 
   .hamburger {
     display: block;
   }
 
-  .nav-links.mobile-active {
-    display: flex;
+  .navbar-container {
+    padding: 0 1rem; /* Adjusted for mobile */
   }
 }
