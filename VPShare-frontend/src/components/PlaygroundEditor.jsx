@@ -75,6 +75,17 @@ const snippets = {
   ],
 };
 
+// Animation variants for buttons
+const buttonHoverVariants = {
+  hover: { scale: 1.1, transition: { duration: 0.2 } },
+};
+
+// Animation variants for sidebar content
+const sidebarContentVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3, delay: 0.2 } },
+};
+
 function PlaygroundEditor() {
   // State management
   const [files, setFiles] = useState(() => {
@@ -293,8 +304,20 @@ function PlaygroundEditor() {
         animate={{ x: sidebarOpen ? 0 : -sidebarWidth }}
         transition={{ type: 'spring', stiffness: 120 }}
       >
-        <h3 className="sidebar-title">Files</h3>
-        <div className="sidebar-section">
+        <motion.h3
+          className="sidebar-title"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          Files
+        </motion.h3>
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
           <label htmlFor="new-file-input">New File</label>
           <input
             id="new-file-input"
@@ -304,15 +327,22 @@ function PlaygroundEditor() {
             onChange={(e) => setNewFileName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addNewFile()}
           />
-          <button
+          <motion.button
             className="sidebar-button"
             onClick={addNewFile}
             disabled={!newFileName}
+            variants={buttonHoverVariants}
+            whileHover="hover"
           >
             Add File
-          </button>
-        </div>
-        <div className="sidebar-section">
+          </motion.button>
+        </motion.div>
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
           <label htmlFor="snippet-select">Snippets</label>
           <select
             id="snippet-select"
@@ -325,73 +355,124 @@ function PlaygroundEditor() {
               <option key={snippet.label} value={snippet.label}>{snippet.label}</option>
             ))}
           </select>
-          <button
+          <motion.button
             className="sidebar-button"
             onClick={insertSnippet}
             disabled={!snippetType}
+            variants={buttonHoverVariants}
+            whileHover="hover"
           >
             <CodeIcon fontSize="small" style={{ marginRight: '0.5rem' }} />
             Insert Snippet
-          </button>
-        </div>
-        <div className="sidebar-section">
-          <button
+          </motion.button>
+        </motion.div>
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <motion.button
             className="sidebar-button clear-button"
             onClick={clearAllFiles}
             disabled={files.length === 0}
+            variants={buttonHoverVariants}
+            whileHover="hover"
           >
             <DeleteIcon fontSize="small" style={{ marginRight: '0.5rem' }} />
             Clear All Files
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </motion.div>
       {sidebarOpen && (
-        <div
+        <motion.div
           className="sidebar-resizer"
           style={{ left: `${sidebarWidth}px` }}
           onMouseDown={startWidthResize}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         />
       )}
 
       {/* Main Content */}
       <div className={`playground-main ${sidebarOpen ? 'sidebar-open' : ''}`} style={{ marginLeft: sidebarOpen ? `${sidebarWidth}px` : '0px' }}>
         {/* Toolbar */}
-        <div className="playground-toolbar">
-          <button
+        <motion.div
+          className="playground-toolbar"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <motion.button
             className="toolbar-button sidebar-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            variants={buttonHoverVariants}
+            whileHover="hover"
           >
             <MenuIcon fontSize="inherit" />
-          </button>
+          </motion.button>
           <div className="toolbar-right">
-            <span className="collaboration-indicator">2 Users Active</span>
-            <label className="auto-save-toggle">
+            <motion.span
+              className="collaboration-indicator"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
+              2 Users Active
+            </motion.span>
+            <motion.label
+              className="auto-save-toggle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
               <span className="toggle-label">Auto-Save</span>
               <Switch
                 checked={autoSave}
                 onChange={() => setAutoSave(!autoSave)}
                 color="primary"
               />
-            </label>
+            </motion.label>
             {!autoSave && (
-              <button className="save-button" onClick={saveFiles}>
+              <motion.button
+                className="save-button"
+                onClick={saveFiles}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
                 <SaveIcon fontSize="inherit" /> Save
-              </button>
+              </motion.button>
             )}
-            <label className="auto-compile-toggle">
+            <motion.label
+              className="auto-compile-toggle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
+            >
               <span className="toggle-label">Auto-Compile</span>
               <Switch
                 checked={autoCompile}
                 onChange={() => setAutoCompile(!autoCompile)}
                 color="primary"
               />
-            </label>
+            </motion.label>
             {!autoCompile && files.some(file => file.name.endsWith('.html')) && (
-              <button className="run-button" onClick={updatePreview}>
+              <motion.button
+                className="run-button"
+                onClick={updatePreview}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
                 <PlayArrowIcon fontSize="inherit" /> Run
-              </button>
+              </motion.button>
             )}
-            <div className="font-size-select">
+            <motion.div
+              className="font-size-select"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
+            >
               <label htmlFor="font-size">Font Size</label>
               <select
                 id="font-size"
@@ -402,8 +483,13 @@ function PlaygroundEditor() {
                   <option key={size} value={size}>{size}px</option>
                 ))}
               </select>
-            </div>
-            <label className="theme-toggle">
+            </motion.div>
+            <motion.label
+              className="theme-toggle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.8 }}
+            >
               <input
                 type="checkbox"
                 checked={theme === 'dark'}
@@ -412,16 +498,18 @@ function PlaygroundEditor() {
               <span className="theme-icon">
                 {theme === 'dark' ? <LightModeIcon fontSize="inherit" /> : <DarkModeIcon fontSize="inherit" />}
               </span>
-            </label>
-            <button
+            </motion.label>
+            <motion.button
               className="toggle-output-button"
               onClick={() => setOutputVisible(!outputVisible)}
+              variants={buttonHoverVariants}
+              whileHover="hover"
             >
               {outputVisible ? <VisibilityOffIcon fontSize="inherit" /> : <VisibilityIcon fontSize="inherit" />}
               {outputVisible ? 'Hide Output' : 'Show Output'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
         <div className="tab-bar">
@@ -434,6 +522,7 @@ function PlaygroundEditor() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
+                whileHover={{ scale: 1.05 }}
               >
                 {renamingFile === file.name ? (
                   <TextField
@@ -450,9 +539,14 @@ function PlaygroundEditor() {
                     {file.name}
                   </span>
                 )}
-                <button className="close-tab" onClick={() => closeFile(file.name)}>
+                <motion.button
+                  className="close-tab"
+                  onClick={() => closeFile(file.name)}
+                  variants={buttonHoverVariants}
+                  whileHover="hover"
+                >
                   <CloseIcon fontSize="small" />
-                </button>
+                </motion.button>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -463,12 +557,19 @@ function PlaygroundEditor() {
           {activeFileData ? (
             <motion.div
               key={activeFileData.name}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
               className="editor-section"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <h4 className="editor-title">{activeFileData.name}</h4>
+              <motion.h4
+                className="editor-title"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {activeFileData.name}
+              </motion.h4>
               <AceEditor
                 mode={activeFileData.mode}
                 theme={theme === 'dark' ? 'monokai' : 'github'}
@@ -482,13 +583,23 @@ function PlaygroundEditor() {
               />
             </motion.div>
           ) : (
-            <div className="no-file-message">
+            <motion.div
+              className="no-file-message"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               <p>No files open. Add a new file from the sidebar.</p>
-            </div>
+            </motion.div>
           )}
         </motion.div>
 
-        <div className="editor-resizer" onMouseDown={startHeightResize} />
+        <motion.div
+          className="editor-resizer"
+          onMouseDown={startHeightResize}
+          whileHover={{ backgroundColor: 'var(--primary-color)' }}
+          transition={{ duration: 0.2 }}
+        />
 
         {/* Output Pane */}
         <motion.div
@@ -499,21 +610,47 @@ function PlaygroundEditor() {
         >
           <div className="output-pane">
             <div className="output-header">
-              <h4 className="output-title">Output</h4>
+              <motion.h4
+                className="output-title"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                Output
+              </motion.h4>
               <div className="output-actions">
-                {autoSave && <span className="auto-save">Auto-saved ✅</span>}
+                {autoSave && (
+                  <motion.span
+                    className="auto-save"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Auto-saved ✅
+                  </motion.span>
+                )}
                 {files.some(file => file.name.endsWith('.html')) && autoCompile && (
-                  <button className="refresh-button" onClick={updatePreview}>
+                  <motion.button
+                    className="refresh-button"
+                    onClick={updatePreview}
+                    variants={buttonHoverVariants}
+                    whileHover="hover"
+                  >
                     <RefreshIcon fontSize="inherit" /> Refresh
-                  </button>
+                  </motion.button>
                 )}
               </div>
             </div>
             {files.some(file => file.name.endsWith('.html')) ? (
               previewError ? (
-                <div className="output-error">
+                <motion.div
+                  className="output-error"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <p>Error: {previewError}</p>
-                </div>
+                </motion.div>
               ) : (
                 <iframe
                   srcDoc={srcDoc}
@@ -524,9 +661,14 @@ function PlaygroundEditor() {
                 />
               )
             ) : (
-              <div className="output-mock">
+              <motion.div
+                className="output-mock"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <p>No HTML file open for preview.</p>
-              </div>
+              </motion.div>
             )}
           </div>
         </motion.div>

@@ -7,10 +7,18 @@
 /* Hero Section */
 .hero {
   text-align: center;
-  padding: 4rem 0;
+  padding: 3rem 0; /* Reduced padding for better balance with animation */
   background: linear-gradient(to bottom, #3b82f6, #2563eb);
   color: white;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.hero-content {
+  max-width: 800px;
 }
 
 .hero h1 {
@@ -22,6 +30,11 @@
   font-size: 1.5rem;
   margin-bottom: 2rem;
   color: #e5e7eb;
+}
+
+.hero-animation {
+  max-width: 400px;
+  width: 100%;
 }
 
 .cta-button {
@@ -184,12 +197,20 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .hero {
+    padding: 2rem 0;
+  }
+
   .hero h1 {
     font-size: 2.5rem;
   }
 
   .hero-subtitle {
     font-size: 1.2rem;
+  }
+
+  .hero-animation {
+    max-width: 300px;
   }
 
   .vision h2,
@@ -203,5 +224,19 @@
   .pricing-container {
     flex-direction: column;
     align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .hero-animation {
+    max-width: 250px;
   }
 }

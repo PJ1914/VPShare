@@ -1,8 +1,9 @@
 // src/config/firebase.js
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -16,9 +17,11 @@ const firebaseConfig = {
 
 console.log("Firebase Config:", firebaseConfig); 
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+auth.useDeviceLanguage(); 
 const storage = getStorage(app);
+const db = getFirestore(app); 
 
-export { app, auth, storage, analytics };
+export { app, auth, storage, analytics, db };

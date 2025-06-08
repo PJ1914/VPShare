@@ -2,6 +2,9 @@
 :root {
   --primary-color: #2563eb;
   --hover-color: #ffdd57;
+  --accent-color: #10b981;
+  --achievement-bg: #f9fafb;
+  --streak-highlight: #ff6f61;
 }
 
 /* Profile Container */
@@ -33,20 +36,12 @@
   color: #ef4444;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  animation: fadeIn 0.3s ease-in;
 }
 
 .success-message {
   color: #10b981;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  animation: fadeIn 0.3s ease-in;
-}
-
-/* Fade-in animation for messages */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* Profile Image */
@@ -74,6 +69,104 @@
   font-size: 1rem;
   color: #333;
   margin: 0.5rem 0;
+}
+
+/* Achievements Section */
+.achievements-section {
+  margin: 1.5rem 0;
+}
+
+.achievements-section h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.achievements-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.achievement-card {
+  background: var(--achievement-bg);
+  border-radius: 8px;
+  padding: 1rem;
+  width: 120px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.achievement-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-icon {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.achievement-card h4 {
+  font-size: 0.9rem;
+  color: #333;
+  margin: 0;
+}
+
+.achievement-tooltip {
+  visibility: hidden;
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.achievement-card:hover .achievement-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Streaks Section */
+.streaks-section {
+  margin: 1.5rem 0;
+}
+
+.streaks-section h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.streak-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--achievement-bg);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.streak-icon {
+  font-size: 1.5rem;
+  color: var(--streak-highlight);
+}
+
+.streak-info p {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
 }
 
 /* Upload Section */
@@ -137,7 +230,6 @@
 .cancel-button:hover:not(:disabled) {
   background-color: var(--hover-color);
   color: #1f2937;
-  transform: scale(1.05);
 }
 
 .cancel-button {
@@ -163,6 +255,32 @@
     height: 100px;
   }
 
+  .achievement-card {
+    width: 100px;
+    padding: 0.75rem;
+  }
+
+  .achievement-icon {
+    font-size: 1.2rem;
+  }
+
+  .achievement-card h4 {
+    font-size: 0.8rem;
+  }
+
+  .achievement-tooltip {
+    font-size: 0.7rem;
+    top: -40px;
+  }
+
+  .streak-icon {
+    font-size: 1.2rem;
+  }
+
+  .streak-info p {
+    font-size: 0.9rem;
+  }
+
   .update-button,
   .cancel-button {
     padding: 0.5rem 1rem;
@@ -175,7 +293,8 @@
   .profile-container,
   .profile-image,
   .update-button,
-  .cancel-button {
+  .cancel-button,
+  .achievement-card {
     transition: none;
     transform: none;
   }

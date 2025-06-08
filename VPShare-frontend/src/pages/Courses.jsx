@@ -1,12 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import '../styles/Courses.css';
+
+// Animation variants for sections
+const sectionVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+// Animation variants for buttons and cards
+const hoverVariants = {
+  hover: { scale: 1.05, transition: { duration: 0.3 } },
+};
+
+// Animation variants for course cards during filter transition
+const cardVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
+};
 
 function Courses() {
   const [filter, setFilter] = useState('All');
 
+  // Reset scroll position to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Sample course data (replace with API call from src/services/)
   const courses = [
+    // Existing Courses
     {
       id: 1,
       category: 'Frontend',
@@ -63,6 +88,82 @@ function Courses() {
       level: 'Beginner',
       link: '/courses/mongodb',
     },
+    // Version Control
+    {
+      id: 8,
+      category: 'Version Control',
+      title: 'Git Essentials',
+      description: 'Learn the basics of version control with Git.',
+      level: 'Beginner',
+      link: '/courses/git',
+    },
+    {
+      id: 9,
+      category: 'Version Control',
+      title: 'GitHub for Collaboration',
+      description: 'Master GitHub for team collaboration and project management.',
+      level: 'Beginner',
+      link: '/courses/github',
+    },
+    // Project Management
+    {
+      id: 10,
+      category: 'Project Management',
+      title: 'Jira for Agile Teams',
+      description: 'Learn to manage projects and workflows using Jira.',
+      level: 'Beginner',
+      link: '/courses/jira',
+    },
+    // Programming Languages
+    {
+      id: 11,
+      category: 'Programming Languages',
+      title: 'Python for Beginners',
+      description: 'Start your programming journey with Python.',
+      level: 'Beginner',
+      link: '/courses/python',
+    },
+    {
+      id: 12,
+      category: 'Programming Languages',
+      title: 'Java Fundamentals',
+      description: 'Learn the basics of Java for building robust applications.',
+      level: 'Beginner',
+      link: '/courses/java',
+    },
+    {
+      id: 13,
+      category: 'Programming Languages',
+      title: 'TypeScript Basics',
+      description: 'Enhance your JavaScript skills with TypeScript.',
+      level: 'Intermediate',
+      link: '/courses/typescript',
+    },
+    // Additional Courses
+    {
+      id: 14,
+      category: 'Frontend',
+      title: 'Advanced CSS and Sass',
+      description: 'Take your styling skills to the next level with CSS and Sass.',
+      level: 'Intermediate',
+      link: '/courses/advanced-css',
+    },
+    {
+      id: 15,
+      category: 'Backend',
+      title: 'Authentication with JWT',
+      description: 'Implement secure authentication using JSON Web Tokens.',
+      level: 'Intermediate',
+      link: '/courses/jwt-auth',
+    },
+    {
+      id: 16,
+      category: 'Databases',
+      title: 'Advanced SQL Queries',
+      description: 'Master complex SQL queries for data analysis.',
+      level: 'Intermediate',
+      link: '/courses/advanced-sql',
+    },
   ];
 
   // Filter courses based on category
@@ -72,43 +173,82 @@ function Courses() {
     <div className="courses-container">
       <main className="courses-main">
         {/* Hero Section */}
-        <section className="courses-hero">
-          <h1>Explore Our Courses</h1>
-          <p>Master web development with our beginner-friendly courses in Frontend, Backend, and Databases.</p>
-          <Link to="#courses" className="hero-cta">Start Learning</Link>
-        </section>
+        <motion.section
+          className="courses-hero"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <h1>Explore Our Courses</h1>
+            <p>Master web development with our beginner-friendly courses in Frontend, Backend, Databases, and more.</p>
+            <motion.div variants={hoverVariants} whileHover="hover">
+              <Link to="#courses" className="hero-cta">Start Learning</Link>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
         {/* Filter Bar */}
-        <section className="filter-bar">
+        <motion.section
+          className="filter-bar"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
           <h2>Filter Courses</h2>
           <div className="filter-buttons">
-            {['All', 'Frontend', 'Backend', 'Databases'].map(category => (
-              <button
+            {['All', 'Frontend', 'Backend', 'Databases', 'Version Control', 'Project Management', 'Programming Languages'].map(category => (
+              <motion.button
                 key={category}
                 className={`filter-button ${filter === category ? 'active' : ''}`}
                 onClick={() => setFilter(category)}
+                variants={hoverVariants}
+                whileHover="hover"
               >
                 {category}
-              </button>
+              </motion.button>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         {/* Course List */}
-        <section className="course-list">
+        <motion.section
+          className="course-list"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
           <h2>{filter} Courses</h2>
           <div className="course-grid">
-            {filteredCourses.map(course => (
-              <div key={course.id} className="course-card">
-                <span className={`course-category ${course.category.toLowerCase()}`}>{course.category}</span>
-                <h3>{course.title}</h3>
-                <p className="course-description">{course.description}</p>
-                <p className="course-level">Level: {course.level}</p>
-                <Link to={course.link} className="course-link">Start Course</Link>
-              </div>
-            ))}
+            <AnimatePresence mode="wait">
+              {filteredCourses.map(course => (
+                <motion.div
+                  key={course.id}
+                  className="course-card"
+                  variants={cardVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  whileHover={hoverVariants.hover}
+                >
+                  <span className={`course-category ${course.category.toLowerCase().replace(' ', '-')}`}>{course.category}</span>
+                  <h3>{course.title}</h3>
+                  <p className="course-description">{course.description}</p>
+                  <p className="course-level">Level: {course.level}</p>
+                  <motion.div variants={hoverVariants} whileHover="hover">
+                    <Link to={course.link} className="course-link">Start Course</Link>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
       </main>
     </div>
   );

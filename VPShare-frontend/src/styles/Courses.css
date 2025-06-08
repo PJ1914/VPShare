@@ -41,13 +41,12 @@
   text-decoration: none;
   border-radius: 5px;
   font-weight: 500;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
 .hero-cta:hover {
   background: var(--hover-color);
   color: #1f2937;
-  transform: scale(1.05);
 }
 
 /* Filter Bar */
@@ -76,7 +75,7 @@
   border-radius: 5px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
 .filter-button:hover {
@@ -115,7 +114,6 @@
 }
 
 .course-card:hover {
-  transform: translateY(-5px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
@@ -141,6 +139,21 @@
 .course-category.databases {
   background: #dbeafe;
   color: #2563eb;
+}
+
+.course-category.version-control {
+  background: #e2e8f0;
+  color: #4b5563;
+}
+
+.course-category.project-management {
+  background: #f3e8ff;
+  color: #6b7280;
+}
+
+.course-category.programming-languages {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .course-card h3 {
@@ -190,5 +203,14 @@
 
   .course-grid {
     grid-template-columns: 1fr;
+  }
+
+  .filter-buttons {
+    gap: 0.5rem;
+  }
+
+  .filter-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }
