@@ -65,9 +65,24 @@
   margin-bottom: 1.5rem;
 }
 
-/* Google Auth Button (Styled by GoogleLogin component, but container styled here) */
+/* Google Auth Button */
 .google-auth {
   margin: 1.5rem 0;
+}
+
+.google-auth-button {
+  background: white !important;
+  color: #4285F4 !important;
+  border-color: #4285F4 !important;
+  padding: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+.google-auth-button:hover {
+  background: #f1f5f9 !important;
+  color: #357ae8 !important;
 }
 
 /* Manual Form */
@@ -86,12 +101,12 @@
   color: white !important;
   padding: 0.75rem !important;
   font-weight: 500 !important;
-  transition: background 0.3s ease, transform 0.2s ease !important;
+  text-transform: none !important;
+  transition: background 0.3s ease !important;
 }
 
 .submit-button:hover {
   background: var(--hover-color) !important;
-  transform: scale(1.05) !important;
 }
 
 /* Toggle Text and Button */
@@ -121,6 +136,10 @@
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .home-link a:hover {
@@ -140,5 +159,19 @@
 
   .login-subtitle {
     font-size: 1rem;
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .login-container::before {
+    animation: none;
+  }
+
+  .submit-button,
+  .toggle-button,
+  .home-link a {
+    transition: none !important;
+    transform: none !important;
   }
 }
