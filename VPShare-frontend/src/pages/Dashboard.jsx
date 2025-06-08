@@ -1,4 +1,10 @@
 import { Link } from 'react-router-dom';
+import {
+  LibraryBooks as LibraryBooksIcon,
+  Person as PersonIcon,
+  Support as SupportIcon,
+  Code as CodeIcon,
+} from '@mui/icons-material';
 import '../styles/Dashboard.css';
 
 function Dashboard() {
@@ -98,16 +104,20 @@ function Dashboard() {
           <h2>Quick Links</h2>
           <div className="quick-links-container">
             <Link to="/Courses" className="quick-link-card">
-              <span className="quick-link-icon">📚</span>
+              <span className="quick-link-icon"><LibraryBooksIcon /></span>
               <span className="quick-link-text">Browse All Courses</span>
             </Link>
             <Link to="/profile" className="quick-link-card">
-              <span className="quick-link-icon">👤</span>
+              <span className="quick-link-icon"><PersonIcon /></span>
               <span className="quick-link-text">Update Profile</span>
             </Link>
             <Link to="/support" className="quick-link-card">
-              <span className="quick-link-icon">📞</span>
+              <span className="quick-link-icon"><SupportIcon /></span>
               <span className="quick-link-text">Get Support</span>
+            </Link>
+            <Link to="/playground" className="quick-link-card">
+              <span className="quick-link-icon"><CodeIcon /></span>
+              <span className="quick-link-text">Code Playground</span>
             </Link>
           </div>
         </section>

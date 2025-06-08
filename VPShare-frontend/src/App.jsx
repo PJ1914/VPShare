@@ -7,7 +7,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import Profile from './pages/UserProfile';
+import Playground from './pages/Playground';
 import PrivateRoute from './components/PrivateRoute';
+
 
 function App() {
   return (
@@ -42,6 +44,14 @@ function App() {
               <Profile />
             </PrivateRoute>
           } 
+        />
+        <Route
+         path="/playground" 
+          element={
+            <PrivateRoute>
+              <Playground />
+            </PrivateRoute>
+          }
         />
       </Routes>
       <Footer />

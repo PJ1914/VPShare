@@ -2,6 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import HomeIcon from '@mui/icons-material/Home';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SchoolIcon from '@mui/icons-material/School';
+import CodeIcon from '@mui/icons-material/Code';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LoginIcon from '@mui/icons-material/Login';
 import '../styles/Navbar.css';
 
 function Navbar() {
@@ -61,17 +70,26 @@ function Navbar() {
         <ul className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}>
           <li>
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+              <HomeIcon fontSize="small" className="nav-icon" />
               Home
             </Link>
           </li>
           <li>
             <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
+              <DashboardIcon fontSize="small" className="nav-icon" />
               Dashboard
             </Link>
           </li>
           <li>
             <Link to="/courses" className={location.pathname === '/courses' ? 'active' : ''}>
+              <SchoolIcon fontSize="small" className="nav-icon" />
               Courses
+            </Link>
+          </li>
+          <li>
+            <Link to="/playground" className={location.pathname === '/playground' ? 'active' : ''}>
+              <CodeIcon fontSize="small" className="nav-icon" />
+              Playground
             </Link>
           </li>
           {user ? (
@@ -101,6 +119,7 @@ function Navbar() {
                       className="dropdown-item"
                       onClick={() => setIsDropdownOpen(false)}
                     >
+                      <PersonIcon fontSize="small" className="dropdown-icon" />
                       Profile
                     </Link>
                   </li>
@@ -112,6 +131,7 @@ function Navbar() {
                         setIsDropdownOpen(false);
                       }}
                     >
+                      <LogoutIcon fontSize="small" className="dropdown-icon" />
                       Logout
                     </button>
                   </li>
@@ -121,6 +141,7 @@ function Navbar() {
           ) : (
             <li>
               <Link to="/login" className={location.pathname === '/login' ? 'active' : ''}>
+                <LoginIcon fontSize="small" className="nav-icon" />
                 Login
               </Link>
             </li>
@@ -132,7 +153,7 @@ function Navbar() {
           aria-label="Toggle navigation menu"
           aria-expanded={isMobileMenuOpen}
         >
-          {isMobileMenuOpen ? '✕' : '☰'}
+          {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
       </div>
     </nav>
