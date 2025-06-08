@@ -66,7 +66,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="logo">VPShare</Link>
+        <Link to="/" className="logo">CodeTapasya</Link>
         <ul className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}>
           <li>
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>

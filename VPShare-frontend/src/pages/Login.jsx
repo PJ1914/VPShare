@@ -84,7 +84,7 @@ function Login() {
       >
         <Paper elevation={6} className="login-card">
           <Typography variant="h4" className="login-title">
-            {isLogin ? 'Welcome Back' : 'Join VPShare'}
+            {isLogin ? 'Welcome Back' : 'Join CodeTapasya'}
           </Typography>
           <Typography variant="body1" className="login-subtitle">
             Sign in to start your web development journey

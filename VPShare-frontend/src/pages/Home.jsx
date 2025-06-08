@@ -37,7 +37,7 @@ function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h1>Master Web Development with VPShare</h1>
+            <h1>Master Web Development with CodeTapasya</h1>
             <p className="hero-subtitle">
               Your journey to becoming a full-stack developer starts here. Learn Frontend, Backend, and Databases with ease.
             </p>
@@ -70,7 +70,7 @@ function Home() {
         >
           <h2>Our Vision</h2>
           <p>
-            At VPShare, we believe anyone can become a web developer with the right guidance. Our mission is to empower beginners with clear, structured, and hands-on learning paths in Frontend, Backend, and Databases. We provide simple tutorials, practical projects, and a supportive community to help you succeed.
+            At CodeTapasya, we believe anyone can become a web developer with the right guidance. Our mission is to empower beginners with clear, structured, and hands-on learning paths in Frontend, Backend, and Databases. We provide simple tutorials, practical projects, and a supportive community to help you succeed.
           </p>
         </motion.section>
 
@@ -200,7 +200,7 @@ function Home() {
           variants={sectionVariants}
         >
           <h2>Ready to Start Your Journey?</h2>
-          <p>Join thousands of beginners learning web development with VPShare.</p>
+          <p>Join thousands of beginners learning web development with CodeTapasya.</p>
           <motion.a
             href="#pricing"
             className="cta-button"

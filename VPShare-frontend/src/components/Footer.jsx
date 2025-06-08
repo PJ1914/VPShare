@@ -54,7 +54,7 @@ function Footer() {
 
       {/* Copyright */}
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} VPShare. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} CodeTapasya. All rights reserved.</p>
       </div>
     </footer>
   );
