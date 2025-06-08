@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { motion } from 'framer-motion';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
@@ -11,7 +12,16 @@ import CodeIcon from '@mui/icons-material/Code';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
+import Logo from '../assets/Logo 3.png';
 import '../styles/Navbar.css';
+
+// Animation variants for the logo
+const logoVariants = {
+  initial: { opacity: 0, scale: 0.8 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: 'easeOut' } },
+  hover: { scale: 1.1, rotate: 5, transition: { duration: 0.3 } },
+  tap: { scale: 0.95, transition: { duration: 0.1 } },
+};
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,7 +31,6 @@ function Navbar() {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
-  // Monitor authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -34,7 +43,6 @@ function Navbar() {
     return () => unsubscribe();
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -66,7 +74,19 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="logo">CodeTapasya</Link>
+        <Link to="/" className="logo">
+          <motion.img
+            src={Logo}
+            alt="CodeTapasya Logo"
+            className="logo-image"
+            data-logged-in={user ? 'true' : 'false'} // Add data attribute for conditional animation
+            variants={logoVariants}
+            initial="initial"
+            animate="animate"
+            whileHover="hover"
+            whileTap="tap"
+          />
+        </Link>
         <ul className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}>
           <li>
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>

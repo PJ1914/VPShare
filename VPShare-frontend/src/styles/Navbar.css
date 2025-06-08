@@ -24,27 +24,83 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 1.5rem;
+  height: 60px;
 }
 
 /* Logo */
 .logo {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: white;
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  transition: color 0.3s ease;
+  height: 100%;
+  position: relative; /* For positioning the fire pseudo-element */
 }
 
-.logo:hover {
-  color: var(--hover-color);
+.logo-image {
+  height: 60px;
+  width: auto;
+  max-height: 100%;
+  object-fit: contain;
+  transition: filter 0.3s ease;
+  position: relative; /* For stacking context with pseudo-element */
+}
+
+/* Fire animation pseudo-element (simulating fire on the right side) */
+.logo-image[data-logged-in="true"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30%; /* Adjust based on the fire's width in the logo (assumed to be on the right) */
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 69, 0, 0.6), /* Orange-red for fire */
+    rgba(255, 165, 0, 0.6) /* Orange */
+  );
+  mix-blend-mode: screen; /* Blend mode to simulate glowing fire */
+  animation: flicker 0.5s infinite alternate; /* Apply flickering animation */
+  pointer-events: none; /* Prevent interaction with the pseudo-element */
+}
+
+/* Fire flickering animation */
+@keyframes flicker {
+  0% {
+    opacity: 0.6;
+    transform: translateY(0) scaleY(1);
+  }
+  20% {
+    opacity: 0.8;
+    transform: translateY(-2px) scaleY(1.05);
+  }
+  40% {
+    opacity: 0.5;
+    transform: translateY(1px) scaleY(0.95);
+  }
+  60% {
+    opacity: 0.7;
+    transform: translateY(-1px) scaleY(1.02);
+  }
+  80% {
+    opacity: 0.6;
+    transform: translateY(2px) scaleY(0.98);
+  }
+  100% {
+    opacity: 0.8;
+    transform: translateY(-1px) scaleY(1.03);
+  }
+}
+
+/* Hover effect for the logo */
+.logo:hover .logo-image {
+  filter: brightness(0) saturate(100%) invert(83%) sepia(35%) saturate(463%) hue-rotate(2deg) brightness(105%) contrast(101%);
 }
 
 /* Navigation Links */
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 1.5rem; /* Adjusted for icons */
+  gap: 1.5rem;
   align-items: center;
   margin: 0;
 }
@@ -62,7 +118,7 @@
   padding: 0.5rem 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Space between icon and text */
+  gap: 0.5rem;
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
@@ -83,7 +139,7 @@
 }
 
 .nav-icon {
-  font-size: 1rem; /* Adjusted to fit better */
+  font-size: 1rem;
 }
 
 /* Profile Item */
@@ -125,7 +181,7 @@
   list-style: none;
   padding: 0.5rem 0;
   z-index: 1002;
-  min-width: 150px; /* Increased to accommodate icons */
+  min-width: 150px;
 }
 
 .profile-dropdown li {
@@ -135,7 +191,7 @@
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Space between icon and text */
+  gap: 0.5rem;
   color: white !important;
   font-size: 0.95rem;
   padding: 0.5rem 1rem;
@@ -163,7 +219,7 @@
 }
 
 .dropdown-icon {
-  font-size: 1rem; /* Adjusted to fit better */
+  font-size: 1rem;
 }
 
 /* Hamburger Menu for Mobile */
@@ -233,14 +289,29 @@
 
   .navbar-container {
     padding: 0 1rem;
+    height: 48px;
   }
 
-  .nav-links.mobile-active li a {
-    font-size: 1.1rem; /* Adjusted for mobile with icons */
+  .logo-image {
+    height: 48px;
   }
 
-  .nav-links.mobile-active .nav-icon,
-  .nav-links.mobile-active .dropdown-icon {
-    font-size: 1.1rem; /* Slightly larger for mobile */
+  .logo-image[data-logged-in="true"]::after {
+    width: 30%; /* Adjust for mobile if needed */
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .logo-image,
+  .logo-image::after,
+  .nav-links li a,
+  .profile-picture,
+  .dropdown-item,
+  .hamburger,
+  .nav-links.mobile-active {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
   }
 }

@@ -2,12 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- Primary favicon with increased size -->
+    <link rel="icon" type="image/png" href="/Logo Of CT.png" sizes="70x70" />
+    <!-- Fallback for broader compatibility (same file, different size) -->
+    <link rel="icon" type="image/png" href="/Logo Of CT.png" sizes="32x32" />
+    <!-- Apple Touch Icon for iOS devices -->
+    <link rel="apple-touch-icon" href="/Logo Of CT.png" sizes="180x180" />
+    <!-- Microsoft Windows Tiles -->
+    <meta name="msapplication-TileImage" content="/Logo Of CT.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CodeTapasya</title>
+    <style>
+      /* Minimal styling for the loading logo */
+      #loading-logo {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 250px; /* Increased from 150px for better visibility */
+        height: auto;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Add logo as a loading placeholder -->
+      <img id="loading-logo" src="./src/assets/Logo Of CT.png" alt="CodeTapasya Loading Logo" />
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
