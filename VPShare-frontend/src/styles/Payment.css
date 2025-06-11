@@ -1,0 +1,105 @@
+.payment-page {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.payment-page h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #1f2937;
+}
+
+.plans-container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.plan-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.plan-card.selected {
+  border-color: #2563eb;
+  background: #e0f2fe; /* Light blue background for selected */
+}
+
+.plan-card h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.plan-card .price {
+  font-size: 1.5rem;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.plan-card ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.plan-card li {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.selected-plan-details {
+  margin-bottom: 2rem;
+}
+
+.selected-plan-details h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.selected-plan-details .price {
+  font-size: 2rem;
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+.selected-plan-details ul {
+  list-style: none;
+  padding: 0;
+}
+
+.selected-plan-details li {
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.pay-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.pay-button:disabled {
+  background-color: #6b7280;
+  cursor: not-allowed;
+}

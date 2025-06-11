@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AceEditor from 'react-ace';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -86,6 +86,15 @@ const sidebarContentVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3, delay: 0.2 } },
 };
 
+// Utility to debounce a function
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 function PlaygroundEditor() {
   // State management
   const [files, setFiles] = useState(() => {
@@ -109,34 +118,66 @@ function PlaygroundEditor() {
   const [fontSize, setFontSize] = useState(14);
   const [renamingFile, setRenamingFile] = useState(null);
   const [renameValue, setRenameValue] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
 
   const isDraggingHeight = useRef(false);
   const isDraggingWidth = useRef(false);
+  const editorRef = useRef(null);
+
+  // Detect mobile device on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /mobile|android|iphone|ipad|tablet|touch/.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 767;
+      setIsMobile(isMobileDevice && isSmallScreen);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Auto-save to local storage when enabled
   useEffect(() => {
-    if (autoSave) {
+    if (autoSave && !isMobile) {
       localStorage.setItem('playground_files', JSON.stringify(files));
     }
-  }, [files, autoSave]);
+  }, [files, autoSave, isMobile]);
 
   // Manual save function
   const saveFiles = () => {
-    localStorage.setItem('playground_files', JSON.stringify(files));
+    if (!isMobile) {
+      localStorage.setItem('playground_files', JSON.stringify(files));
+    }
   };
+
+  // Debounced update file content to reduce state updates during typing
+  const debouncedUpdateFileContent = useMemo(
+    () =>
+      debounce((name, content) => {
+        setFiles(prevFiles =>
+          prevFiles.map(file =>
+            file.name === name ? { ...file, content } : file
+          )
+        );
+      }, 100),
+    []
+  );
 
   // Update file content
   const updateFileContent = (name, content) => {
-    setFiles(prevFiles =>
-      prevFiles.map(file =>
-        file.name === name ? { ...file, content } : file
-      )
-    );
+    if (isMobile) return;
+    debouncedUpdateFileContent(name, content);
+    // Force cursor update
+    if (editorRef.current) {
+      editorRef.current.editor.renderer.updateCursor();
+    }
   };
 
   // Add new file
   const addNewFile = () => {
-    if (!newFileName) return;
+    if (isMobile || !newFileName) return;
     const extension = newFileName.substring(newFileName.lastIndexOf('.')).toLowerCase();
     const mode = extensionToMode[extension] || 'text';
     const snippet = snippets[mode]?.[0]?.code || '';
@@ -148,6 +189,7 @@ function PlaygroundEditor() {
 
   // Close file
   const closeFile = (name) => {
+    if (isMobile) return;
     const updatedFiles = files.filter(file => file.name !== name);
     setFiles(updatedFiles);
     if (updatedFiles.length === 0) {
@@ -159,12 +201,13 @@ function PlaygroundEditor() {
 
   // Rename file
   const startRenaming = (name) => {
+    if (isMobile) return;
     setRenamingFile(name);
     setRenameValue(name);
   };
 
   const finishRenaming = () => {
-    if (!renameValue || renameValue === renamingFile) {
+    if (isMobile || !renameValue || renameValue === renamingFile) {
       setRenamingFile(null);
       return;
     }
@@ -183,13 +226,14 @@ function PlaygroundEditor() {
 
   // Clear all files
   const clearAllFiles = () => {
+    if (isMobile) return;
     setFiles([]);
     setActiveFile('');
   };
 
   // Insert snippet
   const insertSnippet = () => {
-    if (!snippetType || !activeFileData) return;
+    if (isMobile || !snippetType || !activeFileData) return;
     const mode = activeFileData.mode;
     const snippet = snippets[mode]?.find(s => s.label === snippetType)?.code || '';
     updateFileContent(activeFileData.name, snippet);
@@ -198,6 +242,7 @@ function PlaygroundEditor() {
 
   // Update preview for HTML/CSS/JS
   const updatePreview = useCallback(() => {
+    if (isMobile) return;
     const htmlFile = files.find(file => file.name.endsWith('.html'));
     const cssFile = files.find(file => file.name.endsWith('.css'));
     const jsFile = files.find(file => file.name.endsWith('.js'));
@@ -227,14 +272,14 @@ function PlaygroundEditor() {
     } catch (e) {
       setPreviewError(e.message);
     }
-  }, [files]);
+  }, [files, isMobile]);
 
   useEffect(() => {
-    if (autoCompile) {
+    if (autoCompile && !isMobile) {
       const timeout = setTimeout(updatePreview, 300);
       return () => clearTimeout(timeout);
     }
-  }, [files, autoCompile, updatePreview]);
+  }, [files, autoCompile, updatePreview, isMobile]);
 
   // Handle errors from iframe
   useEffect(() => {
@@ -249,13 +294,14 @@ function PlaygroundEditor() {
 
   // Handle editor height resizing
   const handleHeightResize = (e) => {
-    if (isDraggingHeight.current) {
+    if (isDraggingHeight.current && !isMobile) {
       const newHeight = e.clientY - document.querySelector('.editor-pane').getBoundingClientRect().top;
       setEditorHeight(Math.max(200, Math.min(800, newHeight)));
     }
   };
 
   const startHeightResize = () => {
+    if (isMobile) return;
     isDraggingHeight.current = true;
   };
 
@@ -265,13 +311,14 @@ function PlaygroundEditor() {
 
   // Handle sidebar width resizing
   const handleWidthResize = (e) => {
-    if (isDraggingWidth.current && sidebarOpen) {
+    if (isDraggingWidth.current && sidebarOpen && !isMobile) {
       const newWidth = e.clientX;
       setSidebarWidth(Math.max(200, Math.min(400, newWidth)));
     }
   };
 
   const startWidthResize = () => {
+    if (isMobile) return;
     isDraggingWidth.current = true;
   };
 
@@ -290,9 +337,45 @@ function PlaygroundEditor() {
       window.removeEventListener('mousemove', handleWidthResize);
       window.removeEventListener('mouseup', stopWidthResize);
     };
-  }, []);
+  }, [isMobile]);
+
+  // Force Ace Editor to re-render on theme, font size, or active file change
+  useEffect(() => {
+    if (editorRef.current) {
+      const editor = editorRef.current.editor;
+      editor.resize(true);
+      editor.renderer.updateFull();
+      editor.renderer.updateCursor(); // Ensure cursor is updated
+    }
+  }, [theme, fontSize, activeFile]);
+
+  // Log cursor position for debugging
+  useEffect(() => {
+    if (editorRef.current) {
+      const editor = editorRef.current.editor;
+      editor.on('change', () => {
+        const cursorPos = editor.getCursorPosition();
+        console.log('Cursor Position:', cursorPos);
+      });
+    }
+  }, [activeFile]);
 
   const activeFileData = files.find(file => file.name === activeFile);
+
+  // If on mobile, show a message instead of the playground
+  if (isMobile) {
+    return (
+      <motion.div
+        className="mobile-message"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2>Playground Not Available on Mobile</h2>
+        <p>Please use a laptop, tablet, or desktop to access the Coding Playground.</p>
+      </motion.div>
+    );
+  }
 
   return (
     <div className={`playground-container ${theme}`}>
@@ -571,15 +654,26 @@ function PlaygroundEditor() {
                 {activeFileData.name}
               </motion.h4>
               <AceEditor
+                ref={editorRef}
                 mode={activeFileData.mode}
                 theme={theme === 'dark' ? 'monokai' : 'github'}
                 value={activeFileData.content}
                 onChange={(content) => updateFileContent(activeFileData.name, content)}
                 name={`${activeFileData.name}-editor`}
                 editorProps={{ $blockScrolling: true }}
-                setOptions={{ useWorker: false, fontSize: fontSize }}
+                setOptions={{
+                  useWorker: false,
+                  fontSize: fontSize,
+                  showPrintMargin: false,
+                  wrap: true,
+                  cursorStyle: 'smooth', // Smooth cursor animation
+                  animatedScroll: false, // Disable animated scrolling to reduce lag
+                  highlightActiveLine: true, // Highlight the active line for better cursor visibility
+                  showGutter: true, // Show line numbers
+                  showLineNumbers: true, // Ensure line numbers are visible
+                }}
                 className="code-editor"
-                style={{ height: '100%' }}
+                style={{ height: '100%', width: '100%' }}
               />
             </motion.div>
           ) : (

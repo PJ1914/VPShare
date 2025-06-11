@@ -1,14 +1,29 @@
 // src/components/PrivateRoute.jsx
 import { Navigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../config/firebase';
+import { getAuth } from 'firebase/auth'; // Ensure Firebase auth is initialized
 
 function PrivateRoute({ children }) {
-  const [user, loading] = useAuthState(auth);
+  const auth = getAuth();
+  const [user, loading, error] = useAuthState(auth);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    // You can render a loading spinner or message here
+    return <div>Loading authentication...</div>;
+  }
 
-  return user ? children : <Navigate to="/login" replace />;
+  if (error) {
+    // Handle authentication error
+    console.error("Authentication error:", error);
+    return <div>Error: {error.message}</div>; // Or redirect to an error page
+  }
+
+  if (!user) {
+    // User is not logged in, redirect to login page
+    return <Navigate to="/login" replace />;
+  }
+
+  return children; // User is logged in, render the protected content
 }
 
 export default PrivateRoute;

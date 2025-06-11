@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Lottie from 'lottie-react';
 // import codingAnimation from '../assets/coding-animation.json'; // Placeholder for Lottie animation file
@@ -41,22 +42,16 @@ function Home() {
             <p className="hero-subtitle">
               Your journey to becoming a full-stack developer starts here. Learn Frontend, Backend, and Databases with ease.
             </p>
-            <motion.a
-              href="#pricing"
-              className="cta-button"
+            <motion.div
+              role="button"
+              tabIndex={0}
               variants={hoverVariants}
               whileHover="hover"
             >
-              Get Started Today
-            </motion.a>
-          </motion.div>
-          <motion.div
-            className="hero-animation"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            {/* <Lottie animationData={codingAnimation} loop={true} style={{ height: '300px' }} /> */}
+              <Link to="/payment/monthly" className="cta-button">
+                Get Started Today
+              </Link>
+            </motion.div>
           </motion.div>
         </motion.section>
 
@@ -129,20 +124,22 @@ function Home() {
               whileHover="hover"
             >
               <h3>Free Plan</h3>
-              <p className="price">0 / forever</p>
+              <p className="price">0 RS / forever</p>
               <ul>
-                <li>Access to beginner tutorials</li>
-                <li>Community support</li>
-                <li>Basic projects</li>
+                <li>Access to blogs</li>
+                <li>View sample projects</li>
+                <li>Community access</li>
               </ul>
-              <motion.a
-                href="#"
-                className="cta-button secondary"
+              <motion.div
+                role="button"
+                tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
               >
-                Start Free
-              </motion.a>
+                <Link to="/courses" className="cta-button secondary">
+                  Explore Free
+                </Link>
+              </motion.div>
             </motion.div>
             <motion.div
               className="pricing-card"
@@ -152,41 +149,45 @@ function Home() {
               <h3>Monthly Plan</h3>
               <p className="price">99 RS / month</p>
               <ul>
-                <li>All Free Plan features</li>
-                <li>Advanced tutorials</li>
-                <li>Exclusive projects</li>
+                <li>30-day full access</li>
+                <li>All courses and projects</li>
                 <li>Priority support</li>
+                <li>Monthly progress tracking</li>
               </ul>
-              <motion.a
-                href="#"
-                className="cta-button"
+              <motion.div
+                role="button"
+                tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
               >
-                Subscribe Now
-              </motion.a>
+                <Link to="/payment/monthly" className="cta-button">
+                  Subscribe Now
+                </Link>
+              </motion.div>
             </motion.div>
             <motion.div
               className="pricing-card"
               variants={hoverVariants}
               whileHover="hover"
             >
-              <h3>Lifetime Plan</h3>
-              <p className="price">599 RS / one-time</p>
+              <h3>Yearly Plan</h3>
+              <p className="price">799 RS / year</p>
               <ul>
-                <li>All Monthly Plan features</li>
-                <li>Lifetime access to all content</li>
+                <li>1-year full access</li>
+                <li>All courses and projects</li>
+                <li>Priority support</li>
                 <li>Early access to new courses</li>
-                <li>Personalized mentorship</li>
               </ul>
-              <motion.a
-                href="#"
-                className="cta-button"
+              <motion.div
+                role="button"
+                tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
               >
-                Get Lifetime Access
-              </motion.a>
+                <Link to="/payment/yearly" className="cta-button">
+                  Subscribe Now
+                </Link>
+              </motion.div>
             </motion.div>
           </div>
         </motion.section>
@@ -201,14 +202,16 @@ function Home() {
         >
           <h2>Ready to Start Your Journey?</h2>
           <p>Join thousands of beginners learning web development with CodeTapasya.</p>
-          <motion.a
-            href="#pricing"
-            className="cta-button"
+          <motion.div
+            role="button"
+            tabIndex={0}
             variants={hoverVariants}
             whileHover="hover"
           >
-            Join Now
-          </motion.a>
+            <Link to="/payment/monthly" className="cta-button">
+              Join Now
+            </Link>
+          </motion.div>
         </motion.section>
       </main>
     </>

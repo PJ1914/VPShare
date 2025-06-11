@@ -7,7 +7,7 @@
 /* Hero Section */
 .hero {
   text-align: center;
-  padding: 3rem 0; /* Reduced padding for better balance with animation */
+  padding: 3rem 0;
   background: linear-gradient(to bottom, #3b82f6, #2563eb);
   color: white;
   border-radius: 8px;
@@ -32,11 +32,6 @@
   color: #e5e7eb;
 }
 
-.hero-animation {
-  max-width: 400px;
-  width: 100%;
-}
-
 .cta-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
@@ -45,19 +40,10 @@
   text-decoration: none;
   border-radius: 5px;
   font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.cta-button:hover {
-  background-color: #059669;
 }
 
 .cta-button.secondary {
   background-color: #6b7280;
-}
-
-.cta-button.secondary:hover {
-  background-color: #4b5563;
 }
 
 /* Vision Section */
@@ -73,7 +59,7 @@
 
 .vision p {
   font-size: 1.2rem;
-  color: #555;
+  color: #333;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -103,11 +89,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 350px;
-  transition: transform 0.3s ease;
-}
-
-.path-card:hover {
-  transform: translateY(-5px);
 }
 
 .path-card h3 {
@@ -117,7 +98,7 @@
 
 .path-card p {
   font-size: 1.1rem;
-  color: #555;
+  color: #333;
 }
 
 /* Pricing Section */
@@ -134,7 +115,7 @@
 
 .pricing p {
   font-size: 1.2rem;
-  color: #555;
+  color: #333;
   margin-bottom: 2rem;
 }
 
@@ -151,7 +132,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 350px;
+  max-width: 350px; /* Increased for fewer cards */
   text-align: center;
 }
 
@@ -174,7 +155,7 @@
 
 .pricing-card li {
   font-size: 1.1rem;
-  color: #555;
+  color: #333;
   margin-bottom: 0.5rem;
 }
 
@@ -191,7 +172,7 @@
 
 .cta p {
   font-size: 1.2rem;
-  color: #555;
+  color: #333;
   margin-bottom: 2rem;
 }
 
@@ -207,10 +188,6 @@
 
   .hero-subtitle {
     font-size: 1.2rem;
-  }
-
-  .hero-animation {
-    max-width: 300px;
   }
 
   .vision h2,
@@ -234,9 +211,5 @@
 
   .hero-subtitle {
     font-size: 1rem;
-  }
-
-  .hero-animation {
-    max-width: 250px;
   }
 }

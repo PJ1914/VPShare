@@ -411,10 +411,12 @@
 }
 
 .code-editor {
-  width: 100% !important;
   border-radius: 6px;
   border: 1px solid var(--dark-border);
   transition: border-color 0.3s ease;
+  line-height: 1.5 !important; /* Ensure consistent line height */
+  padding: 0 !important; /* Remove padding to prevent cursor offset */
+  background: transparent !important; /* Prevent background interference */
 }
 
 .playground-container.light .code-editor {
@@ -423,6 +425,29 @@
 
 .code-editor:hover {
   border-color: var(--primary-color);
+}
+
+/* Ensure Ace Editor's internal elements don't interfere with cursor */
+.ace_editor {
+  background: transparent !important;
+}
+
+.ace_text-layer {
+  line-height: 1.5 !important;
+}
+
+.ace_cursor {
+  z-index: 4 !important; /* Ensure cursor is visible */
+  width: 2px !important; /* Consistent cursor width */
+  background: var(--primary-color) !important; /* Make cursor more visible */
+}
+
+.ace_cursor-layer {
+  z-index: 4 !important; /* Ensure cursor layer is on top */
+}
+
+.ace_hidden-cursors .ace_cursor {
+  opacity: 0 !important; /* Ensure cursor hides properly when not active */
 }
 
 .no-file-message {
@@ -532,6 +557,30 @@
   margin: 0;
 }
 
+/* Mobile Message Styling */
+.mobile-message {
+  text-align: center;
+  padding: 3rem;
+  background: var(--dark-bg-secondary);
+  border-radius: 8px;
+  color: var(--dark-text);
+  margin: 2rem;
+}
+
+.playground-container.light .mobile-message {
+  background: var(--light-bg-secondary);
+  color: var(--light-text);
+}
+
+.mobile-message h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.mobile-message p {
+  font-size: 1.2rem;
+}
+
 /* Responsive Design */
 @media (max-width: 900px) {
   .playground-main {
@@ -548,5 +597,11 @@
 
   .toolbar-right {
     gap: 0.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .playground-container {
+    display: none; /* Hide the playground container on mobile */
   }
 }

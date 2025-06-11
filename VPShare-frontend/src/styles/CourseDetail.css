@@ -1,0 +1,135 @@
+.course-detail {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.course-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.course-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+
+.course-header p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.course-meta {
+  font-size: 1rem;
+  color: #888;
+}
+
+.modules-section {
+  margin-top: 2rem;
+}
+
+.modules-section h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.modules-list {
+  list-style: none;
+  padding-left: 0; /* Adjusted to match JSX class name */
+  margin-top: 1rem;
+}
+
+.module-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.module-item h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #1f2937;
+}
+
+.module-item p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+iframe {
+  margin-top: 0.5rem;
+  border-radius: 8px;
+}
+
+.loading,
+.error,
+.info-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  margin: 2rem 0;
+}
+
+.error {
+  color: #dc2626; /* Red for errors */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .course-header h1 {
+    font-size: 2rem;
+  }
+
+  .course-header p {
+    font-size: 1.1rem;
+  }
+
+  .modules-section h2 {
+    font-size: 1.8rem;
+  }
+
+  .module-item h3 {
+    font-size: 1.3rem;
+  }
+
+  .module-item p {
+    font-size: 0.95rem;
+  }
+
+  iframe {
+    height: 200px; /* Adjusted for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .course-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .course-header p {
+    font-size: 1rem;
+  }
+
+  .modules-section h2 {
+    font-size: 1.6rem;
+  }
+
+  .module-item {
+    padding: 0.75rem;
+  }
+
+  .module-item h3 {
+    font-size: 1.2rem;
+  }
+
+  .module-item p {
+    font-size: 0.9rem;
+  }
+}
