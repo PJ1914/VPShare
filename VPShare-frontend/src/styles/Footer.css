@@ -1,28 +1,72 @@
+/* Import modern font to match other components */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
 /* Define colors for consistency */
 :root {
-  --primary-color: #2563eb;
+  --primary-gradient-start: #1e40af;
+  --primary-gradient-end: #10b981;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --hover-color: #ffdd57;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --dark-bg: #1e1e1e;
+  --dark-bg-secondary: #2d2d2d;
+  --dark-text: #e0e0e0;
+  --light-bg: #f5f5f5;
+  --light-bg-secondary: #ffffff;
+  --light-text: #333;
+  --light-border: #ddd;
 }
 
 /* Footer Styles */
 .footer {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 2rem 0;
-  position: relative;
   width: 100%;
+  padding: 3rem 0;
+  position: relative;
   margin-top: auto; /* Ensures footer stays at bottom */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Theme Classes */
+.footer.dark {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+.footer.light {
+  background: var(--light-bg);
+  color: var(--light-text);
+}
+
+.glassy-effect {
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+.footer.dark .glassy-effect {
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)), rgba(0, 0, 0, 0.2);
+  background-blend-mode: overlay;
+}
+
+.footer.light .glassy-effect {
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)), rgba(255, 255, 255, 0.3);
+  background-blend-mode: overlay;
 }
 
 /* Footer Container */
 .footer-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 2rem;
-  padding: 0 1rem;
+  padding: 0 2rem;
 }
 
 /* Footer Sections */
@@ -33,9 +77,15 @@
 
 /* Footer Headings */
 .footer-heading {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
   color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.footer.light .footer-heading {
+  color: var(--text-primary);
+  text-shadow: none;
 }
 
 /* Footer Links */
@@ -45,14 +95,20 @@
 }
 
 .footer-links li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .footer-link {
   color: white;
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
   transition: color 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer.light .footer-link {
+  color: var(--text-primary);
 }
 
 .footer-link:hover {
@@ -68,18 +124,23 @@
 /* Contact Section */
 .footer-contact p {
   margin: 0;
+  font-size: 1.1rem;
 }
 
 /* Social Links */
 .social-links {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .social-link {
   color: white;
   text-decoration: none;
   transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.footer.light .social-link {
+  color: var(--text-primary);
 }
 
 .social-link:hover {
@@ -93,20 +154,28 @@
 }
 
 .social-icon {
-  font-size: 1.5rem; /* Matches original icon size */
+  font-size: 1.8rem;
 }
 
 /* Footer Bottom */
 .footer-bottom {
   text-align: center;
-  margin-top: 2rem;
-  padding-top: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.footer.light .footer-bottom {
+  border-top-color: var(--light-border);
 }
 
 .footer-bottom p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 1rem;
+}
+
+.footer.light .footer-bottom p {
+  color: var(--text-primary);
 }
 
 /* Responsive Design */
@@ -115,6 +184,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    padding: 0 1rem;
   }
 
   .footer-section {
@@ -128,6 +198,24 @@
   .footer-link:hover,
   .social-link:hover {
     transform: none; /* Disable transform animations on mobile for better UX */
+  }
+
+  .footer-heading {
+    font-size: 1.3rem;
+  }
+
+  .footer-link,
+  .footer-contact p {
+    font-size: 1rem;
+  }
+
+  .social-icon {
+    font-size: 1.5rem;
+  }
+
+  .footer-bottom {
+    margin-top: 2rem;
+    padding-top: 1rem;
   }
 }
 

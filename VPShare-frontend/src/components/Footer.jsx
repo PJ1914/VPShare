@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import TwitterIcon from '@mui/icons-material/Twitter'; // ✅ Fixed
+import TwitterIcon from '@mui/icons-material/Twitter';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import '../styles/Footer.css';
 
 function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer glassy-effect">
       <div className="footer-container">
         {/* Navigation Links */}
         <div className="footer-section footer-links">

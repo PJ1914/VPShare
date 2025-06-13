@@ -53,6 +53,10 @@ function Navbar() {
   // Close dropdown and mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Avoid closing if clicking on a Link within the mobile menu
+      if (event.target.closest('.nav-links a')) {
+        return;
+      }
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
@@ -69,12 +73,12 @@ function Navbar() {
   }, []);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen((prev) => !prev);
     setIsDropdownOpen(false);
   };
 
   const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    setIsDropdownOpen((prev) => !prev);
   };
 
   const handleLogout = async () => {
