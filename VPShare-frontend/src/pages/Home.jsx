@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Lottie from 'lottie-react';
-// import codingAnimation from '../assets/coding-animation.json'; // Placeholder for Lottie animation file
 import '../styles/Home.css';
 
 // Animation variants for sections
@@ -190,6 +188,15 @@ function Home() {
               </motion.div>
             </motion.div>
           </div>
+          <motion.div
+            className="see-all-subscriptions"
+            variants={hoverVariants}
+            whileHover="hover"
+          >
+            <Link to="/payment/monthly" className="cta-button">
+              See All Subscriptions
+            </Link>
+          </motion.div>
         </motion.section>
 
         {/* Call to Action */}

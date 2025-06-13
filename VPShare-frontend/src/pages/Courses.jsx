@@ -39,12 +39,30 @@ function Courses() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Function to map module_id to category
+  const mapModuleIdToCategory = (moduleId) => {
+    const lowerModuleId = moduleId.toLowerCase();
+    if (lowerModuleId.includes('html') || lowerModuleId.includes('css') || lowerModuleId.includes('javascript') || lowerModuleId.includes('react')) {
+      return 'Frontend';
+    } else if (lowerModuleId.includes('node') || lowerModuleId.includes('express') || lowerModuleId.includes('api')) {
+      return 'Backend';
+    } else if (lowerModuleId.includes('sql') || lowerModuleId.includes('database') || lowerModuleId.includes('mongodb')) {
+      return 'Databases';
+    } else if (lowerModuleId.includes('git') || lowerModuleId.includes('github')) {
+      return 'Version Control';
+    } else if (lowerModuleId.includes('agile') || lowerModuleId.includes('scrum') || lowerModuleId.includes('project')) {
+      return 'Project Management';
+    } else if (lowerModuleId.includes('python') || lowerModuleId.includes('java') || lowerModuleId.includes('cpp')) {
+      return 'Programming Languages';
+    }
+    return 'Misc'; // Fallback for unmapped categories
+  };
+
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
       setError(null);
 
-      // Get Authentication Token (Firebase ID Token)
       const auth = getAuth();
       const user = auth.currentUser;
       let authToken = null;
@@ -67,8 +85,7 @@ function Courses() {
         return;
       }
 
-      // Get API URL using Vite's environment variable syntax with fallback
-      const apiUrl = import.meta.env.VITE_COURSES_API_URL || 'https://bjg4znh5wl.execute-api.us-west-2.amazonaws.com/dev';
+      const apiUrl = import.meta.env.VITE_COURSES_API_URL
       console.log("Courses: Using API URL:", apiUrl);
 
       if (!import.meta.env.VITE_COURSES_API_URL) {
@@ -87,20 +104,29 @@ function Courses() {
           ? response.data
           : response.data.Items || response.data.courses || [];
 
+        // Mock progress data (in a real app, fetch this from an API or Firebase)
+        const userProgress = {
+          'html_css_basics': 25,
+          'node_js_intro': 10,
+          // Add more as needed
+        };
+
         const enrichedCourses = rawData
           .map(course => {
-            const courseId = course.module_id; // Use module_id as the course ID
+            const courseId = course.module_id;
             if (!courseId) {
               console.warn("Courses: Skipping course with missing module_id:", course);
               return null;
             }
+            const category = mapModuleIdToCategory(courseId);
             return {
               id: courseId,
               title: course.title || 'Untitled Course',
               description: course.description || 'No description provided.',
-              category: course.category || 'Misc', // Default category since API doesn't provide it
-              level: course.level || 'Beginner', // Default level since API doesn't provide it
+              category: category,
+              level: course.level || 'Beginner',
               link: `/courses/${courseId}`,
+              progress: userProgress[courseId] || 0, // Add progress data
             };
           })
           .filter(course => course !== null);
@@ -242,9 +268,22 @@ function Courses() {
                     <h3>{course.title}</h3>
                     <p className="course-description">{course.description}</p>
                     <p className="course-level">Level: {course.level}</p>
+                    {course.progress > 0 && (
+                      <div className="course-progress">
+                        <p>{course.progress}% Complete</p>
+                        <div className="progress-bar">
+                          <motion.div
+                            className="progress-fill"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${course.progress}%` }}
+                            transition={{ duration: 1, ease: 'easeOut' }}
+                          ></motion.div>
+                        </div>
+                      </div>
+                    )}
                     <motion.div variants={hoverVariants} whileHover="hover">
                       <Link to={course.link} className="course-link">
-                        Start Course
+                        {course.progress > 0 ? 'Continue Course' : 'Start Course'}
                       </Link>
                     </motion.div>
                   </motion.div>

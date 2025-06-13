@@ -1,29 +1,50 @@
+/* Import modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
 .home-main {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Hero Section */
 .hero {
   text-align: center;
   padding: 3rem 0;
-  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
   color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 5%, transparent 5%);
+  background-size: 60px 60px;
+  opacity: 0.2;
 }
 
 .hero-content {
   max-width: 800px;
+  z-index: 1;
 }
 
 .hero h1 {
   font-size: 3rem;
+  font-weight: 800;
   margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero-subtitle {
@@ -35,15 +56,26 @@
 .cta-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background-color: #10b981;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   color: white;
   text-decoration: none;
-  border-radius: 5px;
-  font-weight: bold;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
 }
 
 .cta-button.secondary {
-  background-color: #6b7280;
+  background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
+  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+}
+
+.cta-button.secondary:hover {
+  background: linear-gradient(90deg, #9ca3af 0%, #6b7280 100%);
 }
 
 /* Vision Section */
@@ -54,12 +86,14 @@
 
 .vision h2 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .vision p {
   font-size: 1.2rem;
-  color: #333;
+  color: #4b5563;
   max-width: 800px;
   margin: 0 auto;
 }
@@ -72,7 +106,9 @@
 
 .learning-paths h2 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 2rem;
+  color: #1f2937;
 }
 
 .paths-container {
@@ -83,22 +119,30 @@
 }
 
 .path-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 350px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.path-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .path-card h3 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .path-card p {
   font-size: 1.1rem;
-  color: #333;
+  color: #4b5563;
 }
 
 /* Pricing Section */
@@ -110,12 +154,14 @@
 
 .pricing h2 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .pricing p {
   font-size: 1.2rem;
-  color: #333;
+  color: #4b5563;
   margin-bottom: 2rem;
 }
 
@@ -124,26 +170,35 @@
   gap: 2rem;
   flex-wrap: wrap;
   justify-content: center;
+  margin-bottom: 2rem;
 }
 
 .pricing-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 350px; /* Increased for fewer cards */
+  max-width: 350px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   text-align: center;
+  transition: all 0.3s ease;
+}
+
+.pricing-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .pricing-card h3 {
   font-size: 1.8rem;
   margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .pricing-card .price {
   font-size: 2rem;
-  color: #2563eb;
+  color: #10b981;
   margin-bottom: 1rem;
 }
 
@@ -155,8 +210,12 @@
 
 .pricing-card li {
   font-size: 1.1rem;
-  color: #333;
+  color: #4b5563;
   margin-bottom: 0.5rem;
+}
+
+.see-all-subscriptions {
+  margin-top: 2rem;
 }
 
 /* Call to Action Section */
@@ -167,12 +226,14 @@
 
 .cta h2 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 1rem;
+  color: #1f2937;
 }
 
 .cta p {
   font-size: 1.2rem;
-  color: #333;
+  color: #4b5563;
   margin-bottom: 2rem;
 }
 
@@ -211,5 +272,14 @@
 
   .hero-subtitle {
     font-size: 1rem;
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .path-card,
+  .pricing-card,
+  .cta-button {
+    transition: none;
   }
 }

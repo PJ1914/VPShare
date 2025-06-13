@@ -1,8 +1,15 @@
-/* Reusing colors from Home.css and Navbar.css */
+/* Import modern font to match Home.css and Navbar.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+/* Define colors for consistency with Home.css and Navbar.css */
 :root {
-  --primary-color: #2563eb;
+  --primary-gradient-start: #1e40af;
+  --primary-gradient-end: #10b981;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --hover-color: #ffdd57;
-  --accent-color: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
 }
 
 /* Dashboard Container */
@@ -10,26 +17,99 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Welcome Section */
 .welcome-section {
   text-align: center;
   padding: 2rem 0;
-  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
   color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 5%, transparent 5%);
+  background-size: 60px 60px;
+  opacity: 0.2;
 }
 
 .welcome-section h1 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .welcome-section p {
   font-size: 1.2rem;
   color: #e5e7eb;
+}
+
+/* Overall Progress Widget */
+.overall-progress-section {
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.overall-progress-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  margin: 0 auto;
+  transition: all 0.3s ease;
+}
+
+.overall-progress-widget:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.overall-progress-icon {
+  font-size: 2rem;
+  color: var(--cta-gradient-start);
+}
+
+.overall-progress-text h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.overall-progress-text p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.overall-progress-bar {
+  flex: 1;
+  background: #e5e7eb;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.overall-progress-fill {
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  height: 100%;
 }
 
 /* Progress Section */
@@ -38,9 +118,11 @@
 }
 
 .progress-section h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 .progress-container {
@@ -51,28 +133,32 @@
 }
 
 .progress-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 350px;
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .progress-card:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .progress-card h3 {
   font-size: 1.6rem;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .progress-card p {
   font-size: 1.1rem;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -85,24 +171,24 @@
 }
 
 .progress-fill {
-  background: var(--accent-color);
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
   height: 100%;
 }
 
 .progress-link {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: var(--primary-color);
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
   color: white;
   text-decoration: none;
-  border-radius: 5px;
-  font-weight: 500;
-  transition: background 0.3s ease, color 0.3s ease;
+  border-radius: 50px;
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
 }
 
 .progress-link:hover {
-  background: var(--hover-color);
-  color: #1f2937;
+  background: linear-gradient(90deg, var(--cta-gradient-end) 0%, var(--cta-gradient-start) 100%);
 }
 
 /* Blog Section */
@@ -111,9 +197,11 @@
 }
 
 .blog-section h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 .blog-container {
@@ -123,15 +211,17 @@
 }
 
 .blog-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .blog-card:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .blog-category {
@@ -155,24 +245,26 @@
 
 .blog-category.databases {
   background: #dbeafe;
-  color: #2563eb;
+  color: var(--primary-gradient-start);
 }
 
 .blog-card h3 {
   font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .blog-card p {
   font-size: 1rem;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
 }
 
 .blog-link {
   display: inline-block;
   font-size: 1rem;
-  color: var(--primary-color);
+  color: var(--primary-gradient-start);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
@@ -182,6 +274,113 @@
   color: var(--hover-color);
 }
 
+/* Recent Activity Section */
+.recent-activity-section {
+  padding: 2rem 0;
+}
+
+.recent-activity-section h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
+.recent-activity-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.activity-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.activity-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.activity-icon {
+  font-size: 1.5rem;
+  color: var(--cta-gradient-start);
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-action {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.activity-timestamp {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Motivational Quote Section */
+.quote-section {
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.quote-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.quote-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.quote-icon {
+  font-size: 2rem;
+  color: var(--cta-gradient-start);
+}
+
+.quote-card blockquote {
+  flex: 1;
+  margin: 0;
+  text-align: left;
+}
+
+.quote-card p {
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.quote-card footer {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
 /* Quick Links Section */
 .quick-links {
   padding: 2rem 0;
@@ -189,8 +388,10 @@
 }
 
 .quick-links h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 .quick-links-container {
@@ -204,23 +405,25 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   text-decoration: none;
-  color: #1f2937;
+  color: var(--text-primary);
   font-weight: 500;
   font-size: 1.1rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+  transition: all 0.3s ease;
   width: 100%;
   max-width: 300px;
 }
 
 .quick-link-card:hover {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  background: var(--primary-color);
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
   color: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .quick-link-icon {
@@ -242,10 +445,22 @@
     font-size: 1rem;
   }
 
+  .overall-progress-widget {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .overall-progress-bar {
+    width: 100%;
+  }
+
   .progress-section h2,
   .blog-section h2,
+  .recent-activity-section h2,
+  .quote-section h2,
   .quick-links h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   .progress-container {
@@ -255,5 +470,27 @@
 
   .quick-links-container {
     grid-template-columns: 1fr;
+  }
+
+  .quote-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .quote-card blockquote {
+    text-align: center;
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .progress-card,
+  .blog-card,
+  .activity-card,
+  .quote-card,
+  .quick-link-card,
+  .progress-fill,
+  .overall-progress-fill {
+    transition: none !important;
   }
 }

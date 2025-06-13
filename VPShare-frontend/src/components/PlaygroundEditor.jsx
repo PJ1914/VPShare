@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AceEditor from 'react-ace';
+import Editor from '@monaco-editor/react';
+import { Octokit } from '@octokit/rest';
+import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import MenuIcon from '@mui/icons-material/Menu';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -12,20 +14,17 @@ import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CodeIcon from '@mui/icons-material/Code';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import SearchIcon from '@mui/icons-material/Search';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import HtmlIcon from '@mui/icons-material/Html';
+import CssIcon from '@mui/icons-material/Css';
+import JavascriptIcon from '@mui/icons-material/Javascript';
+import CodeSharpIcon from '@mui/icons-material/CodeSharp'; 
+import DescriptionIcon from '@mui/icons-material/Description'; 
 import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
-
-// Import Ace editor modes and themes
-import 'ace-builds/src-noconflict/mode-html';
-import 'ace-builds/src-noconflict/mode-css';
-import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/mode-python';
-import 'ace-builds/src-noconflict/mode-java';
-import 'ace-builds/src-noconflict/mode-typescript';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/mode-markdown';
-import 'ace-builds/src-noconflict/theme-monokai';
-import 'ace-builds/src-noconflict/theme-github';
 
 // Language mode mapping based on file extension
 const extensionToMode = {
@@ -37,6 +36,18 @@ const extensionToMode = {
   '.ts': 'typescript',
   '.json': 'json',
   '.md': 'markdown',
+};
+
+// File extension to icon mapping using MUI icons
+const extensionToIcon = {
+  '.html': <HtmlIcon className="text-indigo-500" />,
+  '.css': <CssIcon className="text-teal-400" />,
+  '.js': <JavascriptIcon className="text-yellow-400" />,
+  '.py': <CodeSharpIcon className="text-blue-500" />,
+  '.java': <CodeSharpIcon className="text-red-500" />,
+  '.ts': <CodeSharpIcon className="text-blue-600" />,
+  '.json': <DescriptionIcon className="text-green-400" />,
+  '.md': <DescriptionIcon className="text-gray-400" />,
 };
 
 // Predefined snippets for each language mode
@@ -119,10 +130,102 @@ function PlaygroundEditor() {
   const [renamingFile, setRenamingFile] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [fileExplorerOpen, setFileExplorerOpen] = useState(true);
+  const [fileSearch, setFileSearch] = useState('');
+  const [githubToken, setGithubToken] = useState(null);
+  const [repoName, setRepoName] = useState('');
+  const [githubError, setGithubError] = useState(null);
 
   const isDraggingHeight = useRef(false);
   const isDraggingWidth = useRef(false);
   const editorRef = useRef(null);
+  const dragIndex = useRef(null);
+  const octokitRef = useRef(null);
+
+  // GitHub OAuth configuration
+  const GITHUB_CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID';
+  const GITHUB_CLIENT_SECRET = 'YOUR_GITHUB_CLIENT_SECRET';
+  const REDIRECT_URI = 'http://localhost:3000/callback';
+
+  // Initialize Octokit after authentication
+  useEffect(() => {
+    if (githubToken) {
+      octokitRef.current = new Octokit({ auth: githubToken });
+    }
+  }, [githubToken]);
+
+  // Handle GitHub OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+      const authenticate = async () => {
+        try {
+          const auth = createOAuthAppAuth({
+            clientId: GITHUB_CLIENT_ID,
+            clientSecret: GITHUB_CLIENT_SECRET,
+          });
+          const { token } = await auth({ type: 'oauth-app', code, redirectUri: REDIRECT_URI });
+          setGithubToken(token);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error) {
+          setGithubError('Failed to authenticate with GitHub');
+        }
+      };
+      authenticate();
+    }
+  }, []);
+
+  // Authenticate with GitHub
+  const authenticateWithGithub = () => {
+    const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=repo`;
+    window.location.href = authUrl;
+  };
+
+  // Save project to GitHub
+  const saveToGithub = async () => {
+    if (!octokitRef.current || !repoName) {
+      setGithubError('Please authenticate with GitHub and provide a repository name.');
+      return;
+    }
+    try {
+      const projectData = JSON.stringify(files);
+      const content = btoa(projectData);
+      await octokitRef.current.repos.createOrUpdateFileContents({
+        owner: (await octokitRef.current.users.getAuthenticated()).data.login,
+        repo: repoName,
+        path: 'project.json',
+        message: 'Save project from PlaygroundEditor',
+        content,
+      });
+      setGithubError(null);
+      alert('Project saved to GitHub successfully!');
+    } catch (error) {
+      setGithubError('Failed to save to GitHub: ' + error.message);
+    }
+  };
+
+  // Load project from GitHub
+  const loadFromGithub = async () => {
+    if (!octokitRef.current || !repoName) {
+      setGithubError('Please authenticate with GitHub and provide a repository name.');
+      return;
+    }
+    try {
+      const response = await octokitRef.current.repos.getContent({
+        owner: (await octokitRef.current.users.getAuthenticated()).data.login,
+        repo: repoName,
+        path: 'project.json',
+      });
+      const projectData = JSON.parse(atob(response.data.content));
+      setFiles(projectData);
+      setActiveFile(projectData[0]?.name || '');
+      setGithubError(null);
+      alert('Project loaded from GitHub successfully!');
+    } catch (error) {
+      setGithubError('Failed to load from GitHub: ' + error.message);
+    }
+  };
 
   // Detect mobile device on mount
   useEffect(() => {
@@ -161,7 +264,7 @@ function PlaygroundEditor() {
             file.name === name ? { ...file, content } : file
           )
         );
-      }, 100),
+      }, 50),
     []
   );
 
@@ -169,10 +272,6 @@ function PlaygroundEditor() {
   const updateFileContent = (name, content) => {
     if (isMobile) return;
     debouncedUpdateFileContent(name, content);
-    // Force cursor update
-    if (editorRef.current) {
-      editorRef.current.editor.renderer.updateCursor();
-    }
   };
 
   // Add new file
@@ -240,6 +339,24 @@ function PlaygroundEditor() {
     setSnippetType('');
   };
 
+  // Drag-and-drop file reordering
+  const handleDragStart = (index) => {
+    dragIndex.current = index;
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (index) => {
+    const draggedFile = files[dragIndex.current];
+    const newFiles = [...files];
+    newFiles.splice(dragIndex.current, 1);
+    newFiles.splice(index, 0, draggedFile);
+    setFiles(newFiles);
+    dragIndex.current = null;
+  };
+
   // Update preview for HTML/CSS/JS
   const updatePreview = useCallback(() => {
     if (isMobile) return;
@@ -292,7 +409,7 @@ function PlaygroundEditor() {
     return () => window.removeEventListener('message', handleError);
   }, []);
 
-  // Handle editor height resizing
+  // Handle editor height resizing with requestAnimationFrame
   const handleHeightResize = (e) => {
     if (isDraggingHeight.current && !isMobile) {
       const newHeight = e.clientY - document.querySelector('.editor-pane').getBoundingClientRect().top;
@@ -309,7 +426,7 @@ function PlaygroundEditor() {
     isDraggingHeight.current = false;
   };
 
-  // Handle sidebar width resizing
+  // Handle sidebar width resizing with requestAnimationFrame
   const handleWidthResize = (e) => {
     if (isDraggingWidth.current && sidebarOpen && !isMobile) {
       const newWidth = e.clientX;
@@ -327,40 +444,34 @@ function PlaygroundEditor() {
   };
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleHeightResize);
+    let rafId;
+    const rafHandleHeightResize = (e) => {
+      rafId = requestAnimationFrame(() => handleHeightResize(e));
+    };
+    const rafHandleWidthResize = (e) => {
+      rafId = requestAnimationFrame(() => handleWidthResize(e));
+    };
+
+    window.addEventListener('mousemove', rafHandleHeightResize);
     window.addEventListener('mouseup', stopHeightResize);
-    window.addEventListener('mousemove', handleWidthResize);
+    window.addEventListener('mousemove', rafHandleWidthResize);
     window.addEventListener('mouseup', stopWidthResize);
+
     return () => {
-      window.removeEventListener('mousemove', handleHeightResize);
+      window.removeEventListener('mousemove', rafHandleHeightResize);
       window.removeEventListener('mouseup', stopHeightResize);
-      window.removeEventListener('mousemove', handleWidthResize);
+      window.removeEventListener('mousemove', rafHandleWidthResize);
       window.removeEventListener('mouseup', stopWidthResize);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [isMobile]);
 
-  // Force Ace Editor to re-render on theme, font size, or active file change
-  useEffect(() => {
-    if (editorRef.current) {
-      const editor = editorRef.current.editor;
-      editor.resize(true);
-      editor.renderer.updateFull();
-      editor.renderer.updateCursor(); // Ensure cursor is updated
-    }
-  }, [theme, fontSize, activeFile]);
-
-  // Log cursor position for debugging
-  useEffect(() => {
-    if (editorRef.current) {
-      const editor = editorRef.current.editor;
-      editor.on('change', () => {
-        const cursorPos = editor.getCursorPosition();
-        console.log('Cursor Position:', cursorPos);
-      });
-    }
-  }, [activeFile]);
-
   const activeFileData = files.find(file => file.name === activeFile);
+
+  // Filter files based on search
+  const filteredFiles = files.filter(file =>
+    file.name.toLowerCase().includes(fileSearch.toLowerCase())
+  );
 
   // If on mobile, show a message instead of the playground
   if (isMobile) {
@@ -381,7 +492,7 @@ function PlaygroundEditor() {
     <div className={`playground-container ${theme}`}>
       {/* Sidebar */}
       <motion.div
-        className="playground-sidebar"
+        className="playground-sidebar glassy-effect"
         style={{ width: sidebarOpen ? `${sidebarWidth}px` : '0px' }}
         initial={{ x: -250 }}
         animate={{ x: sidebarOpen ? 0 : -sidebarWidth }}
@@ -393,15 +504,106 @@ function PlaygroundEditor() {
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          Files
+          CodeTapasya Playground
+          <GitHubIcon />
         </motion.h3>
+
+        {/* Search Bar */}
         <motion.div
           className="sidebar-section"
           variants={sidebarContentVariants}
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          <label htmlFor="new-file-input">New File</label>
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search files..."
+              value={fileSearch}
+              onChange={(e) => setFileSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all"
+            />
+          </div>
+        </motion.div>
+
+        {/* File Explorer */}
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <div
+            className="flex items-center justify-between cursor-pointer hover:text-gold-500 transition-colors"
+            onClick={() => setFileExplorerOpen(!fileExplorerOpen)}
+          >
+            <label className="text-sm font-semibold">Files</label>
+            {fileExplorerOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </div>
+          <AnimatePresence>
+            {fileExplorerOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {filteredFiles.length > 0 ? (
+                  filteredFiles.map((file, index) => (
+                    <motion.div
+                      key={file.name}
+                      className="file-item flex items-center justify-between p-2 rounded-md cursor-move hover:bg-gray-700/50 transition-all"
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={() => handleDrop(index)}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <div className="flex items-center space-x-2">
+                        {extensionToIcon[file.name.substring(file.name.lastIndexOf('.'))] || <DescriptionIcon />}
+                        {renamingFile === file.name ? (
+                          <TextField
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={finishRenaming}
+                            onKeyPress={(e) => e.key === 'Enter' && finishRenaming()}
+                            size="small"
+                            autoFocus
+                            className="rename-input"
+                          />
+                        ) : (
+                          <span onClick={() => setActiveFile(file.name)} onDoubleClick={() => startRenaming(file.name)}>
+                            {file.name}
+                          </span>
+                        )}
+                      </div>
+                      <motion.button
+                        className="text-gray-400 hover:text-red-400 transition-colors"
+                        onClick={() => closeFile(file.name)}
+                        variants={buttonHoverVariants}
+                        whileHover="hover"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </motion.button>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-gray-400 text-sm">No files found.</p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* New File Section */}
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <label htmlFor="new-file-input" className="text-sm font-semibold block mb-2">New File</label>
           <input
             id="new-file-input"
             type="text"
@@ -409,9 +611,10 @@ function PlaygroundEditor() {
             value={newFileName}
             onChange={(e) => setNewFileName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addNewFile()}
+            className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all"
           />
           <motion.button
-            className="sidebar-button"
+            className="sidebar-button neumorphic w-full mt-2"
             onClick={addNewFile}
             disabled={!newFileName}
             variants={buttonHoverVariants}
@@ -420,18 +623,21 @@ function PlaygroundEditor() {
             Add File
           </motion.button>
         </motion.div>
+
+        {/* Snippets Section */}
         <motion.div
           className="sidebar-section"
           variants={sidebarContentVariants}
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          <label htmlFor="snippet-select">Snippets</label>
+          <label htmlFor="snippet-select" className="text-sm font-semibold block mb-2">Snippets</label>
           <select
             id="snippet-select"
             value={snippetType}
             onChange={(e) => setSnippetType(e.target.value)}
             disabled={!activeFileData}
+            className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all"
           >
             <option value="">None</option>
             {activeFileData && snippets[activeFileData.mode]?.map(snippet => (
@@ -439,16 +645,71 @@ function PlaygroundEditor() {
             ))}
           </select>
           <motion.button
-            className="sidebar-button"
+            className="sidebar-button neumorphic w-full mt-2 flex items-center justify-center"
             onClick={insertSnippet}
             disabled={!snippetType}
             variants={buttonHoverVariants}
             whileHover="hover"
           >
-            <CodeIcon fontSize="small" style={{ marginRight: '0.5rem' }} />
+            <CodeIcon fontSize="small" className="mr-2" />
             Insert Snippet
           </motion.button>
         </motion.div>
+
+        {/* GitHub Integration Section */}
+        <motion.div
+          className="sidebar-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <label htmlFor="repo-name" className="text-sm font-semibold block mb-2">GitHub Integration</label>
+          {!githubToken ? (
+            <motion.button
+              className="sidebar-button neumorphic w-full flex items-center justify-center"
+              onClick={authenticateWithGithub}
+              variants={buttonHoverVariants}
+              whileHover="hover"
+            >
+              <GitHubIcon className="mr-2" />
+              Connect to GitHub
+            </motion.button>
+          ) : (
+            <>
+              <input
+                id="repo-name"
+                type="text"
+                placeholder="Repository name"
+                value={repoName}
+                onChange={(e) => setRepoName(e.target.value)}
+                className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2"
+              />
+              <motion.button
+                className="sidebar-button neumorphic w-full mb-2"
+                onClick={saveToGithub}
+                disabled={!repoName}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
+                Save to GitHub
+              </motion.button>
+              <motion.button
+                className="sidebar-button neumorphic w-full"
+                onClick={loadFromGithub}
+                disabled={!repoName}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
+                Load from GitHub
+              </motion.button>
+              {githubError && (
+                <p className="text-red-400 text-sm mt-2">{githubError}</p>
+              )}
+            </>
+          )}
+        </motion.div>
+
+        {/* Clear All Files */}
         <motion.div
           className="sidebar-section"
           variants={sidebarContentVariants}
@@ -456,13 +717,13 @@ function PlaygroundEditor() {
           animate={sidebarOpen ? "visible" : "hidden"}
         >
           <motion.button
-            className="sidebar-button clear-button"
+            className="sidebar-button neumorphic clear-button w-full flex items-center justify-center"
             onClick={clearAllFiles}
             disabled={files.length === 0}
             variants={buttonHoverVariants}
             whileHover="hover"
           >
-            <DeleteIcon fontSize="small" style={{ marginRight: '0.5rem' }} />
+            <DeleteIcon fontSize="small" className="mr-2" />
             Clear All Files
           </motion.button>
         </motion.div>
@@ -653,27 +914,29 @@ function PlaygroundEditor() {
               >
                 {activeFileData.name}
               </motion.h4>
-              <AceEditor
-                ref={editorRef}
-                mode={activeFileData.mode}
-                theme={theme === 'dark' ? 'monokai' : 'github'}
+              <Editor
+                height="100%"
+                width="100%"
+                language={activeFileData.mode}
+                theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 value={activeFileData.content}
                 onChange={(content) => updateFileContent(activeFileData.name, content)}
-                name={`${activeFileData.name}-editor`}
-                editorProps={{ $blockScrolling: true }}
-                setOptions={{
-                  useWorker: false,
+                onMount={(editor) => {
+                  editorRef.current = editor;
+                }}
+                options={{
                   fontSize: fontSize,
-                  showPrintMargin: false,
-                  wrap: true,
-                  cursorStyle: 'smooth', // Smooth cursor animation
-                  animatedScroll: false, // Disable animated scrolling to reduce lag
-                  highlightActiveLine: true, // Highlight the active line for better cursor visibility
-                  showGutter: true, // Show line numbers
-                  showLineNumbers: true, // Ensure line numbers are visible
+                  minimap: { enabled: false },
+                  wordWrap: 'on',
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  lineNumbers: 'on',
+                  glyphMargin: false,
+                  folding: true,
+                  lineDecorationsWidth: 10,
+                  lineNumbersMinChars: 3,
                 }}
                 className="code-editor"
-                style={{ height: '100%', width: '100%' }}
               />
             </motion.div>
           ) : (
@@ -691,7 +954,7 @@ function PlaygroundEditor() {
         <motion.div
           className="editor-resizer"
           onMouseDown={startHeightResize}
-          whileHover={{ backgroundColor: 'var(--primary-color)' }}
+          whileHover={{ backgroundColor: 'var(--primary-gradient-start)' }}
           transition={{ duration: 0.2 }}
         />
 

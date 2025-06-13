@@ -1,8 +1,15 @@
-/* Reusing colors from Home.css, Navbar.css, Dashboard.css */
+/* Import modern font to match Home.css, Navbar.css, and Dashboard.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+/* Define colors for consistency with Home.css, Navbar.css, and Dashboard.css */
 :root {
-  --primary-color: #2563eb;
+  --primary-gradient-start: #1e40af;
+  --primary-gradient-end: #10b981;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --hover-color: #ffdd57;
-  --accent-color: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
 }
 
 /* Courses Container */
@@ -10,21 +17,38 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Hero Section */
 .courses-hero {
   text-align: center;
   padding: 3rem 0;
-  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
   color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.courses-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 5%, transparent 5%);
+  background-size: 60px 60px;
+  opacity: 0.2;
 }
 
 .courses-hero h1 {
   font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .courses-hero p {
@@ -36,13 +60,19 @@
 .hero-cta {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: var(--accent-color);
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
   color: white;
   text-decoration: none;
   border: none;
-  border-radius: 5px;
-  font-weight: 500;
+  border-radius: 50px;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+}
+
+.hero-cta:hover {
+  background: linear-gradient(90deg, var(--cta-gradient-end) 0%, var(--cta-gradient-start) 100%);
 }
 
 /* Filter Bar */
@@ -52,8 +82,10 @@
 }
 
 .filter-bar h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .filter-buttons {
@@ -65,12 +97,20 @@
 
 .filter-button {
   padding: 0.5rem 1rem;
-  background: #e5e7eb;
-  color: #1f2937;
-  border: none;
-  border-radius: 5px;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  border-radius: 50px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover,
+.filter-button.active {
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  color: white;
 }
 
 /* Course List */
@@ -79,22 +119,31 @@
 }
 
 .course-list h2 {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 800;
   text-align: center;
   margin-bottom: 1.5rem;
+  color: var(--text-primary);
 }
 
 .course-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem; /* Increased gap for better spacing */
+  gap: 2rem;
 }
 
 .course-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .course-category {
@@ -118,7 +167,7 @@
 
 .course-category.databases {
   background: #dbeafe;
-  color: #2563eb;
+  color: var(--primary-gradient-start);
 }
 
 .course-category.version-control {
@@ -136,29 +185,63 @@
   color: #dc2626;
 }
 
+.course-category.misc {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
 .course-card h3 {
   font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .course-description {
   font-size: 1rem;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
 }
 
 .course-level {
   font-size: 0.9rem;
-  color: #888;
+  color: var(--text-secondary);
   margin-bottom: 1rem;
+}
+
+.course-progress {
+  margin-bottom: 1rem;
+}
+
+.course-progress p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  background: #e5e7eb;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  height: 100%;
 }
 
 .course-link {
   display: inline-block;
   font-size: 1rem;
-  color: var(--primary-color);
+  color: var(--primary-gradient-start);
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.course-link:hover {
+  color: var(--hover-color);
 }
 
 .loading-text,
@@ -166,12 +249,12 @@
 .no-courses-found {
   text-align: center;
   font-size: 1.2rem;
-  color: #555;
+  color: var(--text-secondary);
   margin: 2rem 0;
 }
 
 .error-text {
-  color: #dc2626; /* Red for errors */
+  color: #dc2626;
 }
 
 /* Responsive Design */
@@ -181,12 +264,12 @@
   }
 
   .courses-hero p {
-    font-size: 1.1rem; /* Slightly larger for readability */
+    font-size: 1.1rem;
   }
 
   .filter-bar h2,
   .course-list h2 {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   .course-grid {
@@ -195,23 +278,24 @@
   }
 
   .course-card {
-    padding: 1.25rem; /* Slightly reduced padding for mobile */
+    padding: 1.25rem;
   }
 
   .course-description {
-    font-size: 0.95rem; /* Adjusted for mobile readability */
+    font-size: 0.95rem;
   }
 
-  .course-level {
+  .course-level,
+  .course-progress p {
     font-size: 0.85rem;
   }
 
   .filter-buttons {
-    gap: 0.75rem; /* Increased gap for better spacing */
+    gap: 0.75rem;
   }
 
   .filter-button {
-    padding: 0.6rem 1.2rem; /* Larger tap area for mobile */
+    padding: 0.6rem 1.2rem;
     font-size: 0.95rem;
   }
 }
@@ -244,5 +328,16 @@
 
   .course-link {
     font-size: 0.95rem;
+  }
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .course-card,
+  .filter-button,
+  .hero-cta,
+  .course-link,
+  .progress-fill {
+    transition: none !important;
   }
 }

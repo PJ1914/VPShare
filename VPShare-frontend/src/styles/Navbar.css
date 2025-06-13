@@ -1,19 +1,27 @@
-/* Define colors for consistency with Home.css, Dashboard.css, Courses.css */
+/* Import modern font to match Home.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+/* Define colors for consistency with Home.css */
 :root {
-  --primary-color: #2563eb;
+  --primary-gradient-start: #1e40af;
+  --primary-gradient-end: #10b981;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --hover-color: #ffdd57;
-  --accent-color: #10b981;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
 }
 
 /* Navbar Styles */
 .navbar {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
   padding: 0.75rem 0;
   color: white;
   position: sticky;
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
 }
 
 /* Navbar Container */
@@ -33,7 +41,7 @@
   align-items: center;
   text-decoration: none;
   height: 100%;
-  position: relative; /* For positioning the fire pseudo-element */
+  position: relative;
 }
 
 .logo-image {
@@ -42,7 +50,7 @@
   max-height: 100%;
   object-fit: contain;
   transition: filter 0.3s ease;
-  position: relative; /* For stacking context with pseudo-element */
+  position: relative;
 }
 
 /* Fire animation pseudo-element (simulating fire on the right side) */
@@ -51,16 +59,16 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 30%; /* Adjust based on the fire's width in the logo (assumed to be on the right) */
+  width: 30%;
   height: 100%;
   background: linear-gradient(
     to bottom,
-    rgba(255, 69, 0, 0.6), /* Orange-red for fire */
-    rgba(255, 165, 0, 0.6) /* Orange */
+    rgba(255, 69, 0, 0.6),
+    rgba(255, 165, 0, 0.6)
   );
-  mix-blend-mode: screen; /* Blend mode to simulate glowing fire */
-  animation: flicker 0.5s infinite alternate; /* Apply flickering animation */
-  pointer-events: none; /* Prevent interaction with the pseudo-element */
+  mix-blend-mode: screen;
+  animation: flicker 0.5s infinite alternate;
+  pointer-events: none;
 }
 
 /* Fire flickering animation */
@@ -103,6 +111,7 @@
   gap: 1.5rem;
   align-items: center;
   margin: 0;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
 /* Nav Link Items */
@@ -161,7 +170,7 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--accent-color);
+  border: 2px solid var(--cta-gradient-start);
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
 
@@ -175,7 +184,9 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   list-style: none;
@@ -201,12 +212,12 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .dropdown-item:hover {
-  background: var(--hover-color);
-  color: #1f2937 !important;
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  color: var(--text-primary) !important;
 }
 
 .logout-button {
@@ -214,8 +225,8 @@
 }
 
 .logout-button:hover {
-  background: var(--hover-color);
-  color: #1f2937 !important;
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  color: var(--text-primary) !important;
 }
 
 .dropdown-icon {
@@ -231,6 +242,7 @@
   color: white;
   cursor: pointer;
   transition: color 0.3s ease;
+  padding: 0.5rem;
 }
 
 .hamburger:hover {
@@ -238,49 +250,50 @@
 }
 
 /* Mobile Menu */
-.nav-links.mobile-active {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: var(--primary-color);
-  padding: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1001;
-  transform: translateY(0);
-  transition: transform 0.3s ease-in-out;
-}
-
-.nav-links.mobile-active li {
-  margin: 0.75rem 0;
-}
-
-.nav-links.mobile-active li a {
-  font-size: 1.2rem;
-}
-
-.nav-links.mobile-active .profile-picture {
-  width: 40px;
-  height: 40px;
-}
-
-.nav-links.mobile-active .profile-dropdown {
-  position: static;
-  box-shadow: none;
-  background: transparent;
-  padding: 0;
-}
-
-/* Responsive Design */
 @media (max-width: 640px) {
   .nav-links {
     display: none;
+    transform: translateY(-20px);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .nav-links.mobile-active {
     display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .nav-links.mobile-active li {
+    margin: 0.75rem 0;
+  }
+
+  .nav-links.mobile-active li a {
+    font-size: 1.2rem;
+  }
+
+  .nav-links.mobile-active .profile-picture {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav-links.mobile-active .profile-dropdown {
+    position: static;
+    box-shadow: none;
+    background: transparent;
+    padding: 0;
+    border: none;
   }
 
   .hamburger {
@@ -297,7 +310,25 @@
   }
 
   .logo-image[data-logged-in="true"]::after {
-    width: 30%; /* Adjust for mobile if needed */
+    width: 30%;
+  }
+}
+
+/* Desktop View */
+@media (min-width: 641px) {
+  .nav-links {
+    display: flex !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .nav-links.mobile-active {
+    position: static;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+    border: none;
   }
 }
 
@@ -309,9 +340,19 @@
   .profile-picture,
   .dropdown-item,
   .hamburger,
+  .nav-links,
   .nav-links.mobile-active {
     transition: none !important;
     transform: none !important;
     animation: none !important;
+    opacity: 1 !important;
   }
+}
+
+/* Accessibility: Focus styles */
+.hamburger:focus,
+.profile-link:focus,
+.dropdown-item:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: 2px;
 }

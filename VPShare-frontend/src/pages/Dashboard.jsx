@@ -6,6 +6,9 @@ import {
   Person as PersonIcon,
   Support as SupportIcon,
   Code as CodeIcon,
+  TrendingUp as TrendingUpIcon,
+  History as HistoryIcon,
+  FormatQuote as QuoteIcon,
 } from '@mui/icons-material';
 import '../styles/Dashboard.css';
 
@@ -27,7 +30,19 @@ function Dashboard() {
   }, []);
 
   // Placeholder for user data (replace with AuthContext or API call)
-  const user = { name: 'Learner' }; // Example user object
+  const user = { name: 'Learner' };
+
+  // Sample progress data (replace with API call)
+  const progress = {
+    frontend: 50,
+    backend: 30,
+    databases: 20,
+  };
+
+  // Calculate overall progress
+  const overallProgress = Math.round(
+    (progress.frontend + progress.backend + progress.databases) / 3
+  );
 
   // Sample blog data (replace with API call from services/)
   const blogs = [
@@ -61,9 +76,21 @@ function Dashboard() {
     },
   ];
 
+  // Sample recent activity data (replace with API call)
+  const recentActivities = [
+    { id: 1, action: 'Completed HTML Basics Quiz', timestamp: '2 hours ago' },
+    { id: 2, action: 'Started Node.js Course', timestamp: 'Yesterday' },
+    { id: 3, action: 'Read Blog: SQL for Beginners', timestamp: '2 days ago' },
+  ];
+
+  // Sample motivational quote (can be fetched from an API like quotes.rest)
+  const motivationalQuote = {
+    text: "The only way to learn to code is to write code. Keep building, keep learning!",
+    author: "Unknown",
+  };
+
   return (
     <div className="dashboard-container">
-      {/* Navbar (assumed to be included in App.jsx layout) */}
       <main className="dashboard-main">
         {/* Welcome Section */}
         <motion.section
@@ -79,6 +106,35 @@ function Dashboard() {
           >
             <h1>Welcome Back, {user.name}!</h1>
             <p>Your journey to mastering web development continues here.</p>
+          </motion.div>
+        </motion.section>
+
+        {/* Overall Progress Widget */}
+        <motion.section
+          className="overall-progress-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
+          <motion.div
+            className="overall-progress-widget"
+            variants={hoverVariants}
+            whileHover="hover"
+          >
+            <TrendingUpIcon className="overall-progress-icon" />
+            <div className="overall-progress-text">
+              <h3>Overall Progress</h3>
+              <p>{overallProgress}% Complete</p>
+            </div>
+            <div className="overall-progress-bar">
+              <motion.div
+                className="overall-progress-fill"
+                initial={{ width: 0 }}
+                animate={{ width: `${overallProgress}%` }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              ></motion.div>
+            </div>
           </motion.div>
         </motion.section>
 
@@ -98,12 +154,12 @@ function Dashboard() {
               whileHover="hover"
             >
               <h3>Frontend</h3>
-              <p>50% Complete</p>
+              <p>{progress.frontend}% Complete</p>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
                   initial={{ width: 0 }}
-                  animate={{ width: '50%' }}
+                  animate={{ width: `${progress.frontend}%` }}
                   transition={{ duration: 1, ease: 'easeOut' }}
                 ></motion.div>
               </div>
@@ -117,12 +173,12 @@ function Dashboard() {
               whileHover="hover"
             >
               <h3>Backend</h3>
-              <p>30% Complete</p>
+              <p>{progress.backend}% Complete</p>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
                   initial={{ width: 0 }}
-                  animate={{ width: '30%' }}
+                  animate={{ width: `${progress.backend}%` }}
                   transition={{ duration: 1, ease: 'easeOut' }}
                 ></motion.div>
               </div>
@@ -136,12 +192,12 @@ function Dashboard() {
               whileHover="hover"
             >
               <h3>Databases</h3>
-              <p>20% Complete</p>
+              <p>{progress.databases}% Complete</p>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
                   initial={{ width: 0 }}
-                  animate={{ width: '20%' }}
+                  animate={{ width: `${progress.databases}%` }}
                   transition={{ duration: 1, ease: 'easeOut' }}
                 ></motion.div>
               </div>
@@ -178,6 +234,54 @@ function Dashboard() {
               </motion.div>
             ))}
           </div>
+        </motion.section>
+
+        {/* Recent Activity Section */}
+        <motion.section
+          className="recent-activity-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
+          <h2>Recent Activity</h2>
+          <div className="recent-activity-container">
+            {recentActivities.map((activity) => (
+              <motion.div
+                key={activity.id}
+                className="activity-card"
+                variants={hoverVariants}
+                whileHover="hover"
+              >
+                <HistoryIcon className="activity-icon" />
+                <div className="activity-details">
+                  <p className="activity-action">{activity.action}</p>
+                  <p className="activity-timestamp">{activity.timestamp}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Motivational Quote Section */}
+        <motion.section
+          className="quote-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
+          <motion.div
+            className="quote-card"
+            variants={hoverVariants}
+            whileHover="hover"
+          >
+            <QuoteIcon className="quote-icon" />
+            <blockquote>
+              <p>{motivationalQuote.text}</p>
+              <footer>— {motivationalQuote.author}</footer>
+            </blockquote>
+          </motion.div>
         </motion.section>
 
         {/* Quick Links */}

@@ -12,18 +12,20 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
+    "@octokit/auth-oauth-app": "^9.0.1",
+    "@octokit/rest": "^22.0.0",
     "@react-oauth/google": "^0.12.2",
-    "ace-builds": "^1.42.0",
     "axios": "^1.9.0",
     "firebase": "^11.9.0",
     "framer-motion": "^12.16.0",
     "lottie-react": "^2.4.1",
     "react": "^19.1.0",
-    "react-ace": "^14.0.1",
     "react-dom": "^19.1.0",
     "react-firebase-hooks": "^5.1.1",
+    "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^7.6.2"
   },
   "devDependencies": {
@@ -31,10 +33,13 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "postcss": "^8.5.5",
+    "tailwindcss": "^4.1.10",
     "vite": "^6.3.5"
   }
 }

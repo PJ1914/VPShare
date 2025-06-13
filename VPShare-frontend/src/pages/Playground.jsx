@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import PlaygroundEditor from '../components/PlaygroundEditor';
-import ErrorBoundary from '../components/PlaygroundEditor';
+import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/PlaygroundEditor.css';
 
 function Playground() {

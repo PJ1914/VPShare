@@ -30,7 +30,14 @@ function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
+  // Close mobile menu on page change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Handle user authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -43,10 +50,18 @@ function Navbar() {
     return () => unsubscribe();
   }, []);
 
+  // Close dropdown and mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+      }
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest('.hamburger')
+      ) {
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -71,6 +86,10 @@ function Navbar() {
     }
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -79,7 +98,7 @@ function Navbar() {
             src={Logo}
             alt="CodeTapasya Logo"
             className="logo-image"
-            data-logged-in={user ? 'true' : 'false'} // Add data attribute for conditional animation
+            data-logged-in={user ? 'true' : 'false'}
             variants={logoVariants}
             initial="initial"
             animate="animate"
@@ -87,27 +106,46 @@ function Navbar() {
             whileTap="tap"
           />
         </Link>
-        <ul className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}>
+        <ul
+          className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}
+          ref={mobileMenuRef}
+        >
           <li>
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+            <Link
+              to="/"
+              className={location.pathname === '/' ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
               <HomeIcon fontSize="small" className="nav-icon" />
               Home
             </Link>
           </li>
           <li>
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
+            <Link
+              to="/dashboard"
+              className={location.pathname === '/dashboard' ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
               <DashboardIcon fontSize="small" className="nav-icon" />
               Dashboard
             </Link>
           </li>
           <li>
-            <Link to="/courses" className={location.pathname === '/courses' ? 'active' : ''}>
+            <Link
+              to="/courses"
+              className={location.pathname === '/courses' ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
               <SchoolIcon fontSize="small" className="nav-icon" />
               Courses
             </Link>
           </li>
           <li>
-            <Link to="/playground" className={location.pathname === '/playground' ? 'active' : ''}>
+            <Link
+              to="/playground"
+              className={location.pathname === '/playground' ? 'active' : ''}
+              onClick={closeMobileMenu}
+            >
               <CodeIcon fontSize="small" className="nav-icon" />
               Playground
             </Link>
@@ -137,7 +175,10 @@ function Navbar() {
                     <Link
                       to="/profile"
                       className="dropdown-item"
-                      onClick={() => setIsDropdownOpen(false)}
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        closeMobileMenu();
+                      }}
                     >
                       <PersonIcon fontSize="small" className="dropdown-icon" />
                       Profile
@@ -149,6 +190,7 @@ function Navbar() {
                       onClick={() => {
                         handleLogout();
                         setIsDropdownOpen(false);
+                        closeMobileMenu();
                       }}
                     >
                       <LogoutIcon fontSize="small" className="dropdown-icon" />
@@ -160,7 +202,11 @@ function Navbar() {
             </li>
           ) : (
             <li>
-              <Link to="/login" className={location.pathname === '/login' ? 'active' : ''}>
+              <Link
+                to="/login"
+                className={location.pathname === '/login' ? 'active' : ''}
+                onClick={closeMobileMenu}
+              >
                 <LoginIcon fontSize="small" className="nav-icon" />
                 Login
               </Link>
