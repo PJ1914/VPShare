@@ -39,7 +39,6 @@ function Courses() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Function to map module_id to category
   const mapModuleIdToCategory = (moduleId) => {
     const lowerModuleId = moduleId.toLowerCase();
     if (lowerModuleId.includes('html') || lowerModuleId.includes('css') || lowerModuleId.includes('javascript') || lowerModuleId.includes('react')) {
@@ -55,7 +54,7 @@ function Courses() {
     } else if (lowerModuleId.includes('python') || lowerModuleId.includes('java') || lowerModuleId.includes('cpp')) {
       return 'Programming Languages';
     }
-    return 'Misc'; // Fallback for unmapped categories
+    return 'Misc';
   };
 
   useEffect(() => {
@@ -85,11 +84,14 @@ function Courses() {
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_COURSES_API_URL
+      const apiUrl = import.meta.env.VITE_COURSES_API_URL;
       console.log("Courses: Using API URL:", apiUrl);
 
-      if (!import.meta.env.VITE_COURSES_API_URL) {
-        console.warn("Courses: Environment variable VITE_COURSES_API_URL is not set. Using fallback URL.");
+      if (!apiUrl) {
+        console.warn("Courses: Environment variable VITE_COURSES_API_URL is not set.");
+        setError("Configuration error: API URL is not set. Please contact support.");
+        setLoading(false);
+        return;
       }
 
       try {
@@ -104,11 +106,9 @@ function Courses() {
           ? response.data
           : response.data.Items || response.data.courses || [];
 
-        // Mock progress data (in a real app, fetch this from an API or Firebase)
         const userProgress = {
           'html_css_basics': 25,
           'node_js_intro': 10,
-          // Add more as needed
         };
 
         const enrichedCourses = rawData
@@ -126,7 +126,7 @@ function Courses() {
               category: category,
               level: course.level || 'Beginner',
               link: `/courses/${courseId}`,
-              progress: userProgress[courseId] || 0, // Add progress data
+              progress: userProgress[courseId] || 0,
             };
           })
           .filter(course => course !== null);
@@ -138,10 +138,18 @@ function Courses() {
           if (err.response) {
             console.error("Courses: Server Response Error:", err.response.data);
             console.error("Courses: Status Code:", err.response.status);
-            setError(`Failed to load courses: ${err.response.data?.message || err.response.statusText || 'Server Error'}`);
+            if (err.response.status === 403) {
+              setError("Access Denied: Your authentication token is invalid or unauthorized.");
+            } else {
+              setError(`Failed to load courses: ${err.response.data?.message || err.response.statusText || 'Server Error'}`);
+            }
           } else if (err.request) {
             console.error("Courses: No response received (network issue):", err.request);
-            setError("Network Error: Could not connect to the server.");
+            if (err.message.includes('Network Error')) {
+              setError("Unable to load courses due to a server access issue (CORS). Please try again later or contact support.");
+            } else {
+              setError("Network Error: Could not connect to the server.");
+            }
           } else {
             console.error("Courses: Request setup error:", err.message);
             setError(`An unexpected error occurred: ${err.message}`);
@@ -184,7 +192,6 @@ function Courses() {
   return (
     <div className="courses-container">
       <main className="courses-main">
-        {/* Hero Section */}
         <motion.section
           className="courses-hero"
           initial={{ opacity: 0 }}
@@ -206,7 +213,6 @@ function Courses() {
           </motion.div>
         </motion.section>
 
-        {/* Filter Bar */}
         <motion.section
           className="filter-bar"
           initial="hidden"
@@ -230,7 +236,6 @@ function Courses() {
           </div>
         </motion.section>
 
-        {/* Course List */}
         <motion.section
           className="course-list"
           initial="hidden"
@@ -250,7 +255,7 @@ function Courses() {
             initial="hidden"
             animate="visible"
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               {filteredCourses.length > 0 ? (
                 filteredCourses.map(course => (
                   <motion.div
