@@ -27,6 +27,7 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [profilePicture, setProfilePicture] = useState('/default-avatar.jpg');
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -37,14 +38,32 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Handle user authentication state
+  // Handle user authentication state and profile picture
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsMobileMenuOpen(false);
       setIsDropdownOpen(false);
       if (currentUser) {
         console.log('User photoURL:', currentUser.photoURL);
+        if (currentUser.photoURL) {
+          try {
+            const response = await fetch(currentUser.photoURL, { method: 'HEAD' });
+            if (response.ok) {
+              setProfilePicture(currentUser.photoURL);
+            } else {
+              console.warn('Profile picture URL invalid:', currentUser.photoURL);
+              setProfilePicture('/default-avatar.jpg');
+            }
+          } catch (err) {
+            console.error('Failed to fetch profile picture:', err);
+            setProfilePicture('/default-avatar.jpg');
+          }
+        } else {
+          setProfilePicture('/default-avatar.jpg');
+        }
+      } else {
+        setProfilePicture('/default-avatar.jpg');
       }
     });
     return () => unsubscribe();
@@ -53,7 +72,6 @@ function Navbar() {
   // Close dropdown and mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Avoid closing if clicking on a Link within the mobile menu
       if (event.target.closest('.nav-links a')) {
         return;
       }
@@ -163,12 +181,12 @@ function Navbar() {
               >
                 <div className="profile-picture-container">
                   <img
-                    src={user.photoURL || 'https://via.placeholder.com/32'}
+                    src={profilePicture}
                     alt="User Profile"
                     className="profile-picture"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/32';
-                      console.error('Failed to load profile picture:', user.photoURL);
+                      e.target.src = '/default-avatar.jpg';
+                      console.warn('Profile picture load failed, using fallback.');
                     }}
                   />
                 </div>

@@ -24,6 +24,7 @@
   --tab-bg-active: #444;
   --tab-bg-light: #e0e0e0;
   --tab-bg-active-light: #ccc;
+  --sidebar-width: 300px; /* Default sidebar width */
 }
 
 /* General Styles */
@@ -118,21 +119,45 @@
 .content-layout {
   display: flex;
   position: relative;
-  width: 100%; /* Ensure full width */
+  width: 100%;
 }
 
 /* Course Sidebar */
 .course-sidebar {
   background: var(--dark-bg-secondary);
   color: var(--dark-text);
-  width: 300px;
-  height: calc(100vh - 120px); /* Initial height */
+  height: calc(100vh - 120px);
   overflow-y: auto;
   border-right: 2px solid var(--dark-border);
   flex-shrink: 0;
   border-radius: 10px 0 0 10px;
   box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
   transition: width 0.3s ease;
+  position: relative;
+  resize: none; /* Prevent native resizing */
+}
+
+/* Sidebar Resize Handle */
+.sidebar-resize-handle {
+  position: absolute;
+  right: -5px;
+  top: 0;
+  width: 10px;
+  height: 100%;
+  background: var(--dark-border);
+  cursor: col-resize;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.sidebar-resize-handle:hover,
+.sidebar-resize-handle:focus {
+  background: var(--hover-color);
+}
+
+.sidebar-resize-handle:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: -2px;
 }
 
 .sidebar-header {
@@ -257,8 +282,34 @@
   background: var(--light-bg-secondary);
   border-radius: 0 10px 10px 0;
   box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
-  margin-left: 0; /* Remove any margin to eliminate gap */
-  padding-left: 0; /* Remove left padding to align with sidebar */
+  margin-left: 0;
+  padding-left: 0;
+  overflow-y: auto;
+  position: relative;
+  resize: none;
+}
+
+/* Content Resize Handle */
+.content-resize-handle {
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: var(--light-border);
+  cursor: row-resize;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.content-resize-handle:hover,
+.content-resize-handle:focus {
+  background: var(--hover-color);
+}
+
+.content-resize-handle:focus {
+  outline: 2px solid var(--hover-color);
+  outline-offset: -2px;
 }
 
 /* Content Block */
@@ -371,7 +422,6 @@
   border: 1px solid var(--error-color);
 }
 
-/* Optional: Add Prism.js for syntax highlighting if needed */
 .output-content code {
   font-family: 'Courier New', Courier, monospace;
 }
@@ -456,8 +506,7 @@
   }
 
   .course-sidebar {
-    width: 300px;
-    height: calc(100vh - 80px); /* Increased height for tab/laptop/desktop */
+    height: calc(100vh - 80px);
     position: relative;
     border-radius: 10px 0 0 10px;
   }
@@ -465,11 +514,11 @@
   .content-area {
     padding: 1.5rem;
     border-radius: 0 10px 10px 0;
-    padding-left: 0; /* Align flush with sidebar */
+    padding-left: 0;
   }
 }
 
-/* Mobile Layout (max-width: 1024px) - Kept unchanged */
+/* Mobile Layout (max-width: 1024px) */
 @media (max-width: 1024px) {
   .content-container {
     border-radius: 0;
@@ -495,11 +544,20 @@
     box-shadow: none;
   }
 
+  .sidebar-resize-handle {
+    display: none; /* Disable resizing on mobile */
+  }
+
   .content-area {
     margin-left: 0;
     padding: 0.5rem;
     border-radius: 0;
     box-shadow: none;
+    height: auto !important; /* Reset height on mobile */
+  }
+
+  .content-resize-handle {
+    display: none; /* Disable resizing on mobile */
   }
 
   .sidebar-header {
@@ -573,14 +631,18 @@
   .nav-button,
   .run-code-button,
   .submit-quiz-button,
-  .content-area {
+  .content-area,
+  .sidebar-resize-handle,
+  .content-resize-handle {
     transition: none !important;
     animation: none !important;
     transform: none !important;
   }
 }
 
-.course-detail button:focus {
+.course-detail button:focus,
+.sidebar-resize-handle:focus,
+.content-resize-handle:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
 }

@@ -65,12 +65,12 @@ const sectionVariants = {
 
 const sidebarVariants = {
   hidden: { width: 0, opacity: 0 },
-  visible: { width: 300, opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
+  visible: { width: 'var(--sidebar-width)', opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
 };
 
 const contentVariants = {
   hidden: { marginLeft: 0 },
-  visible: { marginLeft: 300, transition: { duration: 0.3, ease: "easeOut" } },
+  visible: { marginLeft: 'var(--sidebar-width)', transition: { duration: 0.3, ease: 'easeOut' } },
 };
 
 const tocItemVariants = {
@@ -101,8 +101,95 @@ function CourseDetail() {
   const [aiMessage, setAiMessage] = useState('');
   const [aiResponse, setAiResponse] = useState('Ask me anything about your course!');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarWidth, setSidebarWidth] = useState(300); // Initial sidebar width in pixels
+  const [contentHeight, setContentHeight] = useState('auto'); // Initial content height
   const navigate = useNavigate();
   const contentRef = useRef(null);
+  const contentAreaRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const isDraggingSidebar = useRef(false);
+  const isDraggingContent = useRef(false);
+
+  // Handle sidebar resize
+  const startSidebarDrag = (e) => {
+    e.preventDefault();
+    isDraggingSidebar.current = true;
+    document.addEventListener('mousemove', handleSidebarDrag);
+    document.addEventListener('mouseup', stopSidebarDrag);
+  };
+
+  const handleSidebarDrag = (e) => {
+    if (!isDraggingSidebar.current) return;
+    const newWidth = e.clientX;
+    const minWidth = 200;
+    const maxWidth = 500;
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      setSidebarWidth(newWidth);
+      document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+    }
+  };
+
+  const stopSidebarDrag = () => {
+    isDraggingSidebar.current = false;
+    document.removeEventListener('mousemove', handleSidebarDrag);
+    document.removeEventListener('mouseup', stopSidebarDrag);
+  };
+
+  // Handle content area resize
+  const startContentDrag = (e) => {
+    e.preventDefault();
+    isDraggingContent.current = true;
+    document.addEventListener('mousemove', handleContentDrag);
+    document.addEventListener('mouseup', stopContentDrag);
+  };
+
+  const handleContentDrag = (e) => {
+    if (!isDraggingContent.current) return;
+    const newHeight = e.clientY - contentAreaRef.current.getBoundingClientRect().top;
+    const minHeight = 400;
+    const maxHeight = window.innerHeight * 0.8; // 80vh
+    if (newHeight >= minHeight && newHeight <= maxHeight) {
+      setContentHeight(newHeight);
+    }
+  };
+
+  const stopContentDrag = () => {
+    isDraggingContent.current = false;
+    document.removeEventListener('mousemove', handleContentDrag);
+    document.removeEventListener('mouseup', stopContentDrag);
+  };
+
+  // Keyboard support for resizing
+  const handleKeyDownSidebar = (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const step = 10; // Pixels per key press
+      let newWidth = sidebarWidth;
+      if (e.key === 'ArrowLeft') newWidth -= step;
+      if (e.key === 'ArrowRight') newWidth += step;
+      const minWidth = 200;
+      const maxWidth = 500;
+      if (newWidth >= minWidth && newWidth <= maxWidth) {
+        setSidebarWidth(newWidth);
+        document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+      }
+    }
+  };
+
+  const handleKeyDownContent = (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const step = 10;
+      let newHeight = typeof contentHeight === 'number' ? contentHeight : 400;
+      if (e.key === 'ArrowUp') newHeight -= step;
+      if (e.key === 'ArrowDown') newHeight += step;
+      const minHeight = 400;
+      const maxHeight = window.innerHeight * 0.8;
+      if (newHeight >= minHeight && newHeight <= maxHeight) {
+        setContentHeight(newHeight);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -295,6 +382,8 @@ function CourseDetail() {
         setIsSidebarOpen(true);
       } else {
         setIsSidebarOpen(false);
+        setSidebarWidth(300); // Reset sidebar width on mobile
+        setContentHeight('auto'); // Reset content height on mobile
       }
     };
     window.addEventListener('resize', handleResize);
@@ -310,11 +399,20 @@ function CourseDetail() {
     }
   }, [searchTerm, toc]);
 
+  useEffect(() => {
+    // Set initial sidebar width
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+  }, [sidebarWidth]);
+
   const handleNext = () => {
     if (currentSectionIndex < sections.length - 1) {
       setCompletedSections((prev) => new Set(prev).add(currentSectionIndex));
       setCurrentSectionIndex((prev) => prev + 1);
       if (window.innerWidth <= 1024) setIsSidebarOpen(false);
+      if (contentAreaRef.current) {
+        contentAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        contentAreaRef.current.focus({ preventScroll: true });
+      }
     }
   };
 
@@ -322,6 +420,10 @@ function CourseDetail() {
     if (currentSectionIndex > 0) {
       setCurrentSectionIndex((prev) => prev - 1);
       if (window.innerWidth <= 1024) setIsSidebarOpen(false);
+      if (contentAreaRef.current) {
+        contentAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        contentAreaRef.current.focus({ preventScroll: true });
+      }
     }
   };
 
@@ -330,6 +432,10 @@ function CourseDetail() {
     setCurrentSectionIndex(index);
     if (window.innerWidth > 1024) {
       setIsSidebarOpen(true);
+    }
+    if (contentAreaRef.current) {
+      contentAreaRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      contentAreaRef.current.focus({ preventScroll: true });
     }
   };
 
@@ -472,11 +578,13 @@ function CourseDetail() {
           <motion.div
             id="course-sidebar"
             className="course-sidebar"
+            ref={sidebarRef}
             initial="hidden"
             animate={isSidebarOpen ? "visible" : "hidden"}
             variants={sidebarVariants}
             role="complementary"
             aria-label="Course Table of Contents"
+            style={{ width: isSidebarOpen ? `${sidebarWidth}px` : 0 }}
           >
             <div className="sidebar-header">
               <BookIcon className="sidebar-icon" />
@@ -567,15 +675,25 @@ function CourseDetail() {
                 </div>
               </Collapse>
             </div>
+            <div
+              className="sidebar-resize-handle"
+              onMouseDown={startSidebarDrag}
+              onKeyDown={handleKeyDownSidebar}
+              role="separator"
+              aria-label="Resize sidebar"
+              tabIndex={0}
+            />
           </motion.div>
           <motion.div
-            ref={contentRef}
+            ref={contentAreaRef}
             className="content-area"
             initial="hidden"
             animate={isSidebarOpen ? "visible" : "hidden"}
             variants={contentVariants}
             role="region"
             aria-label="Course Content Area"
+            tabIndex={-1}
+            style={{ height: contentHeight }}
           >
             <Typography variant="h5" aria-level="2">Course Content</Typography>
             {sections.length > 0 && (
@@ -682,6 +800,14 @@ function CourseDetail() {
                 </div>
               </div>
             )}
+            <div
+              className="content-resize-handle"
+              onMouseDown={startContentDrag}
+              onKeyDown={handleKeyDownContent}
+              role="separator"
+              aria-label="Resize content area"
+              tabIndex={0}
+            />
           </motion.div>
         </div>
       </div>
