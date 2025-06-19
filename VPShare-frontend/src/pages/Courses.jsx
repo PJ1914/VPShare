@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import { getAuth } from 'firebase/auth';
-
 import '../styles/Courses.css';
+
+// Configure axios-retry
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: (retryCount) => retryCount * 1000,
+  retryCondition: (error) => axios.isAxiosError(error) && [502, 503, 504].includes(error.response?.status),
+});
 
 // Animation variants
 const sectionVariants = {
@@ -64,21 +71,22 @@ function Courses() {
 
       const auth = getAuth();
       const user = auth.currentUser;
-      let authToken = null;
 
       if (!user) {
-        setError("You are not logged in. Please log in to view courses.");
+        console.warn("Courses: No authenticated user found.");
+        setError("Please log in to view courses.");
         setLoading(false);
         navigate('/login', { replace: true });
         return;
       }
 
+      let authToken;
       try {
         authToken = await user.getIdToken();
         console.log("Courses: Firebase ID Token obtained successfully.");
       } catch (tokenError) {
-        console.error("Courses: Failed to get Firebase ID token:", tokenError);
-        setError("Failed to authenticate your session. Please log in again.");
+        console.error("Courses: Failed to get Firebase ID token:", tokenError.message);
+        setError("Authentication error. Please log out and log in again.");
         setLoading(false);
         navigate('/login', { replace: true });
         return;
@@ -88,8 +96,8 @@ function Courses() {
       console.log("Courses: Using API URL:", apiUrl);
 
       if (!apiUrl) {
-        console.warn("Courses: Environment variable VITE_COURSES_API_URL is not set.");
-        setError("Configuration error: API URL is not set. Please contact support.");
+        console.warn("Courses: VITE_COURSES_API_URL is not set.");
+        setError("Server configuration error. Please contact support.");
         setLoading(false);
         return;
       }
@@ -100,11 +108,20 @@ function Courses() {
           'Authorization': `Bearer ${authToken}`,
         };
 
-        const response = await axios.get(apiUrl, { headers });
+        const response = await axios.get(apiUrl, { headers, timeout: 30000 });
+        console.log("Courses: API response:", response.data);
 
         const rawData = Array.isArray(response.data)
           ? response.data
           : response.data.Items || response.data.courses || [];
+
+        if (!rawData.length) {
+          console.warn("Courses: No courses returned from API");
+          setError("No courses available. Check back later or contact support.");
+          setCourses([]);
+          setLoading(false);
+          return;
+        }
 
         const userProgress = {
           'html_css_basics': 25,
@@ -136,26 +153,33 @@ function Courses() {
         console.error("Courses: Error fetching courses:", err);
         if (axios.isAxiosError(err)) {
           if (err.response) {
-            console.error("Courses: Server Response Error:", err.response.data);
-            console.error("Courses: Status Code:", err.response.status);
-            if (err.response.status === 403) {
-              setError("Access Denied: Your authentication token is invalid or unauthorized.");
-            } else {
-              setError(`Failed to load courses: ${err.response.data?.message || err.response.statusText || 'Server Error'}`);
+            console.error("Courses: Server Response:", err.response.data, "Status:", err.response.status);
+            switch (err.response.status) {
+              case 400:
+                setError("Invalid request. Please contact support.");
+                break;
+              case 403:
+                setError("Access denied. Please log in again.");
+                navigate('/login', { replace: true });
+                break;
+              case 404:
+                setError("Courses not found. Please contact support.");
+                break;
+              case 500:
+                setError("Server error. Please try again later or contact support.");
+                break;
+              default:
+                setError(`Server error (Code: ${err.response.status}). Please try again.`);
             }
           } else if (err.request) {
-            console.error("Courses: No response received (network issue):", err.request);
-            if (err.message.includes('Network Error')) {
-              setError("Unable to load courses due to a server access issue (CORS). Please try again later or contact support.");
-            } else {
-              setError("Network Error: Could not connect to the server.");
-            }
+            console.error("Courses: No response received:", err.request);
+            setError("Network error: Unable to connect to the server.");
           } else {
             console.error("Courses: Request setup error:", err.message);
-            setError(`An unexpected error occurred: ${err.message}`);
+            setError(`Unexpected error: ${err.message}.`);
           }
         } else {
-          setError(`An unexpected error occurred: ${err.message}`);
+          setError(`Unexpected error: ${err.message}.`);
         }
         setCourses([]);
       } finally {
@@ -246,8 +270,24 @@ function Courses() {
         >
           <h2>{filter} Courses</h2>
 
-          {loading && <p className="loading-text">Loading courses...</p>}
-          {error && <p className="error-text">{error}</p>}
+          {loading && (
+            <div className="loading-container">
+              <p className="loading-text">Loading courses...</p>
+              <div className="spinner" role="status" aria-label="Loading"></div>
+            </div>
+          )}
+          {error && (
+            <div className="error-container">
+              <p className="error-text">{error}</p>
+              <button
+                onClick={() => navigate('/')}
+                className="error-back-button"
+                aria-label="Back to Home"
+              >
+                Back to Home
+              </button>
+            </div>
+          )}
 
           <motion.div
             className="course-grid"
@@ -287,7 +327,7 @@ function Courses() {
                       </div>
                     )}
                     <motion.div variants={hoverVariants} whileHover="hover">
-                      <Link to={course.link} className="course-link">
+                      <Link to={course.link} className="course-link" aria-label={`Go to ${course.title}`}>
                         {course.progress > 0 ? 'Continue Course' : 'Start Course'}
                       </Link>
                     </motion.div>

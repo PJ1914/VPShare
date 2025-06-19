@@ -1,8 +1,26 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getAuth } from 'firebase/auth';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  Collapse,
+  TextField,
+  Button,
+  CircularProgress,
+  Skeleton,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -10,8 +28,35 @@ import TocIcon from '@mui/icons-material/Toc';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BookIcon from '@mui/icons-material/Book';
-
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import '../styles/CourseDetail.css';
+
+// Configure axios-retry
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: (retryCount) => retryCount * 1000,
+  retryCondition: (error) => axios.isAxiosError(error) && [502, 503, 504].includes(error.response?.status),
+});
+
+// Function to safely evaluate simple mathematical expressions
+const safeEval = (code) => {
+  try {
+    const allowed = /^[0-9+\-*/.\s()]+$/;
+    if (!allowed.test(code)) {
+      throw new Error('Unsupported operation. Only basic math expressions are allowed.');
+    }
+    const fn = new Function('return ' + code);
+    const result = fn();
+    if (isNaN(result) || !isFinite(result)) {
+      throw new Error('Invalid result');
+    }
+    return result;
+  } catch (err) {
+    return err.message;
+  }
+};
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -19,23 +64,13 @@ const sectionVariants = {
 };
 
 const sidebarVariants = {
-  hidden: { x: '-100%', opacity: 0 },
-  visible: { 
-    x: 0, 
-    opacity: 1, 
-    transition: { 
-      duration: 0.3, 
-      ease: "easeOut",
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-    } 
-  },
+  hidden: { width: 0, opacity: 0 },
+  visible: { width: 300, opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
 };
 
-const overlayVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
+const contentVariants = {
+  hidden: { marginLeft: 0 },
+  visible: { marginLeft: 300, transition: { duration: 0.3, ease: "easeOut" } },
 };
 
 const tocItemVariants = {
@@ -52,6 +87,7 @@ function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [sections, setSections] = useState([]);
   const [toc, setToc] = useState([]);
+  const [filteredToc, setFilteredToc] = useState([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [completedSections, setCompletedSections] = useState(new Set());
   const [codeOutputs, setCodeOutputs] = useState({});
@@ -59,52 +95,58 @@ function CourseDetail() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+  const [tocOpen, setTocOpen] = useState(true);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiMessage, setAiMessage] = useState('');
+  const [aiResponse, setAiResponse] = useState('Ask me anything about your course!');
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const contentRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
-      console.log("CourseDetail Debug: ID from useParams:", id, " (Type:", typeof id, ")");
+      console.log("CourseDetail: Course ID from useParams:", id);
 
-      if (!id || id === 'undefined' || typeof id !== 'string') {
-        console.warn('CourseDetail: Invalid Course ID provided in URL. Aborting fetch operations.');
-        setError('No valid course selected or invalid course ID provided in the URL.');
+      if (!id || id.trim() === '') {
+        console.warn('CourseDetail: Invalid or empty Course ID.');
+        setError('Invalid course ID. Please check the URL.');
         setLoading(false);
         return;
       }
 
       const auth = getAuth();
       const user = auth.currentUser;
-      let authToken = null;
 
       if (!user) {
-        console.warn("CourseDetail: No authenticated Firebase user found.");
-        setError("You are not logged in. Please log in to view course content.");
+        console.warn("CourseDetail: No authenticated user found.");
+        setError("Please log in to access this course.");
         setLoading(false);
         navigate('/login', { replace: true });
         return;
       }
 
+      let authToken;
       try {
         authToken = await user.getIdToken();
         console.log("CourseDetail: Firebase ID Token obtained successfully.");
       } catch (tokenError) {
-        console.error("CourseDetail: Failed to get Firebase ID token:", tokenError);
-        setError("Failed to authenticate your session. Please log in again.");
+        console.error("CourseDetail: Failed to get Firebase ID token:", tokenError.message);
+        setError("Authentication error. Please log out and log in again.");
         setLoading(false);
         navigate('/login', { replace: true });
         return;
       }
 
       const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
-      console.log("CourseDetail: Using Courses API URL:", coursesApiUrl);
+      console.log("CourseDetail: Using API URL:", coursesApiUrl);
 
       if (!coursesApiUrl) {
-        console.warn("CourseDetail: Environment variable VITE_COURSES_API_URL is not set.");
-        setError("Configuration error: API URL is not set. Please contact support.");
+        console.warn("CourseDetail: VITE_COURSES_API_URL is not set.");
+        setError("Server configuration error. Please contact support.");
         setLoading(false);
         return;
       }
@@ -115,40 +157,53 @@ function CourseDetail() {
           'Authorization': `Bearer ${authToken}`,
         };
 
-        const courseRes = await axios.get(coursesApiUrl, { headers });
+        const courseRes = await axios.get(coursesApiUrl, { headers, timeout: 30000 });
         console.log("CourseDetail: Course metadata response:", courseRes.data);
 
         const rawData = Array.isArray(courseRes.data)
           ? courseRes.data
           : courseRes.data.Items || courseRes.data.courses || [];
+        
+        if (!rawData.length) {
+          console.warn("CourseDetail: No courses returned from API");
+          setError("No courses available. Please try another course or contact support.");
+          setLoading(false);
+          return;
+        }
 
         const courseData = rawData.find(item => item.module_id === id);
 
         if (!courseData) {
-          throw new Error("Course data not found in API response.");
+          console.warn("CourseDetail: Course not found for module_id:", id);
+          setError(`Course with ID ${id} not found. Please verify the course ID or contact support.`);
+          setLoading(false);
+          return;
         }
 
         setCourse({
           ...courseData,
           module_id: courseData.module_id || id,
+          title: courseData.title || 'Untitled Course',
+          description: courseData.description || 'No description provided.',
+          level: courseData.level || 'Beginner',
         });
 
         const order = courseData.order || '1';
-        console.log(`CourseDetail: Fetching HTML content for moduleId=${id}, order=${order}`);
+        console.log(`CourseDetail: Fetching HTML for moduleId=${id}, order=${order}`);
         const htmlRes = await axios.get(`${coursesApiUrl}?moduleId=${id}&order=${order}`, {
           headers,
           responseType: 'text',
+          timeout: 15000,
         });
-        console.log("CourseDetail: HTML content response:", htmlRes.data);
 
-        if (htmlRes.data.includes("Module not found") || htmlRes.data.includes("Error fetching document")) {
-          throw new Error("Failed to load course content: " + htmlRes.data);
+        if (!htmlRes.data || htmlRes.data.includes("Module not found") || htmlRes.data.includes("Error fetching")) {
+          throw new Error("Failed to load course content: " + (htmlRes.data || "No response"));
         }
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlRes.data, 'text/html');
         const body = doc.querySelector('body');
-        const elements = body ? Array.from(body.children) : [];
+        const elements = body ? Array.from(body.children).filter(el => !['script', 'style'].includes(el.tagName.toLowerCase())) : [];
 
         const parsedSections = [];
         const tocItems = [];
@@ -164,7 +219,7 @@ function CourseDetail() {
             currentSection = { heading: el.outerHTML, content: '' };
             tocItems.push({ title: el.textContent.trim(), index: sectionIndex });
             sectionIndex++;
-          } else if (el.textContent.trim() && !['script', 'style'].includes(tagName)) {
+          } else if (el.textContent.trim()) {
             currentSection.content += el.outerHTML;
           }
         });
@@ -174,47 +229,48 @@ function CourseDetail() {
         }
 
         if (parsedSections.length === 0) {
-          throw new Error("No valid content sections found in the document.");
+          throw new Error("No valid sections found in the document.");
         }
 
         setSections(parsedSections);
         setToc(tocItems);
-
+        setFilteredToc(tocItems);
       } catch (err) {
-        console.error("CourseDetail: Error fetching course details or content:", err);
-
+        console.error("CourseDetail: Fetch error:", err);
         if (axios.isAxiosError(err)) {
           if (err.response) {
-            console.error("CourseDetail: Server Response Error:", err.response.data);
-            console.error("CourseDetail: Status Code:", err.response.status);
-            console.error("CourseDetail: Headers:", err.response.headers);
-
-            if (err.response.status === 400) {
-              setError(`Bad Request: ${err.response.data || err.message}.`);
-            } else if (err.response.status === 403) {
-              setError("Access Denied: Your authentication token is invalid or unauthorized.");
-            } else if (err.response.status === 404) {
-              setError("Course content not found. The document may not exist or is not accessible.");
-            } else {
-              setError(`Server Error (${err.response.status}): ${err.response.data || err.message}`);
+            console.error("CourseDetail: Server Response:", err.response.data, "Status:", err.response.status);
+            switch (err.response.status) {
+              case 400:
+                setError("Invalid request. The course ID may be incorrect.");
+                break;
+              case 403:
+                setError("Access denied. Please log in again.");
+                navigate('/login', { replace: true });
+                break;
+              case 404:
+                setError(`Course content for ID ${id} not found. Please verify the course ID.`);
+                break;
+              case 500:
+                setError("Server error. Please try again later or contact support.");
+                break;
+              default:
+                setError(`Server error (Code: ${err.response.status}). Please try again.`);
             }
           } else if (err.request) {
-            console.error("CourseDetail: No response received (network issue):", err.request);
-            if (err.message.includes('Network Error')) {
-              setError("Unable to load course details due to a server access issue (CORS). Please try again later or contact support.");
-            } else {
-              setError("Network Error: Could not connect to the server. Please check your internet connection.");
-            }
+            console.error("CourseDetail: No response:", err.request);
+            setError("Network error: Unable to connect to the server.");
           } else {
-            console.error("CourseDetail: Request setup error:", err.message);
-            setError(`An unexpected error occurred: ${err.message}`);
+            console.error("CourseDetail: Request error:", err.message);
+            setError(`Unexpected error: ${err.message}.`);
           }
         } else {
-          setError(`An unexpected error occurred: ${err.message}`);
+          setError(`Error: ${err.message}. Please contact support.`);
         }
         setCourse(null);
         setSections([]);
         setToc([]);
+        setFilteredToc([]);
       } finally {
         setLoading(false);
       }
@@ -223,23 +279,58 @@ function CourseDetail() {
     fetchData();
   }, [id, navigate]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (contentRef.current && !contentRef.current.contains(event.target) && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredToc(toc);
+    } else {
+      setFilteredToc(toc.filter(item => item.title.toLowerCase().includes(searchTerm.toLowerCase())));
+    }
+  }, [searchTerm, toc]);
+
   const handleNext = () => {
     if (currentSectionIndex < sections.length - 1) {
       setCompletedSections((prev) => new Set(prev).add(currentSectionIndex));
-      setCurrentSectionIndex(currentSectionIndex + 1);
+      setCurrentSectionIndex((prev) => prev + 1);
+      if (window.innerWidth <= 1024) setIsSidebarOpen(false);
     }
   };
 
   const handlePrevious = () => {
     if (currentSectionIndex > 0) {
-      setCurrentSectionIndex(currentSectionIndex - 1);
+      setCurrentSectionIndex((prev) => prev - 1);
+      if (window.innerWidth <= 1024) setIsSidebarOpen(false);
     }
   };
 
   const handleTocClick = (index) => {
     setCompletedSections((prev) => new Set(prev).add(currentSectionIndex));
     setCurrentSectionIndex(index);
-    setIsSidebarOpen(false);
+    if (window.innerWidth > 1024) {
+      setIsSidebarOpen(true);
+    }
   };
 
   const handleRunCode = (sectionIndex) => {
@@ -250,14 +341,19 @@ function CourseDetail() {
 
     if (codeElements.length > 0) {
       const code = codeElements[0].textContent.trim();
-      try {
-        const output = `<div>${code}</div>`;
-        setCodeOutputs((prev) => ({ ...prev, [sectionIndex]: output }));
-      } catch (err) {
-        setCodeOutputs((prev) => ({ ...prev, [sectionIndex]: `<p style="color: red;">Error executing code: ${err.message}</p>` }));
-      }
+      const result = safeEval(code);
+      setCodeOutputs((prev) => ({
+        ...prev,
+        [sectionIndex]: {
+          output: result,
+          isError: typeof result === 'string' && result.includes('Error'),
+        },
+      }));
     } else {
-      setCodeOutputs((prev) => ({ ...prev, [sectionIndex]: '<p>No executable code found.</p>' }));
+      setCodeOutputs((prev) => ({
+        ...prev,
+        [sectionIndex]: { output: 'No code to run.', isError: false },
+      }));
     }
   };
 
@@ -266,176 +362,262 @@ function CourseDetail() {
   };
 
   const handleQuizSubmit = () => {
+    if (Object.keys(quizAnswers).length !== quizQuestions.length) {
+      setError("Please answer all questions before submitting.");
+      return;
+    }
     setQuizSubmitted(true);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const toggleToc = () => setTocOpen((prev) => !prev);
+  const toggleAi = () => setAiOpen((prev) => !prev);
+
+  const handleAiSend = () => {
+    if (aiMessage.trim()) {
+      setAiResponse(`AI: I'm here to help! You asked: "${aiMessage}". Let me know more about your question!`);
+      setAiMessage('');
+    }
   };
 
-  if (loading) return <p className="loading">Loading course details...</p>;
-  if (error) return <p className="error">Error: {error}</p>;
-  if (!course) return <p className="info-message">Course not found for ID: {id}. Please check the URL.</p>;
+  const progress = toc.length > 0 ? (completedSections.size / toc.length) * 100 : 0;
 
-  const quizQuestions = course.title.includes('HTML') ? [
-    {
-      question: "What does HTML stand for?",
-      options: [
-        "Hyper Text Markup Language",
-        "Hyper Transfer Markup Language",
-        "High Text Markup Language",
-        "Hyperlink Text Markup Language",
-      ],
-      correctAnswer: "Hyper Text Markup Language",
-    },
-    {
-      question: "Which tag is used to create a hyperlink in HTML?",
-      options: ["<link>", "<a>", "<href>", "<url>"],
-      correctAnswer: "<a>",
-    },
-  ] : [
-    {
-      question: "Which keyword is used to declare a variable in Javascript?",
-      options: ["var", "int", "string", "define"],
-      correctAnswer: "var",
-    },
-    {
-      question: "What is the output of console.log(typeof null)?",
-      options: ["null", "object", "undefined", "string"],
-      correctAnswer: "object",
-    },
-  ];
+  const quizQuestions = course?.title?.includes('HTML')
+    ? [
+        { question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "Hyper Transfer Markup Language", "High Text Markup Language", "Hyperlink Text Markup Language"], correctAnswer: "Hyper Text Markup Language" },
+        { question: "Which tag is used to create a hyperlink?", options: ["<link>", "<a>", "<href>", "<url>"], correctAnswer: "<a>" },
+      ]
+    : [
+        { question: "Which keyword declares a variable in JavaScript?", options: ["var", "int", "string", "define"], correctAnswer: "var" },
+        { question: "What is the output of console.log(typeof null)?", options: ["null", "object", "undefined", "string"], correctAnswer: "object" },
+      ];
+
+  if (loading) {
+    return (
+      <div className="course-detail loading-container" role="alert" aria-live="polite">
+        <div className="content-container">
+          <Skeleton variant="rectangular" height={200} animation="wave" />
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <CircularProgress color="inherit" aria-label="Loading course details" />
+            <Typography variant="h6" style={{ marginTop: '1rem' }}>Loading course details...</Typography>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="course-detail error-container" role="alert" aria-live="assertive">
+        <div className="content-container">
+          <Typography variant="h5" color="error" align="center" style={{ padding: '2rem' }}>
+            Error: {error}
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/courses')}
+            aria-label="Back to courses"
+            style={{ display: 'block', margin: '0 auto' }}
+          >
+            Back to Courses
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!course) return (
+    <div className="course-detail error-container" role="alert" aria-live="assertive">
+      <Typography variant="h5" align="center" style={{ padding: '2rem' }}>
+        Course not found for ID: {id}.
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => navigate('/courses')}
+        aria-label="Back to courses"
+        style={{ display: 'block', margin: '0 auto' }}
+      >
+        Back to Courses
+      </Button>
+    </div>
+  );
 
   return (
-    <div className="course-detail">
-      <button className="sidebar-toggle" onClick={toggleSidebar} title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}>
-        <TocIcon />
-      </button>
-
-      {isSidebarOpen && (
-        <motion.div
-          className="sidebar-overlay"
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          variants={overlayVariants}
-          onClick={toggleSidebar}
-        />
-      )}
-
-      <div className="container flex">
-        {toc.length > 0 && (
+    <div className="course-detail" role="main">
+      <div className="content-container">
+        <motion.div className="course-header" initial="hidden" animate="visible" variants={sectionVariants}>
+          <Typography variant="h4" aria-level="1">{course.title}</Typography>
+          <Typography variant="body1">{course.description}</Typography>
+          <Typography variant="caption">Level: {course.level}</Typography>
+        </motion.div>
+        <AppBar position="static" className="course-navbar" role="navigation">
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="Toggle sidebar"
+              onClick={toggleSidebar}
+              className="course-menu-button"
+              aria-expanded={isSidebarOpen}
+              aria-controls="course-sidebar"
+            >
+              {isSidebarOpen ? <CloseIcon /> : <MenuIcon />}
+            </IconButton>
+            <Typography variant="h6" className="course-navbar-title">Course Navigation</Typography>
+          </Toolbar>
+        </AppBar>
+        <div className="content-layout">
           <motion.div
-            className={`course-sidebar ${isSidebarOpen ? 'active' : ''}`}
+            id="course-sidebar"
+            className="course-sidebar"
             initial="hidden"
-            animate={isSidebarOpen ? 'visible' : 'hidden'}
+            animate={isSidebarOpen ? "visible" : "hidden"}
             variants={sidebarVariants}
+            role="complementary"
+            aria-label="Course Table of Contents"
           >
-            <div className="course-sidebar-header">
-              <BookIcon className="course-sidebar-header-icon" />
-              <h3>Table of Contents</h3>
+            <div className="sidebar-header">
+              <BookIcon className="sidebar-icon" />
+              <Typography variant="h6">Table of Contents</Typography>
+              <IconButton
+                onClick={toggleToc}
+                aria-label="Toggle Table of Contents"
+                aria-expanded={tocOpen}
+                className="toc-toggle"
+              >
+                {tocOpen ? <ExpandLess /> : <ExpandMore />}
+              </IconButton>
             </div>
-            <div className="course-sidebar-progress">
-              <p>{completedSections.size}/{sections.length} sections completed</p>
-              <div className="course-sidebar-progress-bar-container">
-                <div
-                  className="course-sidebar-progress-bar"
-                  style={{ width: `${((completedSections.size) / sections.length) * 100}%` }}
-                />
-              </div>
+            <div className="sidebar-progress">
+              <Typography variant="caption">Progress: {progress.toFixed(0)}%</Typography>
             </div>
-            <ul>
-              {toc.map((item, i) => (
-                <motion.li
-                  key={item.index}
-                  custom={i}
-                  initial="hidden"
-                  animate="visible"
-                  variants={tocItemVariants}
-                >
-                  <button
-                    onClick={() => handleTocClick(item.index)}
-                    className={`course-sidebar-item ${currentSectionIndex === item.index ? 'active' : ''}`}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleTocClick(item.index);
-                      }
-                    }}
+            <TextField
+              variant="outlined"
+              placeholder="Search sections..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              fullWidth
+              size="small"
+              className="sidebar-search"
+              inputProps={{ 'aria-label': 'Search table of contents' }}
+              aria-controls="toc-list"
+            />
+            <Collapse in={tocOpen}>
+              <List id="toc-list" role="listbox">
+                {filteredToc.map((item, i) => (
+                  <motion.div
+                    key={item.index}
+                    custom={i}
+                    initial="hidden"
+                    animate="visible"
+                    variants={tocItemVariants}
                   >
-                    <span className="course-sidebar-icon">
-                      {completedSections.has(item.index) ? (
-                        <CheckCircleIcon fontSize="small" />
-                      ) : (
-                        <FiberManualRecordIcon fontSize="small" />
-                      )}
-                    </span>
-                    <span className="course-sidebar-title">{item.title}</span>
-                  </button>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-
-        <div className="content-area">
-          <motion.div
-            className="course-header"
-            initial="hidden"
-            animate="visible"
-            variants={sectionVariants}
-          >
-            <h1>{course.title || 'Course Title'}</h1>
-            <p>{course.description || 'No description provided.'}</p>
-            <span className="course-meta">Level: {course.level || 'N/A'}</span>
-          </motion.div>
-
-          <h2>Course Content</h2>
-          <div className="module-item">
-            <h3>{course.title}</h3>
-            <p>{course.description}</p>
-
-            {sections.length > 0 && (
-              <div className="progress-bar-container">
-                <div
-                  className="progress-bar"
-                  style={{ width: `${((currentSectionIndex + 1) / sections.length) * 100}%` }}
-                />
-              </div>
-            )}
-
-            {sections.length > 0 && currentSectionIndex < sections.length ? (
-              <div className="step-by-step-content">
-                <motion.div
-                  key={currentSectionIndex}
-                  className="content-block"
-                  initial="hidden"
-                  animate="visible"
-                  variants={sectionVariants}
-                >
-                  <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].heading }} />
-                  <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].content }} />
-                  {sections[currentSectionIndex].content.includes('<code>') && (
-                    <button
-                      onClick={() => handleRunCode(currentSectionIndex)}
-                      className="run-code-button"
+                    <ListItem
+                      button
+                      onClick={() => handleTocClick(item.index)}
+                      selected={currentSectionIndex === item.index}
+                      className="sidebar-item"
+                      aria-label={`Go to section ${item.title}`}
+                      role="option"
+                      aria-selected={currentSectionIndex === item.index}
                     >
-                      <PlayArrowIcon className="mr-2" /> Run Code
+                      <ListItemIcon>
+                        {completedSections.has(item.index) ? <CheckCircleIcon /> : <FiberManualRecordIcon />}
+                      </ListItemIcon>
+                      <ListItemText primary={item.title} />
+                    </ListItem>
+                  </motion.div>
+                ))}
+              </List>
+            </Collapse>
+            <div className="sidebar-ai-section">
+              <ListItem button onClick={toggleAi} className="sidebar-ai-toggle" aria-label="Toggle AI Assistant">
+                <ListItemIcon>
+                  <SmartToyIcon />
+                </ListItemIcon>
+                <ListItemText primary="AI Assistant" />
+                {aiOpen ? <ExpandLess /> : <ExpandMore />}
+              </ListItem>
+              <Collapse in={aiOpen}>
+                <div className="ai-content">
+                  <Typography variant="body2" className="ai-response">{aiResponse}</Typography>
+                  <TextField
+                    variant="outlined"
+                    placeholder="Ask the AI..."
+                    value={aiMessage}
+                    onChange={(e) => setAiMessage(e.target.value)}
+                    fullWidth
+                    size="small"
+                    className="ai-input"
+                    inputProps={{ 'aria-label': 'Ask AI' }}
+                    aria-label="AI message input"
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleAiSend}
+                    className="ai-send-button"
+                    disabled={!aiMessage.trim()}
+                    aria-label="Send AI message"
+                  >
+                    Send
+                  </Button>
+                </div>
+              </Collapse>
+            </div>
+          </motion.div>
+          <motion.div
+            ref={contentRef}
+            className="content-area"
+            initial="hidden"
+            animate={isSidebarOpen ? "visible" : "hidden"}
+            variants={contentVariants}
+            role="region"
+            aria-label="Course Content Area"
+          >
+            <Typography variant="h5" aria-level="2">Course Content</Typography>
+            {sections.length > 0 && (
+              <motion.div
+                key={currentSectionIndex}
+                className="content-block"
+                initial="hidden"
+                animate="visible"
+                variants={sectionVariants}
+              >
+                <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].heading }} />
+                <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].content }} />
+                {sections[currentSectionIndex].content.includes('<code>') && (
+                  <button
+                    onClick={() => handleRunCode(currentSectionIndex)}
+                    className="run-code-button"
+                    aria-label={`Run code for section ${sections[currentSectionIndex].heading}`}
+                  >
+                    <PlayArrowIcon className="mr-2" /> Run Code
+                  </button>
+                )}
+                {codeOutputs[currentSectionIndex] && (
+                  <div className="code-output">
+                    <button
+                      onClick={() => setCodeOutputs((prev) => ({ ...prev, [currentSectionIndex]: null }))}
+                      className="collapse-button"
+                      aria-label={codeOutputs[currentSectionIndex].isError ? 'Hide error' : 'Hide output'}
+                    >
+                      {codeOutputs[currentSectionIndex].isError ? 'Hide Error' : 'Hide Output'}
                     </button>
-                  )}
-                  {codeOutputs[currentSectionIndex] && (
-                    <div
-                      className="code-output"
-                      dangerouslySetInnerHTML={{ __html: codeOutputs[currentSectionIndex] }}
-                    />
-                  )}
-                </motion.div>
-
+                    <pre className={`output-content ${codeOutputs[currentSectionIndex].isError ? 'error' : ''}`}>
+                      <code>{codeOutputs[currentSectionIndex].output}</code>
+                    </pre>
+                  </div>
+                )}
                 <div className="navigation-buttons">
                   <button
                     onClick={handlePrevious}
                     disabled={currentSectionIndex === 0}
                     className="nav-button prev-button"
+                    aria-label="Go to previous section"
+                    aria-disabled={currentSectionIndex === 0}
                   >
                     <NavigateBeforeIcon className="mr-2" /> Previous
                   </button>
@@ -443,58 +625,64 @@ function CourseDetail() {
                     onClick={handleNext}
                     disabled={currentSectionIndex === sections.length - 1}
                     className="nav-button next-button"
+                    aria-label="Go to next section"
+                    aria-disabled={currentSectionIndex === sections.length - 1}
                   >
                     Next <NavigateNextIcon className="ml-2" />
                   </button>
                 </div>
-              </div>
-            ) : (
-              <p>No content available for this module.</p>
+              </motion.div>
             )}
-
             {currentSectionIndex === sections.length - 1 && sections.length > 0 && (
-              <div className="quiz-section">
-                <h3>Test Your Knowledge</h3>
-                {quizQuestions.map((q, index) => (
-                  <div key={index} className="quiz-question">
-                    <p>{q.question}</p>
-                    {q.options.map((option, optIndex) => (
-                      <label key={optIndex} className="quiz-option">
-                        <input
-                          type="radio"
-                          name={`question-${index}`}
-                          value={option}
-                          checked={quizAnswers[index] === option}
-                          onChange={() => handleQuizAnswer(index, option)}
-                          disabled={quizSubmitted}
-                        />
-                        {option}
-                        {quizSubmitted && (
-                          <span className={option === q.correctAnswer ? 'correct' : 'incorrect'}>
-                            {option === q.correctAnswer ? ' ✓' : option === quizAnswers[index] ? ' ✗' : ''}
-                          </span>
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                ))}
-                {!quizSubmitted && (
-                  <button
-                    onClick={handleQuizSubmit}
-                    className="submit-quiz-button"
-                    disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
-                  >
-                    Submit Quiz
-                  </button>
-                )}
-                {quizSubmitted && (
-                  <p className="quiz-result">
-                    You scored {Object.values(quizAnswers).filter((ans, i) => ans === quizQuestions[i].correctAnswer).length} out of {quizQuestions.length}!
-                  </p>
-                )}
+              <div className="quiz-section" role="region" aria-label="Quiz Section">
+                <Typography variant="h6" aria-level="2">Test Your Knowledge</Typography>
+                <div role="form" aria-live="polite">
+                  {quizQuestions.map((q, index) => (
+                    <div key={index} className="quiz-question">
+                      <Typography variant="body1">{q.question}</Typography>
+                      {q.options.map((option, optIndex) => (
+                        <label key={optIndex} className="quiz-option">
+                          <input
+                            type="radio"
+                            name={`question-${index}`}
+                            value={option}
+                            checked={quizAnswers[index] === option}
+                            onChange={() => handleQuizAnswer(index, option)}
+                            disabled={quizSubmitted}
+                            aria-label={`${option} for ${q.question}`}
+                            role="radio"
+                            aria-checked={quizAnswers[index] === option}
+                          />
+                          {option}
+                          {quizSubmitted && (
+                            <span className={option === q.correctAnswer ? 'correct' : quizAnswers[index] === option ? 'incorrect' : ''}>
+                              {option === q.correctAnswer ? ' ✓' : quizAnswers[index] === option ? ' ✗' : ''}
+                            </span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  {!quizSubmitted && (
+                    <button
+                      onClick={handleQuizSubmit}
+                      className="submit-quiz-button"
+                      disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
+                      aria-label="Submit quiz answers"
+                      aria-disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
+                    >
+                      Submit Quiz
+                    </button>
+                  )}
+                  {quizSubmitted && (
+                    <Typography className="quiz-result" variant="body1" aria-live="assertive">
+                      You scored {Object.values(quizAnswers).filter((ans, i) => ans === quizQuestions[i].correctAnswer).length} out of {quizQuestions.length}!
+                    </Typography>
+                  )}
+                </div>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

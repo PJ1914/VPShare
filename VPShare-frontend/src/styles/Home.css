@@ -1,17 +1,18 @@
-/* Import modern font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+/* Import modern fonts including Noto Sans for Rupee symbol */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans:wght@400;700&display=swap');
 
 .home-main {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
   font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom, #f9fafb, #ffffff);
 }
 
 /* Hero Section */
 .hero {
   text-align: center;
-  padding: 3rem 0;
+  padding: 4rem 0;
   background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
   color: white;
   border-radius: 16px;
@@ -21,6 +22,7 @@
   gap: 2rem;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .hero::before {
@@ -30,48 +32,51 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 5%, transparent 5%);
-  background-size: 60px 60px;
-  opacity: 0.2;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 5%, transparent 5%);
+  background-size: 80px 80px;
+  opacity: 0.3;
 }
 
 .hero-content {
-  max-width: 800px;
+  max-width: 900px;
   z-index: 1;
 }
 
 .hero h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 800;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
-  margin-bottom: 2rem;
+  font-size: 1.6rem;
+  margin-bottom: 2.5rem;
   color: #e5e7eb;
+  line-height: 1.6;
 }
 
 .cta-button {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 2rem;
   background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   color: white;
   text-decoration: none;
   border-radius: 50px;
   font-weight: 600;
-  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
   transition: all 0.3s ease;
+  font-size: 1.1rem;
 }
 
 .cta-button:hover {
   background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+  transform: translateY(-2px);
 }
 
 .cta-button.secondary {
   background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
-  box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+  box-shadow: 0 6px 18px rgba(107, 114, 128, 0.5);
 }
 
 .cta-button.secondary:hover {
@@ -81,31 +86,82 @@
 /* Vision Section */
 .vision {
   text-align: center;
-  padding: 3rem 0;
+  padding: 4rem 0;
+  background: #ffffff;
 }
 
 .vision h2 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #1f2937;
 }
 
 .vision p {
+  font-size: 1.3rem;
+  color: #4b5563;
+  max-width: 850px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Featured Tools Section */
+.featured-tools {
+  padding: 4rem 0;
+  text-align: center;
+  background: #f9fafb;
+}
+
+.featured-tools h2 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+}
+
+.tools-container {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tool-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 350px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.tool-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+}
+
+.tool-card h3 {
+  font-size: 1.9rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.tool-card p {
   font-size: 1.2rem;
   color: #4b5563;
-  max-width: 800px;
-  margin: 0 auto;
+  margin-bottom: 1.5rem;
 }
 
 /* Learning Paths Section */
 .learning-paths {
-  padding: 3rem 0;
+  padding: 4rem 0;
   text-align: center;
 }
 
 .learning-paths h2 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 800;
   margin-bottom: 2rem;
   color: #1f2937;
@@ -113,151 +169,158 @@
 
 .paths-container {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .path-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 350px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e5e7eb;
   transition: all 0.3s ease;
 }
 
 .path-card:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
 }
 
 .path-card h3 {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   margin-bottom: 1rem;
   color: #1f2937;
 }
 
 .path-card p {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: #4b5563;
 }
 
 /* Pricing Section */
 .pricing {
-  padding: 3rem 0;
+  padding: 4rem 0;
   text-align: center;
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .pricing h2 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #1f2937;
 }
 
 .pricing p {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #4b5563;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .pricing-container {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .pricing-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2.5rem;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 350px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e5e7eb;
   text-align: center;
   transition: all 0.3s ease;
 }
 
 .pricing-card:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
 }
 
 .pricing-card h3 {
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   margin-bottom: 1rem;
   color: #1f2937;
 }
 
 .pricing-card .price {
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #10b981;
-  margin-bottom: 1rem;
+  font-family: 'Noto Sans', sans-serif;
+  margin-bottom: 1.5rem;
 }
 
 .pricing-card ul {
   list-style: none;
   padding: 0;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .pricing-card li {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: #4b5563;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .see-all-subscriptions {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
 /* Call to Action Section */
 .cta {
   text-align: center;
-  padding: 4rem 0;
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
+  color: white;
+  border-radius: 16px;
+  margin: 2rem 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .cta h2 {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 1rem;
-  color: #1f2937;
+  margin-bottom: 1.5rem;
 }
 
 .cta p {
-  font-size: 1.2rem;
-  color: #4b5563;
-  margin-bottom: 2rem;
+  font-size: 1.3rem;
+  color: #e5e7eb;
+  margin-bottom: 2.5rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero {
-    padding: 2rem 0;
+    padding: 3rem 0;
   }
 
   .hero h1 {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
   }
 
   .hero-subtitle {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 
   .vision h2,
+  .featured-tools h2,
   .learning-paths h2,
   .pricing h2,
   .cta h2 {
-    font-size: 2rem;
+    font-size: 2.3rem;
   }
 
+  .tools-container,
   .paths-container,
   .pricing-container {
     flex-direction: column;
@@ -267,16 +330,22 @@
 
 @media (max-width: 480px) {
   .hero h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .cta-button {
+    padding: 0.75rem 1.5rem;
     font-size: 1rem;
   }
 }
 
 /* Accessibility: Reduce motion */
 @media (prefers-reduced-motion: reduce) {
+  .tool-card,
   .path-card,
   .pricing-card,
   .cta-button {
