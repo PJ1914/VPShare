@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import {
   LibraryBooks as LibraryBooksIcon,
   Person as PersonIcon,
@@ -23,21 +25,109 @@ const hoverVariants = {
   hover: { scale: 1.05, transition: { duration: 0.3 } },
 };
 
+// Helper to check if a string is a UUID
+const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+// Map courseId and courseTitle to category
+const mapCourseToCategory = (courseId, courseTitle = '') => {
+  let source = courseId;
+  if (isUUID(courseId) && courseTitle) {
+    source = courseTitle;
+  }
+  const lowerSource = source.toLowerCase();
+  if (lowerSource.includes('html')) {
+    return 'frontend';
+  } else if (lowerSource.includes('css')) {
+    return 'frontend';
+  } else if (lowerSource.includes('javascript')) {
+    return 'frontend';
+  } else if (lowerSource.includes('react')) {
+    return 'frontend';
+  } else if (lowerSource.includes('node')) {
+    return 'backend';
+  } else if (lowerSource.includes('express')) {
+    return 'backend';
+  } else if (lowerSource.includes('api')) {
+    return 'backend';
+  } else if (lowerSource.includes('sql')) {
+    return 'databases';
+  } else if (lowerSource.includes('database')) {
+    return 'databases';
+  } else if (lowerSource.includes('mongodb')) {
+    return 'databases';
+  }
+  return null;
+};
+
 function Dashboard() {
   // Reset scroll position to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Placeholder for user data (replace with AuthContext or API call)
-  const user = { name: 'Learner' };
+  const [user, setUser] = useState(null);
+  const [progress, setProgress] = useState({ frontend: 0, backend: 0, databases: 0 });
+  const [loading, setLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState([]);
 
-  // Sample progress data (replace with API call)
-  const progress = {
-    frontend: 50,
-    backend: 30,
-    databases: 20,
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setLoading(true);
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setUser({ name: 'Learner' });
+        setProgress({ frontend: 0, backend: 0, databases: 0 });
+        setRecentActivities([]);
+        setLoading(false);
+        return;
+      }
+      setUser({ name: currentUser.displayName || 'Learner' });
+      try {
+        const db = getFirestore();
+        const progressCol = collection(db, 'userProgress');
+        // Fetch all progress docs for this user
+        const q = query(progressCol, where('__name__', '>=', `${currentUser.uid}_`), where('__name__', '<', `${currentUser.uid}_\uf8ff`));
+        const querySnapshot = await getDocs(q);
+        let frontend = 0, backend = 0, databases = 0, frontendCount = 0, backendCount = 0, databasesCount = 0;
+        let activities = [];
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data.courseId && Array.isArray(data.completedSections)) {
+            // Use courseTitle if present (should be stored in Firestore by CourseDetail)
+            const category = mapCourseToCategory(data.courseId, data.courseTitle || '');
+            if (category === 'frontend') {
+              frontend += data.completedSections.length;
+              frontendCount++;
+            } else if (category === 'backend') {
+              backend += data.completedSections.length;
+              backendCount++;
+            } else if (category === 'databases') {
+              databases += data.completedSections.length;
+              databasesCount++;
+            }
+            activities.push({
+              id: docSnap.id,
+              action: `Completed ${data.completedSections.length} sections in ${data.courseTitle || data.courseId}`,
+              timestamp: 'Recently',
+            });
+          }
+        });
+        setProgress({
+          frontend: frontendCount ? Math.round((frontend / (frontendCount * 10)) * 100) : 0,
+          backend: backendCount ? Math.round((backend / (backendCount * 10)) * 100) : 0,
+          databases: databasesCount ? Math.round((databases / (databasesCount * 10)) * 100) : 0,
+        });
+        setRecentActivities(activities);
+      } catch (err) {
+        setProgress({ frontend: 0, backend: 0, databases: 0 });
+        setRecentActivities([]);
+        // Optionally log error or show a message
+      }
+      setLoading(false);
+    };
+    fetchUserData();
+  }, []);
 
   // Calculate overall progress
   const overallProgress = Math.round(
@@ -76,18 +166,19 @@ function Dashboard() {
     },
   ];
 
-  // Sample recent activity data (replace with API call)
-  const recentActivities = [
-    { id: 1, action: 'Completed HTML Basics Quiz', timestamp: '2 hours ago' },
-    { id: 2, action: 'Started Node.js Course', timestamp: 'Yesterday' },
-    { id: 3, action: 'Read Blog: SQL for Beginners', timestamp: '2 days ago' },
-  ];
-
   // Sample motivational quote (can be fetched from an API like quotes.rest)
   const motivationalQuote = {
     text: "The only way to learn to code is to write code. Keep building, keep learning!",
     author: "Unknown",
   };
+
+  const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
+
+  if (loading) {
+    return (
+      <div className="dashboard-container"><main className="dashboard-main"><h2>Loading your dashboard...</h2></main></div>
+    );
+  }
 
   return (
     <div className="dashboard-container">
@@ -300,6 +391,21 @@ function Dashboard() {
                 <span className="quick-link-text">Browse All Courses</span>
               </Link>
             </motion.div>
+            {/* New: Go to Courses API link */}
+            {coursesApiUrl && (
+              <motion.div variants={hoverVariants} whileHover="hover">
+                <a
+                  href={coursesApiUrl}
+                  className="quick-link-card"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Go to Courses API"
+                >
+                  <span className="quick-link-icon"><LibraryBooksIcon /></span>
+                  <span className="quick-link-text">Go to Courses API</span>
+                </a>
+              </motion.div>
+            )}
             <motion.div variants={hoverVariants} whileHover="hover">
               <Link to="/profile" className="quick-link-card">
                 <span className="quick-link-icon"><PersonIcon /></span>

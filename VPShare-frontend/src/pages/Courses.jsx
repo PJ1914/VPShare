@@ -39,6 +39,55 @@ const cardVariants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
+// Helper to check if a string is a UUID
+const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+const mapModuleIdToCategory = (moduleId, title = '') => {
+  let source = moduleId;
+  if (isUUID(moduleId) && title) {
+    source = title;
+  }
+  const lowerSource = source.toLowerCase();
+  if (lowerSource.includes('html')) {
+    return 'Frontend';
+  } else if (lowerSource.includes('css')) {
+    return 'Frontend';
+  } else if (lowerSource.includes('javascript')) {
+    return 'Frontend';
+  } else if (lowerSource.includes('react')) {
+    return 'Frontend';
+  } else if (lowerSource.includes('node')) {
+    return 'Backend';
+  } else if (lowerSource.includes('express')) {
+    return 'Backend';
+  } else if (lowerSource.includes('api')) {
+    return 'Backend';
+  } else if (lowerSource.includes('sql')) {
+    return 'Databases';
+  } else if (lowerSource.includes('database')) {
+    return 'Databases';
+  } else if (lowerSource.includes('mongodb')) {
+    return 'Databases';
+  } else if (lowerSource.includes('git')) {
+    return 'Version Control';
+  } else if (lowerSource.includes('github')) {
+    return 'Version Control';
+  } else if (lowerSource.includes('agile')) {
+    return 'Project Management';
+  } else if (lowerSource.includes('scrum')) {
+    return 'Project Management';
+  } else if (lowerSource.includes('project')) {
+    return 'Project Management';
+  } else if (lowerSource.includes('python')) {
+    return 'Programming Languages';
+  } else if (lowerSource.includes('java')) {
+    return 'Programming Languages';
+  } else if (lowerSource.includes('cpp')) {
+    return 'Programming Languages';
+  }
+  return 'Misc';
+};
+
 function Courses() {
   const [filter, setFilter] = useState('All');
   const [courses, setCourses] = useState([]);
@@ -46,8 +95,12 @@ function Courses() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const mapModuleIdToCategory = (moduleId) => {
+  // Enhanced category mapping: use title if module_id is not descriptive
+  const mapCourseToCategory = (course) => {
+    const moduleId = course.module_id || '';
+    const title = (course.title || '').toLowerCase();
     const lowerModuleId = moduleId.toLowerCase();
+    // First, try module_id as before
     if (lowerModuleId.includes('html') || lowerModuleId.includes('css') || lowerModuleId.includes('javascript') || lowerModuleId.includes('react')) {
       return 'Frontend';
     } else if (lowerModuleId.includes('node') || lowerModuleId.includes('express') || lowerModuleId.includes('api')) {
@@ -59,6 +112,20 @@ function Courses() {
     } else if (lowerModuleId.includes('agile') || lowerModuleId.includes('scrum') || lowerModuleId.includes('project')) {
       return 'Project Management';
     } else if (lowerModuleId.includes('python') || lowerModuleId.includes('java') || lowerModuleId.includes('cpp')) {
+      return 'Programming Languages';
+    }
+    // If module_id is not descriptive, use title
+    if (title.includes('html') || title.includes('css') || title.includes('javascript') || title.includes('react')) {
+      return 'Frontend';
+    } else if (title.includes('node') || title.includes('express') || title.includes('api')) {
+      return 'Backend';
+    } else if (title.includes('sql') || title.includes('database') || title.includes('mongodb')) {
+      return 'Databases';
+    } else if (title.includes('git') || title.includes('github')) {
+      return 'Version Control';
+    } else if (title.includes('agile') || title.includes('scrum') || title.includes('project')) {
+      return 'Project Management';
+    } else if (title.includes('python') || title.includes('java') || title.includes('cpp')) {
       return 'Programming Languages';
     }
     return 'Misc';
@@ -135,7 +202,9 @@ function Courses() {
               console.warn("Courses: Skipping course with missing module_id:", course);
               return null;
             }
-            const category = mapModuleIdToCategory(courseId);
+            // Use title for category if module_id is a UUID
+            const category = mapModuleIdToCategory(courseId, course.title);
+            if (category === 'Misc') return null; // Filter out Misc courses
             return {
               id: courseId,
               title: course.title || 'Untitled Course',
@@ -192,7 +261,7 @@ function Courses() {
   }, [navigate]);
 
   const filteredCourses = filter === 'All'
-    ? courses
+    ? courses.filter(course => course.category !== 'Misc')
     : courses.filter(course => course.category === filter);
 
   const categories = [
@@ -203,7 +272,7 @@ function Courses() {
     'Version Control',
     'Project Management',
     'Programming Languages',
-    'Misc',
+    // 'Misc', // Removed Misc from filter bar
   ];
 
   const scrollToCourses = () => {

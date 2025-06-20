@@ -27,7 +27,11 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // --- CHANGE START ---
+  // Initialize profile picture with the default avatar. It will only be updated
+  // after a successful check of the user's photoURL.
   const [profilePicture, setProfilePicture] = useState('/default-avatar.jpg');
+  // --- CHANGE END ---
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -38,36 +42,24 @@ function Navbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Handle user authentication state and profile picture
+  // --- CHANGE START: Refactored authentication and profile picture handling ---
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsMobileMenuOpen(false);
       setIsDropdownOpen(false);
-      if (currentUser) {
-        console.log('User photoURL:', currentUser.photoURL);
-        if (currentUser.photoURL) {
-          try {
-            const response = await fetch(currentUser.photoURL, { method: 'HEAD' });
-            if (response.ok) {
-              setProfilePicture(currentUser.photoURL);
-            } else {
-              console.warn('Profile picture URL invalid:', currentUser.photoURL);
-              setProfilePicture('/default-avatar.jpg');
-            }
-          } catch (err) {
-            console.error('Failed to fetch profile picture:', err);
-            setProfilePicture('/default-avatar.jpg');
-          }
-        } else {
-          setProfilePicture('/default-avatar.jpg');
-        }
+
+      // Set profile picture directly; let <img onError> handle fallback
+      if (currentUser && currentUser.photoURL) {
+        setProfilePicture(currentUser.photoURL);
       } else {
         setProfilePicture('/default-avatar.jpg');
       }
     });
+
     return () => unsubscribe();
   }, []);
+  // --- CHANGE END ---
 
   // Close dropdown and mobile menu on outside click
   useEffect(() => {
@@ -132,6 +124,7 @@ function Navbar() {
           className={`nav-links ${isMobileMenuOpen ? 'mobile-active' : ''}`}
           ref={mobileMenuRef}
         >
+          {/* ... (rest of the links are unchanged) ... */}
           <li>
             <Link
               to="/"
@@ -184,10 +177,14 @@ function Navbar() {
                     src={profilePicture}
                     alt="User Profile"
                     className="profile-picture"
+                    // --- CHANGE START ---
+                    // The onError handler is now just a final safety net, e.g., if the default
+                    // avatar file itself is missing. The console warning here is removed
+                    // to avoid duplication with the logic in useEffect.
                     onError={(e) => {
                       e.target.src = '/default-avatar.jpg';
-                      console.warn('Profile picture load failed, using fallback.');
                     }}
+                    // --- CHANGE END ---
                   />
                 </div>
               </button>
