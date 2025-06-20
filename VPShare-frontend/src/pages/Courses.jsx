@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, getDoc, doc } from 'firebase/firestore';
 import '../styles/Courses.css';
 
 // Configure axios-retry
@@ -95,44 +96,8 @@ function Courses() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Enhanced category mapping: use title if module_id is not descriptive
-  const mapCourseToCategory = (course) => {
-    const moduleId = course.module_id || '';
-    const title = (course.title || '').toLowerCase();
-    const lowerModuleId = moduleId.toLowerCase();
-    // First, try module_id as before
-    if (lowerModuleId.includes('html') || lowerModuleId.includes('css') || lowerModuleId.includes('javascript') || lowerModuleId.includes('react')) {
-      return 'Frontend';
-    } else if (lowerModuleId.includes('node') || lowerModuleId.includes('express') || lowerModuleId.includes('api')) {
-      return 'Backend';
-    } else if (lowerModuleId.includes('sql') || lowerModuleId.includes('database') || lowerModuleId.includes('mongodb')) {
-      return 'Databases';
-    } else if (lowerModuleId.includes('git') || lowerModuleId.includes('github')) {
-      return 'Version Control';
-    } else if (lowerModuleId.includes('agile') || lowerModuleId.includes('scrum') || lowerModuleId.includes('project')) {
-      return 'Project Management';
-    } else if (lowerModuleId.includes('python') || lowerModuleId.includes('java') || lowerModuleId.includes('cpp')) {
-      return 'Programming Languages';
-    }
-    // If module_id is not descriptive, use title
-    if (title.includes('html') || title.includes('css') || title.includes('javascript') || title.includes('react')) {
-      return 'Frontend';
-    } else if (title.includes('node') || title.includes('express') || title.includes('api')) {
-      return 'Backend';
-    } else if (title.includes('sql') || title.includes('database') || title.includes('mongodb')) {
-      return 'Databases';
-    } else if (title.includes('git') || title.includes('github')) {
-      return 'Version Control';
-    } else if (title.includes('agile') || title.includes('scrum') || title.includes('project')) {
-      return 'Project Management';
-    } else if (title.includes('python') || title.includes('java') || title.includes('cpp')) {
-      return 'Programming Languages';
-    }
-    return 'Misc';
-  };
-
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesAndProgress = async () => {
       setLoading(true);
       setError(null);
 
@@ -140,7 +105,6 @@ function Courses() {
       const user = auth.currentUser;
 
       if (!user) {
-        console.warn("Courses: No authenticated user found.");
         setError("Please log in to view courses.");
         setLoading(false);
         navigate('/login', { replace: true });
@@ -150,9 +114,7 @@ function Courses() {
       let authToken;
       try {
         authToken = await user.getIdToken();
-        console.log("Courses: Firebase ID Token obtained successfully.");
       } catch (tokenError) {
-        console.error("Courses: Failed to get Firebase ID token:", tokenError.message);
         setError("Authentication error. Please log out and log in again.");
         setLoading(false);
         navigate('/login', { replace: true });
@@ -160,10 +122,7 @@ function Courses() {
       }
 
       const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-      console.log("Courses: Using API URL:", apiUrl);
-
       if (!apiUrl) {
-        console.warn("Courses: VITE_COURSES_API_URL is not set.");
         setError("Server configuration error. Please contact support.");
         setLoading(false);
         return;
@@ -174,37 +133,48 @@ function Courses() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         };
-
         const response = await axios.get(apiUrl, { headers, timeout: 30000 });
-        console.log("Courses: API response:", response.data);
-
         const rawData = Array.isArray(response.data)
           ? response.data
           : response.data.Items || response.data.courses || [];
-
         if (!rawData.length) {
-          console.warn("Courses: No courses returned from API");
           setError("No courses available. Check back later or contact support.");
           setCourses([]);
           setLoading(false);
           return;
         }
 
-        const userProgress = {
-          'html_css_basics': 25,
-          'node_js_intro': 10,
-        };
+        // Fetch user progress for each course by ID
+        const db = getFirestore();
+        const progressMap = {};
+        await Promise.all(
+          rawData.map(async (course) => {
+            const courseId = course.module_id;
+            if (!courseId) return;
+            const progressDocId = `${user.uid}_${courseId}`;
+            const progressDocRef = doc(db, 'userProgress', progressDocId);
+            const progressSnap = await getDoc(progressDocRef);
+            if (progressSnap.exists()) {
+              const data = progressSnap.data();
+              if (data.courseId && Array.isArray(data.completedSections)) {
+                progressMap[courseId] = data;
+              }
+            }
+          })
+        );
 
+        // Merge progress into courses
         const enrichedCourses = rawData
           .map(course => {
             const courseId = course.module_id;
-            if (!courseId) {
-              console.warn("Courses: Skipping course with missing module_id:", course);
-              return null;
-            }
-            // Use title for category if module_id is a UUID
+            if (!courseId) return null;
             const category = mapModuleIdToCategory(courseId, course.title);
-            if (category === 'Misc') return null; // Filter out Misc courses
+            if (category === 'Misc') return null;
+            // Calculate percent complete
+            const progress = progressMap[courseId];
+            const totalSections = course.sections ? course.sections.length : 10; // fallback
+            const completed = progress ? progress.completedSections.length : 0;
+            const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
             return {
               id: courseId,
               title: course.title || 'Untitled Course',
@@ -212,51 +182,21 @@ function Courses() {
               category: category,
               level: course.level || 'Beginner',
               link: `/courses/${courseId}`,
-              progress: userProgress[courseId] || 0,
+              progress: percent,
             };
           })
           .filter(course => course !== null);
 
         setCourses(enrichedCourses);
       } catch (err) {
-        console.error("Courses: Error fetching courses:", err);
-        if (axios.isAxiosError(err)) {
-          if (err.response) {
-            console.error("Courses: Server Response:", err.response.data, "Status:", err.response.status);
-            switch (err.response.status) {
-              case 400:
-                setError("Invalid request. Please contact support.");
-                break;
-              case 403:
-                setError("Access denied. Please log in again.");
-                navigate('/login', { replace: true });
-                break;
-              case 404:
-                setError("Courses not found. Please contact support.");
-                break;
-              case 500:
-                setError("Server error. Please try again later or contact support.");
-                break;
-              default:
-                setError(`Server error (Code: ${err.response.status}). Please try again.`);
-            }
-          } else if (err.request) {
-            console.error("Courses: No response received:", err.request);
-            setError("Network error: Unable to connect to the server.");
-          } else {
-            console.error("Courses: Request setup error:", err.message);
-            setError(`Unexpected error: ${err.message}.`);
-          }
-        } else {
-          setError(`Unexpected error: ${err.message}.`);
-        }
+        setError("Unexpected error: " + (err.message || err));
         setCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchCoursesAndProgress();
     window.scrollTo(0, 0);
   }, [navigate]);
 

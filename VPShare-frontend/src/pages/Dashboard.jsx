@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import axios from 'axios';
 import {
   LibraryBooks as LibraryBooksIcon,
   Person as PersonIcon,
@@ -69,43 +70,45 @@ function Dashboard() {
   const [progress, setProgress] = useState({ frontend: 0, backend: 0, databases: 0 });
   const [loading, setLoading] = useState(true);
   const [recentActivities, setRecentActivities] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [userCourseProgress, setUserCourseProgress] = useState({});
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       const auth = getAuth();
       const currentUser = auth.currentUser;
       if (!currentUser) {
         setUser({ name: 'Learner' });
-        setProgress({ frontend: 0, backend: 0, databases: 0 });
+        setCourses([]);
+        setUserCourseProgress({});
         setRecentActivities([]);
         setLoading(false);
         return;
       }
       setUser({ name: currentUser.displayName || 'Learner' });
       try {
+        // 1. Fetch courses from backend
+        const apiUrl = import.meta.env.VITE_COURSES_API_URL;
+        const token = await currentUser.getIdToken();
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const response = await axios.get(apiUrl, { headers });
+        const rawCourses = Array.isArray(response.data)
+          ? response.data
+          : response.data.Items || response.data.courses || [];
+        setCourses(rawCourses);
+
+        // 2. Fetch user progress from Firestore
         const db = getFirestore();
         const progressCol = collection(db, 'userProgress');
-        // Fetch all progress docs for this user
         const q = query(progressCol, where('__name__', '>=', `${currentUser.uid}_`), where('__name__', '<', `${currentUser.uid}_\uf8ff`));
         const querySnapshot = await getDocs(q);
-        let frontend = 0, backend = 0, databases = 0, frontendCount = 0, backendCount = 0, databasesCount = 0;
+        const progressMap = {};
         let activities = [];
         querySnapshot.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.courseId && Array.isArray(data.completedSections)) {
-            // Use courseTitle if present (should be stored in Firestore by CourseDetail)
-            const category = mapCourseToCategory(data.courseId, data.courseTitle || '');
-            if (category === 'frontend') {
-              frontend += data.completedSections.length;
-              frontendCount++;
-            } else if (category === 'backend') {
-              backend += data.completedSections.length;
-              backendCount++;
-            } else if (category === 'databases') {
-              databases += data.completedSections.length;
-              databasesCount++;
-            }
+            progressMap[data.courseId] = data;
             activities.push({
               id: docSnap.id,
               action: `Completed ${data.completedSections.length} sections in ${data.courseTitle || data.courseId}`,
@@ -113,20 +116,17 @@ function Dashboard() {
             });
           }
         });
-        setProgress({
-          frontend: frontendCount ? Math.round((frontend / (frontendCount * 10)) * 100) : 0,
-          backend: backendCount ? Math.round((backend / (backendCount * 10)) * 100) : 0,
-          databases: databasesCount ? Math.round((databases / (databasesCount * 10)) * 100) : 0,
-        });
+        setUserCourseProgress(progressMap);
         setRecentActivities(activities);
       } catch (err) {
-        setProgress({ frontend: 0, backend: 0, databases: 0 });
+        setCourses([]);
+        setUserCourseProgress({});
         setRecentActivities([]);
         // Optionally log error or show a message
       }
       setLoading(false);
     };
-    fetchUserData();
+    fetchData();
   }, []);
 
   // Calculate overall progress
@@ -296,6 +296,50 @@ function Dashboard() {
                 <Link to="/courses/databases" className="progress-link">Continue Learning</Link>
               </motion.div>
             </motion.div>
+          </div>
+        </motion.section>
+
+        {/* Real Course Progress Section */}
+        <motion.section
+          className="progress-section"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
+          <h2>Your Course Progress</h2>
+          <div className="progress-container">
+            {courses.length === 0 && <p>No courses found.</p>}
+            {courses.map((course) => {
+              const progress = userCourseProgress[course.module_id];
+              const totalSections = course.sections ? course.sections.length : 10; // fallback if sections not present
+              const completed = progress ? progress.completedSections.length : 0;
+              const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
+              return (
+                <motion.div
+                  key={course.module_id}
+                  className="progress-card"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                >
+                  <h3>{course.title || 'Untitled Course'}</h3>
+                  <p>{percent}% Complete</p>
+                  <div className="progress-bar">
+                    <motion.div
+                      className="progress-fill"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${percent}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    ></motion.div>
+                  </div>
+                  <motion.div variants={hoverVariants} whileHover="hover">
+                    <Link to={`/courses/${course.module_id}`} className="progress-link">
+                      {percent > 0 ? 'Continue Course' : 'Start Course'}
+                    </Link>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.section>
 

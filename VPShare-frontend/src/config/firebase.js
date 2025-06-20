@@ -18,10 +18,10 @@ const firebaseConfig = {
 console.log("Firebase Config:", firebaseConfig); 
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const analytics = getAnalytics(app);
+
 const auth = getAuth(app);
 auth.useDeviceLanguage(); 
 const storage = getStorage(app);
 const db = getFirestore(app); 
 
-export { app, auth, storage, analytics, db };
+export { app, auth, storage, db };
