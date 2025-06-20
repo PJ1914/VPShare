@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { Octokit } from '@octokit/rest';
-import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import MenuIcon from '@mui/icons-material/Menu';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -25,6 +24,7 @@ import CodeSharpIcon from '@mui/icons-material/CodeSharp';
 import DescriptionIcon from '@mui/icons-material/Description'; 
 import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 // Language mode mapping based on file extension
 const extensionToMode = {
@@ -132,9 +132,23 @@ function PlaygroundEditor() {
   const [isMobile, setIsMobile] = useState(false);
   const [fileExplorerOpen, setFileExplorerOpen] = useState(true);
   const [fileSearch, setFileSearch] = useState('');
+  const [githubUser, setGithubUser] = useState(null);
   const [githubToken, setGithubToken] = useState(null);
-  const [repoName, setRepoName] = useState('');
-  const [githubError, setGithubError] = useState(null);
+  const [githubRepos, setGithubRepos] = useState([]);
+  const [selectedRepo, setSelectedRepo] = useState(null);
+  const [repoFiles, setRepoFiles] = useState([]);
+  const [repoBranches, setRepoBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState('main');
+  const [commitHistory, setCommitHistory] = useState([]);
+  const [newRepoName, setNewRepoName] = useState('');
+  const [newFilePath, setNewFilePath] = useState('');
+  const [newFolderPath, setNewFolderPath] = useState('');
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+  const [isLoadingCommits, setIsLoadingCommits] = useState(false);
+  const [repoName, setRepoName] = useState(''); // Add missing repoName state for GitHub integration input
+  const [githubError, setGithubError] = useState(null); // Add missing githubError state for GitHub integration errors
 
   const isDraggingHeight = useRef(false);
   const isDraggingWidth = useRef(false);
@@ -142,10 +156,36 @@ function PlaygroundEditor() {
   const dragIndex = useRef(null);
   const octokitRef = useRef(null);
 
-  // GitHub OAuth configuration
-  const GITHUB_CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID';
-  const GITHUB_CLIENT_SECRET = 'YOUR_GITHUB_CLIENT_SECRET';
-  const REDIRECT_URI = 'http://localhost:3000/callback';
+  // Listen for Firebase Auth user and extract GitHub token
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setGithubUser(user);
+      // Extract GitHub access token from providerData or reload user
+      if (user) {
+        user.getIdTokenResult(true).then((idTokenResult) => {
+          // Firebase stores GitHub access token in user.stsTokenManager or user.reloadUserInfo
+          // But the most reliable way is to check user.providerData
+          const githubProvider = user.providerData.find(p => p.providerId === 'github.com');
+          if (githubProvider && user.reloadUserInfo && user.reloadUserInfo.providerUserInfo) {
+            const githubInfo = user.reloadUserInfo.providerUserInfo.find(p => p.providerId === 'github.com');
+            if (githubInfo && githubInfo.screenName) {
+              // Try to get token from user.reloadUserInfo or custom claims
+              // But Firebase does not expose the GitHub access token by default for security
+              // If you use signInWithPopup, you can get the credential from the result
+              // Here, you may need to store the token in Firestore or in localStorage after login
+              // For now, try to get it from sessionStorage (if you stored it after login)
+              const token = sessionStorage.getItem('githubAccessToken');
+              if (token) setGithubToken(token);
+            }
+          }
+        });
+      } else {
+        setGithubToken(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Initialize Octokit after authentication
   useEffect(() => {
@@ -154,46 +194,23 @@ function PlaygroundEditor() {
     }
   }, [githubToken]);
 
-  // Handle GitHub OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code) {
-      const authenticate = async () => {
-        try {
-          const auth = createOAuthAppAuth({
-            clientId: GITHUB_CLIENT_ID,
-            clientSecret: GITHUB_CLIENT_SECRET,
-          });
-          const { token } = await auth({ type: 'oauth-app', code, redirectUri: REDIRECT_URI });
-          setGithubToken(token);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (error) {
-          setGithubError('Failed to authenticate with GitHub');
-        }
-      };
-      authenticate();
-    }
-  }, []);
-
-  // Authenticate with GitHub
-  const authenticateWithGithub = () => {
-    const authUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=repo`;
-    window.location.href = authUrl;
-  };
-
-  // Save project to GitHub
+  // Save project to GitHub (Vercel-like: use repoName input as owner/repo)
   const saveToGithub = async () => {
     if (!octokitRef.current || !repoName) {
-      setGithubError('Please authenticate with GitHub and provide a repository name.');
+      setGithubError('Please enter a repository name (e.g., vercel/next.js).');
       return;
     }
     try {
+      const [owner, repo] = repoName.split('/');
+      if (!owner || !repo) {
+        setGithubError('Repository name must be in the format owner/repo.');
+        return;
+      }
       const projectData = JSON.stringify(files);
       const content = btoa(projectData);
       await octokitRef.current.repos.createOrUpdateFileContents({
-        owner: (await octokitRef.current.users.getAuthenticated()).data.login,
-        repo: repoName,
+        owner,
+        repo,
         path: 'project.json',
         message: 'Save project from PlaygroundEditor',
         content,
@@ -205,16 +222,21 @@ function PlaygroundEditor() {
     }
   };
 
-  // Load project from GitHub
+  // Load project from GitHub (Vercel-like: use repoName input as owner/repo)
   const loadFromGithub = async () => {
     if (!octokitRef.current || !repoName) {
-      setGithubError('Please authenticate with GitHub and provide a repository name.');
+      setGithubError('Please enter a repository name (e.g., vercel/next.js).');
       return;
     }
     try {
+      const [owner, repo] = repoName.split('/');
+      if (!owner || !repo) {
+        setGithubError('Repository name must be in the format owner/repo.');
+        return;
+      }
       const response = await octokitRef.current.repos.getContent({
-        owner: (await octokitRef.current.users.getAuthenticated()).data.login,
-        repo: repoName,
+        owner,
+        repo,
         path: 'project.json',
       });
       const projectData = JSON.parse(atob(response.data.content));
@@ -473,6 +495,88 @@ function PlaygroundEditor() {
     file.name.toLowerCase().includes(fileSearch.toLowerCase())
   );
 
+  // --- GITHUB ADVANCED LOGIC ---
+  // Fetch user repos
+  const fetchGithubRepos = useCallback(async () => {
+    if (!octokitRef.current) return;
+    setIsLoadingRepos(true);
+    try {
+      const { data } = await octokitRef.current.repos.listForAuthenticatedUser({ per_page: 100 });
+      setGithubRepos(data);
+      setIsLoadingRepos(false);
+    } catch (e) {
+      setGithubError('Failed to fetch repos: ' + e.message);
+      setIsLoadingRepos(false);
+    }
+  }, []);
+
+  // Fetch repo branches
+  const fetchGithubBranches = useCallback(async (repo) => {
+    if (!octokitRef.current || !repo) return;
+    setIsLoadingBranches(true);
+    try {
+      const { data } = await octokitRef.current.repos.listBranches({ owner: repo.owner.login, repo: repo.name });
+      setRepoBranches(data);
+      setSelectedBranch(data[0]?.name || 'main');
+      setIsLoadingBranches(false);
+    } catch (e) {
+      setGithubError('Failed to fetch branches: ' + e.message);
+      setIsLoadingBranches(false);
+    }
+  }, []);
+
+  // Fetch file tree for repo/branch
+  const fetchGithubFileTree = useCallback(async (repo, branch) => {
+    if (!octokitRef.current || !repo) return;
+    setIsLoadingFiles(true);
+    try {
+      const { data } = await octokitRef.current.git.getTree({
+        owner: repo.owner.login,
+        repo: repo.name,
+        tree_sha: branch,
+        recursive: true,
+      });
+      setRepoFiles(data.tree);
+      setIsLoadingFiles(false);
+    } catch (e) {
+      setGithubError('Failed to fetch file tree: ' + e.message);
+      setIsLoadingFiles(false);
+    }
+  }, []);
+
+  // Fetch commit history
+  const fetchGithubCommits = useCallback(async (repo, branch) => {
+    if (!octokitRef.current || !repo) return;
+    setIsLoadingCommits(true);
+    try {
+      const { data } = await octokitRef.current.repos.listCommits({
+        owner: repo.owner.login,
+        repo: repo.name,
+        sha: branch,
+        per_page: 10,
+      });
+      setCommitHistory(data);
+      setIsLoadingCommits(false);
+    } catch (e) {
+      setGithubError('Failed to fetch commits: ' + e.message);
+      setIsLoadingCommits(false);
+    }
+  }, []);
+
+  // On GitHub token, fetch repos
+  useEffect(() => {
+    if (githubToken) fetchGithubRepos();
+  }, [githubToken, fetchGithubRepos]);
+
+  // On repo select, fetch branches and file tree
+  useEffect(() => {
+    if (selectedRepo) {
+      fetchGithubBranches(selectedRepo);
+      fetchGithubFileTree(selectedRepo, selectedBranch);
+      fetchGithubCommits(selectedRepo, selectedBranch);
+    }
+  }, [selectedRepo, selectedBranch, fetchGithubBranches, fetchGithubFileTree, fetchGithubCommits]);
+
   // If on mobile, show a message instead of the playground
   if (isMobile) {
     return (
@@ -665,15 +769,9 @@ function PlaygroundEditor() {
         >
           <label htmlFor="repo-name" className="text-sm font-semibold block mb-2">GitHub Integration</label>
           {!githubToken ? (
-            <motion.button
-              className="sidebar-button neumorphic w-full flex items-center justify-center"
-              onClick={authenticateWithGithub}
-              variants={buttonHoverVariants}
-              whileHover="hover"
-            >
-              <GitHubIcon className="mr-2" />
-              Connect to GitHub
-            </motion.button>
+            <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
+              Please sign in with GitHub from the Login page to enable GitHub features.
+            </div>
           ) : (
             <>
               <input

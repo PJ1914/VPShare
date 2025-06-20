@@ -83,6 +83,7 @@ function Dashboard() {
         setCourses([]);
         setUserCourseProgress({});
         setRecentActivities([]);
+        setProgress({ frontend: 0, backend: 0, databases: 0 }); // Reset progress if not logged in
         setLoading(false);
         return;
       }
@@ -118,10 +119,29 @@ function Dashboard() {
         });
         setUserCourseProgress(progressMap);
         setRecentActivities(activities);
+
+        // 3. Calculate per-category progress
+        const categoryTotals = { frontend: 0, backend: 0, databases: 0 };
+        const categoryCounts = { frontend: 0, backend: 0, databases: 0 };
+        rawCourses.forEach((course) => {
+          const category = mapCourseToCategory(course.module_id, course.title);
+          if (!category) return;
+          const progress = progressMap[course.module_id];
+          const totalSections = course.sections ? course.sections.length : 10;
+          const completed = progress ? progress.completedSections.length : 0;
+          const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
+          categoryTotals[category] += percent;
+          categoryCounts[category] += 1;
+        });
+        const frontend = categoryCounts.frontend ? Math.round(categoryTotals.frontend / categoryCounts.frontend) : 0;
+        const backend = categoryCounts.backend ? Math.round(categoryTotals.backend / categoryCounts.backend) : 0;
+        const databases = categoryCounts.databases ? Math.round(categoryTotals.databases / categoryCounts.databases) : 0;
+        setProgress({ frontend, backend, databases });
       } catch (err) {
         setCourses([]);
         setUserCourseProgress({});
         setRecentActivities([]);
+        setProgress({ frontend: 0, backend: 0, databases: 0 }); // Reset progress on error
         // Optionally log error or show a message
       }
       setLoading(false);
@@ -129,10 +149,12 @@ function Dashboard() {
     fetchData();
   }, []);
 
-  // Calculate overall progress
-  const overallProgress = Math.round(
-    (progress.frontend + progress.backend + progress.databases) / 3
-  );
+  // Calculate overall progress (only average categories with at least one course)
+  const categoryProgress = [progress.frontend, progress.backend, progress.databases];
+  const categoryCounts = [progress.frontend, progress.backend, progress.databases].filter(p => p > 0).length;
+  const overallProgress = categoryCounts > 0
+    ? Math.round(categoryProgress.filter(p => p > 0).reduce((a, b) => a + b, 0) / categoryCounts)
+    : 0;
 
   // Sample blog data (replace with API call from services/)
   const blogs = [

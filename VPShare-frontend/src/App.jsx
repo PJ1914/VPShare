@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import Profile from './pages/UserProfile';
 import Playground from './pages/Playground';
+import AIChat from './components/ChatAssistant';
 import Payment from './pages/Payment';
 import PrivateRoute from './components/PrivateRoute';
 import CourseDetail from './pages/CourseDetail';
@@ -16,7 +17,7 @@ function App() {
   return (
     <>
       <Navbar />
-
+      <AIChat />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />

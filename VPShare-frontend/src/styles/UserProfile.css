@@ -7,20 +7,86 @@
   --streak-highlight: #ff6f61;
 }
 
-/* Profile Container */
+/* Profile Container - Full width, modern look */
 .profile-container {
-  max-width: 500px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: none;
+  margin: 2.5rem 0 2.5rem 0;
+  padding: 2.5rem 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
   text-align: center;
-  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
 }
 
-.profile-container:hover {
-  transform: translateY(-5px);
+/* Section Card Containers */
+.profile-section-card {
+  width: 90%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  padding: 2rem 2.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.3s;
+}
+.profile-section-card:not(:last-child) {
+  margin-bottom: 1.5rem;
+}
+
+/* Profile Header & Avatar (centered, larger) */
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.profile-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--primary-color);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  background: #fff;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.edit-avatar-btn {
+  right: 10px;
+  bottom: 10px;
+}
+
+/* Profile Stats - Carded, grid layout */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  margin: 0 auto 1.5rem auto;
+}
+.stat-card {
+  background: linear-gradient(120deg, #e0f2fe 60%, #f9fafb 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1.5rem 1rem;
+  min-width: 140px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+.stat-card:hover {
+  box-shadow: 0 4px 16px rgba(37,99,235,0.10);
 }
 
 /* Loading State */
@@ -42,33 +108,6 @@
   color: #10b981;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-}
-
-/* Profile Image */
-.profile-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 1rem;
-  border: 3px solid var(--primary-color);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.profile-image:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Profile Details */
-.profile-details {
-  margin-bottom: 1.5rem;
-}
-
-.profile-details p {
-  font-size: 1rem;
-  color: #333;
-  margin: 0.5rem 0;
 }
 
 /* Achievements Section */
@@ -139,7 +178,12 @@
 
 /* Streaks Section */
 .streaks-section {
-  margin: 1.5rem 0;
+  width: 100%;
+  background: #f9fafb;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  margin: 2rem 0 1.5rem 0;
 }
 
 .streaks-section h3 {
@@ -153,9 +197,11 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: var(--achievement-bg);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .streak-icon {
@@ -169,12 +215,14 @@
   margin: 0;
 }
 
-/* Upload Section */
+/* Upload Section - Carded */
 .upload-section {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  width: 100%;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  margin: 2rem 0 1.5rem 0;
 }
 
 /* Form Labels */
@@ -243,48 +291,331 @@
   transform: none;
 }
 
+/* Progress Bar to Next Badge - Carded */
+.profile-progress-bar {
+  width: 100%;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 1.2rem 1.5rem;
+  margin: 1.5rem 0 1rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.profile-progress-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 0.3rem;
+}
+
+.profile-progress-bar-track {
+  width: 100%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.profile-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(.4, 2, .6, 1);
+}
+
+/* Badges Section - Carded */
+.badges-section {
+  width: 100%;
+  background: #f9fafb;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  margin: 2rem 0 1.5rem 0;
+}
+.badges-grid {
+  gap: 1.2rem;
+}
+.badge-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1.2rem 0.7rem;
+  width: 120px;
+  min-height: 130px;
+  margin-bottom: 0.5rem;
+}
+
+/* Streak Calendar */
+.streak-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 columns for a week, like GitHub */
+  gap: 4px;
+  margin: 1.2rem 0 0.5rem 0;
+  justify-content: start;
+  width: 100%;
+  min-width: 210px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.7rem 0.5rem 0.3rem 0.5rem;
+  box-sizing: border-box;
+  position: relative;
+}
+.calendar-cell {
+  width: 18px;
+  height: 18px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  transition: background 0.2s, border-color 0.2s;
+  border: 1px solid #e0e7ef;
+  display: inline-block;
+  cursor: pointer;
+}
+.calendar-cell.active {
+  background: var(--streak-highlight);
+  border-color: var(--streak-highlight);
+}
+.streak-calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.95rem;
+  color: #888;
+  margin-top: 0.7rem;
+  margin-left: 2px;
+}
+@media (max-width: 900px) {
+  .streak-calendar {
+    min-width: 0;
+    padding: 0.3rem 0.1rem 0.1rem 0.1rem;
+    gap: 2px;
+  }
+  .calendar-cell {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* Motivation Card - Carded, more prominent */
+.motivation-card {
+  width: 100%;
+  background: linear-gradient(90deg, #e0f2fe 60%, #f9fafb 100%);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 1.5rem 2rem;
+  margin: 2rem 0 1.5rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* GitHub-style Profile Layout */
+.profile-github-bg {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #f9fafb 0%, #e0f2fe 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+}
+.profile-github-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 1200px;
+  margin: 3rem auto;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+.profile-github-sidebar {
+  width: 320px;
+  min-width: 260px;
+  max-width: 340px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 2.5rem 2rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: sticky;
+  top: 2rem;
+  z-index: 2;
+}
+.profile-github-avatar-wrap {
+  position: relative;
+  margin-bottom: 1.2rem;
+}
+.profile-github-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--primary-color);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  background: #fff;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.profile-github-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+}
+.profile-github-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #22223b;
+  margin: 0.5rem 0 0.2rem 0;
+  text-align: center;
+}
+.profile-github-email {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  word-break: break-all;
+}
+.profile-github-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.profile-github-edit-fields {
+  width: 100%;
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+/* Main Content */
+.profile-github-main {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.profile-github-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.profile-github-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  padding: 2rem 2.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Responsive for GitHub Layout */
+@media (max-width: 1100px) {
+  .profile-github-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .profile-github-sidebar {
+    width: 100%;
+    max-width: 99vw;
+    margin-bottom: 1.5rem;
+    position: static;
+  }
+  .profile-github-main {
+    width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .profile-github-container {
+    flex-direction: column;
+    gap: 0.7rem;
+    margin: 1rem 0;
+  }
+  .profile-github-sidebar {
+    padding: 1.2rem 0.5rem;
+    border-radius: 10px;
+  }
+  .profile-github-avatar {
+    width: 80px;
+    height: 80px;
+  }
+  .profile-github-main {
+    padding: 0 0.2rem;
+    gap: 1rem;
+  }
+  .profile-github-card {
+    padding: 1rem 0.5rem;
+    border-radius: 8px;
+  }
+  .profile-github-stats-row {
+    gap: 0.7rem;
+  }
+}
+
 /* Responsive Design */
+@media (max-width: 1100px) {
+  .profile-section-card {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem;
+  }
+}
+@media (max-width: 900px) {
+  .profile-container {
+    padding: 1.2rem 0;
+    gap: 1.2rem;
+  }
+  .profile-section-card {
+    padding: 1rem 0.2rem;
+  }
+  .motivation-card {
+    padding: 1rem 0.5rem;
+    gap: 0.7rem;
+  }
+}
 @media (max-width: 768px) {
   .profile-container {
-    margin: 1rem;
-    padding: 1.5rem;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    gap: 0.7rem;
   }
-
-  .profile-image {
-    width: 100px;
-    height: 100px;
+  .profile-header {
+    margin-top: 1rem;
+    margin-bottom: 0.7rem;
   }
-
-  .achievement-card {
-    width: 100px;
-    padding: 0.75rem;
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
   }
-
-  .achievement-icon {
-    font-size: 1.2rem;
+  .profile-section-card,
+  .badges-section,
+  .streaks-section,
+  .motivation-card,
+  .upload-section {
+    width: 99vw;
+    max-width: 99vw;
+    padding: 0.7rem 0.2rem;
+    border-radius: 8px;
   }
-
-  .achievement-card h4 {
-    font-size: 0.8rem;
+  .stat-card {
+    min-width: 90px;
+    padding: 0.7rem 0.5rem;
   }
-
-  .achievement-tooltip {
-    font-size: 0.7rem;
-    top: -40px;
+  .badge-card {
+    width: 70px;
+    min-height: 70px;
+    padding: 0.5rem 0.2rem;
   }
-
-  .streak-icon {
-    font-size: 1.2rem;
+  .streak-info {
+    padding: 0.5rem 0.5rem;
   }
-
-  .streak-info p {
-    font-size: 0.9rem;
-  }
-
-  .update-button,
-  .cancel-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+  .streak-calendar {
+    padding: 0.5rem 0.1rem;
   }
 }
 

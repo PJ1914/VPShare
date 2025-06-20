@@ -1,5 +1,9 @@
 /* Reusing colors from Home.css, Navbar.css, Dashboard.css */
 :root {
+  --primary-gradient-start: #1e40af;
+  --primary-gradient-end: #10b981;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --primary-color: #2563eb;
   --hover-color: #ffdd57;
   --accent-color: #10b981;
@@ -11,7 +15,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -24,26 +28,22 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 10%, transparent 10%);
+  background: radial-gradient(circle, rgba(255,255,255,0.10) 10%, transparent 10%);
   background-size: 30px 30px;
   animation: moveBackground 20s linear infinite;
 }
 
 @keyframes moveBackground {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-100px);
-  }
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-100px); }
 }
 
 /* Login Card */
 .login-card {
   background: white;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px 0 rgba(16, 185, 129, 0.13), 0 1.5px 4px 0 rgba(30, 64, 175, 0.08);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -55,7 +55,7 @@
 .login-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--primary-color);
+  color: var(--primary-gradient-start);
   margin-bottom: 0.5rem;
 }
 
@@ -65,24 +65,54 @@
   margin-bottom: 1.5rem;
 }
 
+/* Auth Icons Row (Google + GitHub) */
+.auth-icons-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 1.2rem 0 0.5rem 0;
+}
+
+.auth-label {
+  font-size: 1rem;
+  color: #444;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
 /* Google Auth Button */
-.google-auth {
-  margin: 1.5rem 0;
+.google-auth, .github-auth {
+  margin: 1.2rem 0 0.5rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.google-auth-button {
+.google-auth-button, .github-auth-button {
   background: white !important;
-  color: #4285F4 !important;
-  border-color: #4285F4 !important;
-  padding: 0.75rem !important;
-  font-weight: 500 !important;
-  text-transform: none !important;
-  transition: background-color 0.3s ease, color 0.3s ease !important;
+  color: var(--primary-gradient-start) !important;
+  border: 2px solid var(--primary-gradient-end) !important;
+  box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.10);
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
-.google-auth-button:hover {
-  background: #f1f5f9 !important;
-  color: #357ae8 !important;
+.google-auth-button:hover, .github-auth-button:hover {
+  background: var(--hover-color) !important;
+  color: var(--primary-gradient-start) !important;
+  border-color: var(--hover-color) !important;
+  box-shadow: 0 4px 16px 0 rgba(255, 221, 87, 0.18);
 }
 
 /* Manual Form */
@@ -97,16 +127,20 @@
 }
 
 .submit-button {
-  background: var(--primary-color) !important;
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%) !important;
   color: white !important;
   padding: 0.75rem !important;
   font-weight: 500 !important;
   text-transform: none !important;
-  transition: background 0.3s ease !important;
+  border-radius: 8px;
+  transition: background 0.3s !important;
+  box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.10);
+  font-family: 'Inter', sans-serif;
 }
 
 .submit-button:hover {
-  background: var(--hover-color) !important;
+  background: linear-gradient(135deg, var(--cta-gradient-end) 0%, var(--cta-gradient-start) 100%) !important;
+  color: white !important;
 }
 
 /* Toggle Text and Button */
@@ -117,13 +151,17 @@
 }
 
 .toggle-button {
-  color: var(--primary-color) !important;
+  color: var(--primary-gradient-end) !important;
   text-transform: none !important;
   font-weight: 500 !important;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s, color 0.2s;
 }
 
 .toggle-button:hover {
-  color: var(--hover-color) !important;
+  color: white !important;
+  background: linear-gradient(90deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
 }
 
 /* Home Link */
@@ -133,17 +171,20 @@
 }
 
 .home-link a {
-  color: var(--primary-color);
+  color: var(--primary-gradient-start);
   text-decoration: none;
   font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .home-link a:hover {
-  color: var(--hover-color);
+  color: var(--cta-gradient-end);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 /* Responsive Design */
@@ -152,11 +193,9 @@
     padding: 1.5rem;
     max-width: 90%;
   }
-
   .login-title {
     font-size: 1.8rem;
   }
-
   .login-subtitle {
     font-size: 1rem;
   }
@@ -167,7 +206,6 @@
   .login-container::before {
     animation: none;
   }
-
   .submit-button,
   .toggle-button,
   .home-link a {

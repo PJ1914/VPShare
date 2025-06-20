@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase'; 
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { Box, Button, Typography, Paper, TextField, Fade, Alert } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import GoogleIcon from '@mui/icons-material/Google'; // MUI icon for Google Auth
@@ -10,6 +10,7 @@ import LockIcon from '@mui/icons-material/Lock'; // MUI icon for password field
 import LoginIcon from '@mui/icons-material/Login'; // MUI icon for submit button
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount'; // MUI icon for toggle button
 import HomeIcon from '@mui/icons-material/Home'; // MUI icon for home link
+import GitHubIcon from '@mui/icons-material/GitHub'; // MUI icon for GitHub Auth
 import '../styles/Login.css';
 
 // Animation variants for the login card
@@ -53,6 +54,23 @@ function Login() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  // Handle GitHub Auth
+  const handleGitHubSuccess = async () => {
+    try {
+      const provider = new GithubAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      // Extract the GitHub access token and store it in sessionStorage
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      if (token) {
+        sessionStorage.setItem('githubAccessToken', token);
+      }
       navigate('/dashboard');
     } catch (error) {
       setError(error.message);
@@ -106,9 +124,10 @@ function Login() {
             )}
           </AnimatePresence>
 
-          {/* Google Auth Button */}
+          {/* Auth Buttons - Horizontal Alignment */}
           <motion.div
-            className="google-auth"
+            className="auth-icons-row"
+            style={{ display: 'flex', justifyContent: 'center', gap: '1.2rem', margin: '1.2rem 0 0.5rem 0' }}
             variants={formElementVariants}
             initial="hidden"
             animate="visible"
@@ -117,12 +136,23 @@ function Login() {
             <motion.div whileHover="hover" variants={buttonHoverVariants}>
               <Button
                 variant="outlined"
-                startIcon={<GoogleIcon />}
                 onClick={handleGoogleSuccess}
-                fullWidth
                 className="google-auth-button"
+                sx={{ minWidth: 56, width: 56, height: 56, borderRadius: '50%', p: 0, m: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Sign in with Google"
               >
-                Sign in with Google
+                <GoogleIcon fontSize="large" />
+              </Button>
+            </motion.div>
+            <motion.div whileHover="hover" variants={buttonHoverVariants}>
+              <Button
+                variant="outlined"
+                onClick={handleGitHubSuccess}
+                className="github-auth-button"
+                sx={{ minWidth: 56, width: 56, height: 56, borderRadius: '50%', p: 0, m: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Sign in with GitHub"
+              >
+                <GitHubIcon fontSize="large" />
               </Button>
             </motion.div>
           </motion.div>

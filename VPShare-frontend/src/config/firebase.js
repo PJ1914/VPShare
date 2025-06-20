@@ -15,13 +15,13 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log("Firebase Config:", firebaseConfig); 
-
+// Remove config log for production safety and export analytics if needed
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 const auth = getAuth(app);
 auth.useDeviceLanguage(); 
 const storage = getStorage(app);
-const db = getFirestore(app); 
+const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
-export { app, auth, storage, db };
+export { app, auth, storage, db, analytics };
