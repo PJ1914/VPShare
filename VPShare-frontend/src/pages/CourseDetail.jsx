@@ -1,10 +1,11 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import parse, { domToReact } from 'html-react-parser';
 import {
   AppBar,
   Toolbar,
@@ -95,9 +96,54 @@ const tocItemVariants = {
   }),
 };
 
+// Helper to render HTML content with code blocks as React elements with copy button
+function renderContentWithCopy(html) {
+  return parse(html, {
+    replace: (domNode) => {
+      if (domNode.name === 'pre' && domNode.children && domNode.children[0]?.name === 'code') {
+        const codeText = domNode.children[0].children?.map(child => child.data || '').join('') || '';
+        return (
+          <div className="code-block-wrapper">
+            <button
+              className="copy-code-btn"
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(codeText);
+              }}
+            >
+              Copy
+            </button>
+            <pre><code>{codeText}</code></pre>
+          </div>
+        );
+      }
+      if (domNode.name === 'code' && (!domNode.parent || domNode.parent.name !== 'pre')) {
+        const codeText = domNode.children?.map(child => child.data || '').join('') || '';
+        return (
+          <span className="code-block-wrapper">
+            <button
+              className="copy-code-btn"
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(codeText);
+              }}
+            >
+              Copy
+            </button>
+            <code>{codeText}</code>
+          </span>
+        );
+      }
+      return undefined;
+    },
+  });
+}
+
 function CourseDetail() {
+  // All hooks must be at the top and never inside any condition, loop, or nested function
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [course, setCourse] = useState(null);
   const [sections, setSections] = useState([]);
   const [toc, setToc] = useState([]);
@@ -112,13 +158,41 @@ function CourseDetail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [tocOpen, setTocOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sidebarWidth, setSidebarWidth] = useState(300); // Added missing sidebar width state
-  const [contentHeight, setContentHeight] = useState('auto'); // Added missing content height state
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [contentHeight, setContentHeight] = useState('auto');
   const sidebarRef = useRef(null);
   const contentAreaRef = useRef(null);
   const isDraggingSidebar = useRef(false);
   const isDraggingContent = useRef(false);
   const [userId, setUserId] = useState(null);
+
+  // Set initial section index from navigation state (continueSection)
+  useEffect(() => {
+    if (location.state && typeof location.state.continueSection === 'number') {
+      setCurrentSectionIndex(location.state.continueSection);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    } else {
+      setCurrentSectionIndex(0);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  }, [id, location.state]);
+
+  // Scroll to top on section change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentSectionIndex]);
+
+  // quizQuestions must be a plain variable, not a hook, and always defined at the top
+  let quizQuestions = [
+    { question: 'Which keyword declares a variable in JavaScript?', options: ['var', 'int', 'string', 'define'], correctAnswer: 'var' },
+    { question: 'What is the output of console.log(typeof null)?', options: ['null', 'object', 'undefined', 'string'], correctAnswer: 'object' },
+  ];
+  if (course && course.title && typeof course.title === 'string' && course.title.toLowerCase().includes('html')) {
+    quizQuestions = [
+      { question: 'What does HTML stand for?', options: ['Hyper Text Markup Language', 'Hyper Transfer Markup Language', 'High Text Markup Language', 'Hyperlink Text Markup Language'], correctAnswer: 'Hyper Text Markup Language' },
+      { question: 'Which tag is used to create a hyperlink?', options: ['<link>', '<a>', '<href>', '<url>'], correctAnswer: '<a>' },
+    ];
+  }
 
   // Handle sidebar resize
   const startSidebarDrag = (e) => {
@@ -453,20 +527,10 @@ function CourseDetail() {
   const isMobileOrTablet = () => window.innerWidth <= 1024;
 
   const handleNext = () => {
-    if (currentSectionIndex < sections.length - 1) {
-      markSectionComplete(currentSectionIndex);
-      setCurrentSectionIndex(prev => prev + 1);
-      setIsSidebarOpen(false);
-      contentAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    setCurrentSectionIndex((prev) => Math.min(prev + 1, sections.length - 1));
   };
-
   const handlePrevious = () => {
-    if (currentSectionIndex > 0) {
-      setCurrentSectionIndex(prev => prev - 1);
-      setIsSidebarOpen(false);
-      contentAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    setCurrentSectionIndex((prev) => Math.max(prev - 1, 0));
   };
 
   const handleTocClick = (index) => {
@@ -516,16 +580,6 @@ function CourseDetail() {
   const toggleToc = () => setTocOpen(prev => !prev);
 
   const progress = toc.length > 0 ? (completedSections.size / toc.length) * 100 : 0;
-
-  const quizQuestions = course?.title?.toLowerCase().includes('html')
-    ? [
-        { question: 'What does HTML stand for?', options: ['Hyper Text Markup Language', 'Hyper Transfer Markup Language', 'High Text Markup Language', 'Hyperlink Text Markup Language'], correctAnswer: 'Hyper Text Markup Language' },
-        { question: 'Which tag is used to create a hyperlink?', options: ['<link>', '<a>', '<href>', '<url>'], correctAnswer: '<a>' },
-      ]
-    : [
-        { question: 'Which keyword declares a variable in JavaScript?', options: ['var', 'int', 'string', 'define'], correctAnswer: 'var' },
-        { question: 'What is the output of console.log(typeof null)?', options: ['null', 'object', 'undefined', 'string'], correctAnswer: 'object' },
-      ];
 
   if (loading) {
     return (
@@ -748,7 +802,8 @@ function CourseDetail() {
                     <CheckCircleIcon className="section-completed" aria-label="Section completed" />
                   )}
                 </div>
-                <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].content }} />
+                {/* Render content with copy buttons for code blocks as React elements */}
+                <div>{renderContentWithCopy(sections[currentSectionIndex].content)}</div>
                 {sections[currentSectionIndex].content.includes('<code>') && (
                   <Tooltip title="Execute the code snippet">
                     <span style={{ display: 'inline-block' }}>

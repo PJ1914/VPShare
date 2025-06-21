@@ -45,6 +45,10 @@
   display: flex;
   min-height: 80vh;
   position: relative;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Theme Classes */
@@ -69,6 +73,10 @@
   overflow-y: auto;
   border-top-right-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
+  min-width: 220px;
+  max-width: 340px;
+  box-sizing: border-box;
+  background-clip: padding-box;
 }
 
 .glassy-effect {
@@ -112,11 +120,23 @@
   text-shadow: none;
 }
 
+.sidebar-title img {
+  height: 60px !important;
+  width: 60px !important;
+  object-fit: contain;
+  border-radius: 12px;
+  margin: 0 auto;
+  display: block;
+}
+
 .sidebar-section {
   margin-bottom: 1.5rem;
   padding: 1rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 .sidebar-section::before {
@@ -159,6 +179,7 @@
   background: rgba(255, 255, 255, 0.1);
   color: white;
   font-size: 0.95rem;
+  margin-bottom: 0.5rem;
   transition: all 0.3s ease;
 }
 
@@ -337,11 +358,15 @@
 .sidebar-resizer {
   position: absolute;
   top: 0;
-  width: 5px;
+  right: -2px;
+  width: 7px;
+  min-width: 7px;
   height: 100%;
   background: rgba(255, 255, 255, 0.3);
   cursor: ew-resize;
-  z-index: 20;
+  z-index: 30;
+  border-radius: 3px;
+  transition: background 0.2s;
 }
 
 .playground-container.light .sidebar-resizer {
@@ -357,7 +382,20 @@
 .playground-main {
   flex-grow: 1;
   padding: 1.5rem;
+  margin-left: 260px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+  overflow-x: auto;
   transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 900px) {
+  .playground-main {
+    margin-left: 0 !important;
+    padding: 1rem;
+  }
 }
 
 /* Toolbar */
@@ -742,6 +780,123 @@
   font-size: 1.2rem;
 }
 
+/* --- GitHub Integration UI Enhancements --- */
+.sidebar-section select {
+  width: 100%;
+  padding: 0.65rem 2.2rem 0.65rem 0.9rem;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.13);
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 600;
+  margin-bottom: 0.7rem;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%2334d399" height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  background-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.07);
+}
+.playground-container.light .sidebar-section select {
+  border-color: var(--light-border);
+  background: rgba(0, 0, 0, 0.07);
+  color: var(--text-primary);
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%231e40af" height="20" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+}
+.sidebar-section select:focus {
+  outline: none;
+  border-color: var(--cta-gradient-end);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.18);
+}
+.sidebar-section select option {
+  background: #222;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.7rem 1rem;
+}
+.playground-container.light .sidebar-section select option {
+  background: #fff;
+  color: var(--text-primary);
+}
+
+/* Slightly increase z-index for dropdown on focus */
+.sidebar-section select:focus {
+  z-index: 2;
+}
+
+/* End enhanced dropdown styling */
+
+/* --- Enhanced GitHub Repo Dropdown Styling --- */
+.sidebar-section select.repo-select {
+  background: linear-gradient(90deg, rgba(30,64,175,0.13) 0%, rgba(16,185,129,0.13) 100%);
+  color: #fff;
+  font-size: 1.13rem;
+  font-weight: 700;
+  border: 2px solid var(--cta-gradient-end);
+  border-radius: 8px;
+  padding: 0.7rem 2.5rem 0.7rem 1.2rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 4px 18px 0 rgba(16,185,129,0.10);
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  outline: none;
+  min-height: 48px;
+  letter-spacing: 0.01em;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%2334d399" height="22" viewBox="0 0 20 20" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 1.1rem center;
+  background-size: 1.3rem;
+}
+.playground-container.light .sidebar-section select.repo-select {
+  background: linear-gradient(90deg, rgba(30,64,175,0.07) 0%, rgba(16,185,129,0.07) 100%);
+  color: var(--text-primary);
+  border: 2px solid var(--primary-gradient-start);
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%231e40af" height="22" viewBox="0 0 20 20" width="22" xmlns="http://www.w3.org/2000/svg"><path d="M7.293 7.293a1 1 0 011.414 0L10 8.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z"/></svg>');
+}
+.sidebar-section select.repo-select:focus {
+  border-color: var(--primary-gradient-end);
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18);
+  background: linear-gradient(90deg, rgba(16,185,129,0.18) 0%, rgba(30,64,175,0.18) 100%);
+}
+.sidebar-section select.repo-select option {
+  background: #1e293b;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0.8rem 1.2rem;
+  border-radius: 0;
+}
+.playground-container.light .sidebar-section select.repo-select option {
+  background: #fff;
+  color: var(--text-primary);
+}
+
+.repo-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.9rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.repo-select-icon {
+  color: var(--primary-gradient-end);
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-left: 2px;
+  margin-right: 0;
+  opacity: 0.85;
+}
+.playground-container.light .repo-select-icon {
+  color: var(--primary-gradient-start);
+}
+
 /* Responsive Design */
 @media (max-width: 900px) {
   .playground-main {
@@ -763,6 +918,6 @@
 
 @media (max-width: 767px) {
   .playground-container {
-    display: none;
+    display: none !important;
   }
 }

@@ -36,6 +36,10 @@
   margin: 0 auto;
   padding: 20px;
   flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Course header */
@@ -46,6 +50,8 @@
   border-radius: 8px;
   margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .course-header-top {
@@ -122,6 +128,8 @@
 .content-layout {
   display: flex;
   flex-direction: row;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Sidebar */
@@ -130,6 +138,7 @@
   color: var(--dark-text);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
+  overflow-x: hidden;
   position: fixed;
   top: 0;
   left: 0;
@@ -137,6 +146,9 @@
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   transition: width 0.3s ease;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100vw;
 }
 
 .sidebar-header {
@@ -244,6 +256,10 @@
   margin-left: var(--sidebar-width);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: margin-left 0.3s ease;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100vw;
+  overflow-x: auto;
 }
 
 .content-area h2 {
@@ -254,6 +270,8 @@
 
 .content-block {
   margin-bottom: 20px;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .section-header {
@@ -300,6 +318,8 @@
   background-color: var(--light-bg);
   border: 1px solid var(--border-color);
   border-radius: 4px;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .code-output .MuiSvgIcon-root {
@@ -309,6 +329,7 @@
 .output-content {
   margin: 0;
   padding: 10px;
+  word-break: break-word;
 }
 
 .output-content.error {
@@ -360,6 +381,8 @@
   background-color: var(--light-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .quiz-section h3 {
@@ -498,14 +521,24 @@
 @media (max-width: 600px) {
   .content-container {
     padding: 10px;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   .course-header {
     padding: 15px;
+    box-sizing: border-box;
+    word-break: break-word;
   }
 
   .content-area {
     padding: 15px;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: auto;
   }
 
   .navigation-buttons {

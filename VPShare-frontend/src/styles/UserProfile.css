@@ -84,6 +84,8 @@
   flex-direction: column;
   align-items: center;
   transition: box-shadow 0.2s;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 .stat-card:hover {
   box-shadow: 0 4px 16px rgba(37,99,235,0.10);
@@ -345,6 +347,8 @@
   width: 120px;
   min-height: 130px;
   margin-bottom: 0.5rem;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 
 /* Streak Calendar */
@@ -428,6 +432,7 @@
   margin: 3rem auto;
   gap: 2.5rem;
   align-items: flex-start;
+  box-sizing: border-box;
 }
 .profile-github-sidebar {
   width: 320px;
@@ -443,6 +448,7 @@
   position: sticky;
   top: 2rem;
   z-index: 2;
+  box-sizing: border-box;
 }
 .profile-github-avatar-wrap {
   position: relative;
@@ -475,6 +481,7 @@
   margin-bottom: 1.2rem;
   text-align: center;
   word-break: break-all;
+  box-sizing: border-box;
 }
 .profile-github-actions {
   display: flex;
@@ -495,12 +502,20 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 .profile-github-stats-row {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .profile-github-card {
   background: #fff;
@@ -512,6 +527,10 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: auto;
 }
 
 /* Responsive for GitHub Layout */
@@ -520,15 +539,19 @@
     flex-direction: column;
     align-items: center;
     gap: 1.5rem;
+    box-sizing: border-box;
   }
   .profile-github-sidebar {
     width: 100%;
     max-width: 99vw;
     margin-bottom: 1.5rem;
     position: static;
+    box-sizing: border-box;
   }
   .profile-github-main {
     width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
   }
 }
 @media (max-width: 768px) {
@@ -536,10 +559,12 @@
     flex-direction: column;
     gap: 0.7rem;
     margin: 1rem 0;
+    box-sizing: border-box;
   }
   .profile-github-sidebar {
     padding: 1.2rem 0.5rem;
     border-radius: 10px;
+    box-sizing: border-box;
   }
   .profile-github-avatar {
     width: 80px;
@@ -548,13 +573,43 @@
   .profile-github-main {
     padding: 0 0.2rem;
     gap: 1rem;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
   .profile-github-card {
     padding: 1rem 0.5rem;
     border-radius: 8px;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    box-sizing: border-box;
+    align-items: stretch;
+    overflow-x: auto;
   }
   .profile-github-stats-row {
     gap: 0.7rem;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* Fix for section cards and other cards on mobile */
+@media (max-width: 768px) {
+  .profile-section-card,
+  .badges-section,
+  .streaks-section,
+  .motivation-card,
+  .upload-section {
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
+    padding: 0.7rem 0.2rem;
+    border-radius: 8px;
+    box-sizing: border-box;
   }
 }
 
@@ -597,10 +652,12 @@
   .streaks-section,
   .motivation-card,
   .upload-section {
-    width: 99vw;
-    max-width: 99vw;
+    width: 100%;
+    max-width: 100vw;
+    min-width: 0;
     padding: 0.7rem 0.2rem;
     border-radius: 8px;
+    box-sizing: border-box;
   }
   .stat-card {
     min-width: 90px;

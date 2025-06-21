@@ -22,9 +22,12 @@ import CssIcon from '@mui/icons-material/Css';
 import JavascriptIcon from '@mui/icons-material/Javascript';
 import CodeSharpIcon from '@mui/icons-material/CodeSharp'; 
 import DescriptionIcon from '@mui/icons-material/Description'; 
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, updateDoc, getDoc, increment, onSnapshot, serverTimestamp, deleteField } from 'firebase/firestore';
+import LogoCT from '../assets/Logo Of CT.png';
 
 // Language mode mapping based on file extension
 const extensionToMode = {
@@ -107,6 +110,7 @@ const debounce = (func, wait) => {
 };
 
 function PlaygroundEditor() {
+  const db = getFirestore();
   // State management
   const [files, setFiles] = useState(() => {
     const savedFiles = localStorage.getItem('playground_files');
@@ -149,6 +153,7 @@ function PlaygroundEditor() {
   const [isLoadingCommits, setIsLoadingCommits] = useState(false);
   const [repoName, setRepoName] = useState(''); // Add missing repoName state for GitHub integration input
   const [githubError, setGithubError] = useState(null); // Add missing githubError state for GitHub integration errors
+  const [activeUsersCount, setActiveUsersCount] = useState(1);
 
   const isDraggingHeight = useRef(false);
   const isDraggingWidth = useRef(false);
@@ -194,16 +199,27 @@ function PlaygroundEditor() {
     }
   }, [githubToken]);
 
-  // Save project to GitHub (Vercel-like: use repoName input as owner/repo)
+  // Save project to GitHub (Vercel-like: use repoName input as owner/repo or just repo)
   const saveToGithub = async () => {
     if (!octokitRef.current || !repoName) {
-      setGithubError('Please enter a repository name (e.g., vercel/next.js).');
+      setGithubError('Please enter a repository name (e.g., vercel/next.js or mom-birthday).');
       return;
     }
     try {
-      const [owner, repo] = repoName.split('/');
+      let owner, repo;
+      if (repoName.includes('/')) {
+        [owner, repo] = repoName.split('/');
+      } else {
+        // Use authenticated user's GitHub username as owner
+        if (!githubUser || !githubUser.reloadUserInfo || !githubUser.reloadUserInfo.screenName) {
+          setGithubError('Could not determine your GitHub username. Please re-login.');
+          return;
+        }
+        owner = githubUser.reloadUserInfo.screenName;
+        repo = repoName;
+      }
       if (!owner || !repo) {
-        setGithubError('Repository name must be in the format owner/repo.');
+        setGithubError('Repository name must be in the format owner/repo or just repo.');
         return;
       }
       const projectData = JSON.stringify(files);
@@ -222,16 +238,27 @@ function PlaygroundEditor() {
     }
   };
 
-  // Load project from GitHub (Vercel-like: use repoName input as owner/repo)
+  // Load project from GitHub (Vercel-like: use repoName input as owner/repo or just repo)
   const loadFromGithub = async () => {
     if (!octokitRef.current || !repoName) {
-      setGithubError('Please enter a repository name (e.g., vercel/next.js).');
+      setGithubError('Please enter a repository name (e.g., vercel/next.js or mom-birthday).');
       return;
     }
     try {
-      const [owner, repo] = repoName.split('/');
+      let owner, repo;
+      if (repoName.includes('/')) {
+        [owner, repo] = repoName.split('/');
+      } else {
+        // Use authenticated user's GitHub username as owner
+        if (!githubUser || !githubUser.reloadUserInfo || !githubUser.reloadUserInfo.screenName) {
+          setGithubError('Could not determine your GitHub username. Please re-login.');
+          return;
+        }
+        owner = githubUser.reloadUserInfo.screenName;
+        repo = repoName;
+      }
       if (!owner || !repo) {
-        setGithubError('Repository name must be in the format owner/repo.');
+        setGithubError('Repository name must be in the format owner/repo or just repo.');
         return;
       }
       const response = await octokitRef.current.repos.getContent({
@@ -510,72 +537,151 @@ function PlaygroundEditor() {
     }
   }, []);
 
-  // Fetch repo branches
-  const fetchGithubBranches = useCallback(async (repo) => {
-    if (!octokitRef.current || !repo) return;
-    setIsLoadingBranches(true);
-    try {
-      const { data } = await octokitRef.current.repos.listBranches({ owner: repo.owner.login, repo: repo.name });
-      setRepoBranches(data);
-      setSelectedBranch(data[0]?.name || 'main');
-      setIsLoadingBranches(false);
-    } catch (e) {
-      setGithubError('Failed to fetch branches: ' + e.message);
-      setIsLoadingBranches(false);
-    }
-  }, []);
-
-  // Fetch file tree for repo/branch
-  const fetchGithubFileTree = useCallback(async (repo, branch) => {
-    if (!octokitRef.current || !repo) return;
-    setIsLoadingFiles(true);
-    try {
-      const { data } = await octokitRef.current.git.getTree({
-        owner: repo.owner.login,
-        repo: repo.name,
-        tree_sha: branch,
-        recursive: true,
-      });
-      setRepoFiles(data.tree);
-      setIsLoadingFiles(false);
-    } catch (e) {
-      setGithubError('Failed to fetch file tree: ' + e.message);
-      setIsLoadingFiles(false);
-    }
-  }, []);
-
-  // Fetch commit history
-  const fetchGithubCommits = useCallback(async (repo, branch) => {
-    if (!octokitRef.current || !repo) return;
-    setIsLoadingCommits(true);
-    try {
-      const { data } = await octokitRef.current.repos.listCommits({
-        owner: repo.owner.login,
-        repo: repo.name,
-        sha: branch,
-        per_page: 10,
-      });
-      setCommitHistory(data);
-      setIsLoadingCommits(false);
-    } catch (e) {
-      setGithubError('Failed to fetch commits: ' + e.message);
-      setIsLoadingCommits(false);
-    }
-  }, []);
-
   // On GitHub token, fetch repos
   useEffect(() => {
     if (githubToken) fetchGithubRepos();
   }, [githubToken, fetchGithubRepos]);
 
-  // On repo select, fetch branches and file tree
-  useEffect(() => {
-    if (selectedRepo) {
-      fetchGithubBranches(selectedRepo);
-      fetchGithubFileTree(selectedRepo, selectedBranch);
-      fetchGithubCommits(selectedRepo, selectedBranch);
+  // GitHub integration UI and logic
+  const githubIntegrationUI = () => {
+    if (!githubToken) {
+      return (
+        <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
+          Please sign in with GitHub from the Login page to enable GitHub features.
+        </div>
+      );
     }
-  }, [selectedRepo, selectedBranch, fetchGithubBranches, fetchGithubFileTree, fetchGithubCommits]);
+
+    return (
+      <>
+        <motion.button
+          className="sidebar-button neumorphic w-full mb-2"
+          onClick={fetchGithubRepos}
+          disabled={isLoadingRepos}
+          variants={buttonHoverVariants}
+          whileHover="hover"
+        >
+          {isLoadingRepos ? 'Loading Repositories...' : 'Fetch Repositories'}
+        </motion.button>
+        {githubRepos.length > 0 ? (
+          <select
+            className="w-full px-4 py-2 mb-2 bg-transparent border border-gray-500 rounded-md text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all"
+            value={repoName}
+            onChange={e => setRepoName(e.target.value)}
+          >
+            <option value="">Select a repository</option>
+            {githubRepos.map(repo => (
+              <option key={repo.full_name} value={repo.full_name}>{repo.full_name}</option>
+            ))}
+          </select>
+        ) : (
+          <p className="text-gray-400 text-sm mb-2">No repositories found.</p>
+        )}
+        <input
+          id="repo-name"
+          type="text"
+          placeholder="Repository name"
+          value={repoName}
+          onChange={(e) => setRepoName(e.target.value)}
+          className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2"
+        />
+        <motion.button
+          className="sidebar-button neumorphic w-full mb-2"
+          onClick={saveToGithub}
+          disabled={!repoName}
+          variants={buttonHoverVariants}
+          whileHover="hover"
+        >
+          Save to GitHub
+        </motion.button>
+        <motion.button
+          className="sidebar-button neumorphic w-full"
+          onClick={loadFromGithub}
+          disabled={!repoName}
+          variants={buttonHoverVariants}
+          whileHover="hover"
+        >
+          Load from GitHub
+        </motion.button>
+        {githubError && (
+          <p className="text-red-400 text-sm mt-2">{githubError}</p>
+        )}
+      </>
+    );
+  };
+
+  // Helper: update Firestore with coding activity
+  const updateCodingActivity = useCallback(async () => {
+    if (!githubUser) return;
+    const uid = githubUser.uid;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    const docRef = doc(db, 'userEngagement', uid);
+    try {
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        await updateDoc(docRef, {
+          [`dailyMinutes.${todayStr}`]: increment(1),
+          totalMinutes: increment(1),
+        });
+      } else {
+        await setDoc(docRef, {
+          dailyMinutes: { [todayStr]: 1 },
+          totalMinutes: 1,
+          courseProgress: {},
+        });
+      }
+    } catch (e) {
+      // Optionally log error
+      console.error('Failed to update coding activity:', e);
+    }
+  }, [githubUser, db]);
+
+  // Call updateCodingActivity when user edits code
+  useEffect(() => {
+    if (!githubUser) return;
+    // Only track activity if user is authenticated and not on mobile
+    if (isMobile) return;
+    // Listen for file changes
+    if (files.length > 0) {
+      updateCodingActivity();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [files]);
+
+  // Track active users in Firestore
+  useEffect(() => {
+    if (!githubUser) return;
+    const uid = githubUser.uid;
+    const onlineRef = doc(db, 'playgroundActiveUsers', 'online');
+    let unsubscribe;
+    let removed = false;
+    const updatePresence = async () => {
+      try {
+        // Ensure doc exists before updating
+        await setDoc(onlineRef, { [uid]: serverTimestamp() }, { merge: true });
+      } catch (e) {
+        console.error('Presence setDoc error:', e);
+      }
+    };
+    updatePresence();
+    // Listen for changes to online users
+    unsubscribe = onSnapshot(onlineRef, (docSnap) => {
+      const data = docSnap.data() || {};
+      const now = Date.now();
+      const active = Object.values(data).filter(ts => ts && ts.toDate && (now - ts.toDate().getTime() < 2 * 60 * 1000));
+      setActiveUsersCount(active.length);
+    });
+    // Remove user on unmount
+    return () => {
+      if (!removed) {
+        removed = true;
+        if (unsubscribe) unsubscribe();
+        updateDoc(onlineRef, { [uid]: deleteField() }).catch(() => {});
+      }
+    };
+  }, [githubUser, db]);
 
   // If on mobile, show a message instead of the playground
   if (isMobile) {
@@ -608,8 +714,7 @@ function PlaygroundEditor() {
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          CodeTapasya Playground
-          <GitHubIcon />
+          <img src={LogoCT} alt="CodeTapasya Logo" style={{ height: 36, width: 36, objectFit: 'contain', borderRadius: 8 }} />
         </motion.h3>
 
         {/* Search Bar */}
@@ -767,13 +872,42 @@ function PlaygroundEditor() {
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          <label htmlFor="repo-name" className="text-sm font-semibold block mb-2">GitHub Integration</label>
+          <label htmlFor="repo-name" className="text-sm font-semibold block mb-2 flex items-center gap-2">
+            <GitHubIcon style={{ fontSize: 20, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
+            GitHub Integration
+          </label>
           {!githubToken ? (
             <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
               Please sign in with GitHub from the Login page to enable GitHub features.
             </div>
           ) : (
             <>
+              <motion.button
+                className="sidebar-button neumorphic w-full mb-2"
+                onClick={fetchGithubRepos}
+                disabled={isLoadingRepos}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
+                {isLoadingRepos ? 'Loading Repositories...' : 'Fetch Repositories'}
+              </motion.button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <FolderOpenIcon style={{ fontSize: 22, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
+                <select
+                  className="w-full repo-select"
+                  value={repoName}
+                  onChange={e => setRepoName(e.target.value)}
+                  style={{ minWidth: 0 }}
+                >
+                  <option value="">Select a repository</option>
+                  {githubRepos.map(repo => (
+                    <option key={repo.full_name} value={repo.full_name}>
+                      {/* Unicode folder icon as prefix for visual cue */}
+                      5C1 {repo.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <input
                 id="repo-name"
                 type="text"
@@ -789,7 +923,7 @@ function PlaygroundEditor() {
                 variants={buttonHoverVariants}
                 whileHover="hover"
               >
-                Save to GitHub
+                <SaveIcon fontSize="small" className="mr-2" /> Save to GitHub
               </motion.button>
               <motion.button
                 className="sidebar-button neumorphic w-full"
@@ -798,7 +932,7 @@ function PlaygroundEditor() {
                 variants={buttonHoverVariants}
                 whileHover="hover"
               >
-                Load from GitHub
+                <RefreshIcon fontSize="small" className="mr-2" /> Load from GitHub
               </motion.button>
               {githubError && (
                 <p className="text-red-400 text-sm mt-2">{githubError}</p>
@@ -861,7 +995,7 @@ function PlaygroundEditor() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.4 }}
             >
-              2 Users Active
+              {activeUsersCount} User{activeUsersCount !== 1 ? 's' : ''} Active
             </motion.span>
             <motion.label
               className="auto-save-toggle"

@@ -5,6 +5,14 @@ import { motion } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import axios from 'axios';
 import '../styles/Payment.css';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import StarIcon from '@mui/icons-material/Star';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import DiamondIcon from '@mui/icons-material/Diamond';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -70,6 +78,15 @@ function Payment() {
     },
   };
 
+  // Plan icon mapping for mobile UI (premium look)
+  const planIcons = {
+    'one-day': <FlashOnIcon className="plan-icon" style={{ color: '#f59e42' }} />, // orange lightning
+    weekly: <CalendarTodayIcon className="plan-icon" style={{ color: '#10b981' }} />, // green calendar
+    monthly: <CreditCardIcon className="plan-icon" style={{ color: '#2563eb' }} />, // blue card
+    'six-month': <DiamondIcon className="plan-icon" style={{ color: '#a21caf' }} />, // purple diamond
+    yearly: <WorkspacePremiumIcon className="plan-icon" style={{ color: '#fbbf24' }} />, // gold premium
+  };
+
   useEffect(() => {
     console.log('Checking Firebase auth...');
     if (!plans[initialPlan]) {
@@ -81,10 +98,8 @@ function Payment() {
 
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        console.log('User authenticated:', user.email);
         try {
           const token = await user.getIdToken();
-          console.log('Firebase token retrieved');
           setUserToken(token);
           setUserData({
             name: user.displayName || 'User Name',
@@ -92,163 +107,126 @@ function Payment() {
             contact: user.phoneNumber || '9999999999',
           });
         } catch (err) {
-          console.error('Auth error:', err);
           setError('Failed to authenticate. Please log in again.');
           navigate('/login');
         }
       } else {
-        console.error('No user authenticated');
         setError('User not authenticated. Please log in.');
         navigate('/login');
       }
     });
-
     return () => unsubscribe();
   }, [initialPlan, navigate]);
 
   useEffect(() => {
-    console.log('Loading Razorpay SDK...');
-    const loadRazorpayScript = async (retries = 3, delay = 2000) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => {
-        console.log('Razorpay SDK loaded');
-        setRazorpayLoaded(true);
-      };
-      script.onerror = async () => {
-        console.error('Razorpay SDK failed to load, retries left:', retries);
-        if (retries > 0) {
-          setTimeout(() => loadRazorpayScript(retries - 1, delay * 2), delay);
-        } else {
-          setError('Failed to load Razorpay SDK. Please try again.');
-          setRazorpayLoaded(false);
-        }
-      };
-      document.body.appendChild(script);
-      return () => document.body.removeChild(script);
-    };
-    loadRazorpayScript();
-  }, []);
-
-const handlePayment = async () => {
-  console.log('handlePayment called, razorpayLoaded:', razorpayLoaded, 'userToken:', !!userToken);
-  if (!razorpayLoaded) return setError('Razorpay SDK not loaded.');
-  if (!userToken) return setError('User not authenticated.');
-
-  const planDetails = plans[selectedPlan] || plans.monthly;
-  setLoading(true);
-  setError('');
-
-  try {
-    console.log('Calling /create-order with plan:', selectedPlan);
-    const orderResponse = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/create-order`,
-      {
-        plan: selectedPlan,
-        amount: planDetails.amount,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userToken}`,
-        },
-      }
-    );
-
-    const { order_id, amount, currency, key_id } = orderResponse.data || {};
-
-    if (!order_id || !amount || !currency || !key_id) {
-      console.error('Missing order details:', orderResponse.data);
-      setError('Failed to create order: Missing required order details');
-      setLoading(false);
+    // Prevent duplicate script loads
+    if (window.Razorpay) {
+      setRazorpayLoaded(true);
       return;
     }
-
-    const options = {
-      key: key_id,
-      amount,
-      currency,
-      order_id,
-      name: 'CodeTapasya',
-      description: `Subscription for ${planDetails.name}`,
-      image: '/Logo Of CT.png',
-      handler: async function (response) {
-        try {
-          const verifyResponse = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
-            {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-              plan: selectedPlan,
-              amount: planDetails.amount,
-              email: userData.email,
-              duration: planDetails.duration,
-            },
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${userToken}`,
-              },
-            }
-          );
-
-          alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-          navigate('/dashboard');
-        } catch (err) {
-          console.error('verify-payment error:', err.response?.data || err.message);
-          setError(`Payment verification failed: ${err.response?.data?.error || err.message}`);
-        } finally {
-          setLoading(false);
-        }
-      },
-      prefill: {
-        name: userData.name,
-        email: userData.email,
-        contact: userData.contact,
-      },
-      notes: { plan: planDetails.name },
-      theme: { color: '#2563eb' },
-      modal: {
-        ondismiss: function () {
-          console.log('Payment modal dismissed');
-          setLoading(false);
-          alert('Payment cancelled.');
-        },
-      },
-      method: {
-        card: true,
-        upi: true,
-        netbanking: true,
-        wallet: true,
-        emi: false,
-        paylater: false,
-      },
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    script.onerror = () => {
+      setError('Failed to load Razorpay SDK. Please try again.');
+      setRazorpayLoaded(false);
     };
+    document.body.appendChild(script);
+    return () => {
+      if (script.parentNode) script.parentNode.removeChild(script);
+    };
+  }, []);
 
-    console.log('Opening Razorpay modal with options:', options);
-    const razorpay = new window.Razorpay(options);
-    razorpay.open();
-    razorpay.on('payment.failed', function (response) {
-      console.error('Payment failed:', response.error);
-      setError(`Payment failed: ${response.error.description}`);
+  const handlePayment = async () => {
+    if (!razorpayLoaded) return setError('Razorpay SDK not loaded.');
+    if (!userToken) return setError('User not authenticated.');
+    const planDetails = plans[selectedPlan] || plans.monthly;
+    setLoading(true);
+    setError('');
+    try {
+      const orderResponse = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/create-order`,
+        { plan: selectedPlan, amount: planDetails.amount },
+        { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` } }
+      );
+      const { order_id, amount, currency, key_id } = orderResponse.data || {};
+      if (!order_id || !amount || !currency || !key_id) {
+        setError('Failed to create order: Missing required order details');
+        setLoading(false);
+        return;
+      }
+      const options = {
+        key: key_id,
+        amount,
+        currency,
+        order_id,
+        name: 'CodeTapasya',
+        description: `Subscription for ${planDetails.name}`,
+        image: '/Logo Of CT.png',
+        handler: async function (response) {
+          try {
+            await axios.post(
+              `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
+              {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: selectedPlan,
+                amount: planDetails.amount,
+                email: userData.email,
+                duration: planDetails.duration,
+              },
+              { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` } }
+            );
+            alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+            navigate('/dashboard');
+          } catch (err) {
+            setError(`Payment verification failed: ${err.response?.data?.error || err.message}`);
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: userData.name,
+          email: userData.email,
+          contact: userData.contact,
+        },
+        notes: { plan: planDetails.name },
+        theme: { color: '#2563eb' },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            alert('Payment cancelled.');
+          },
+        },
+        method: {
+          card: true,
+          upi: true,
+          netbanking: true,
+          wallet: true,
+          emi: false,
+          paylater: false,
+        },
+      };
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      razorpay.on('payment.failed', function (response) {
+        setError(`Payment failed: ${response.error?.description || 'Unknown error'}`);
+        setLoading(false);
+      });
+    } catch (err) {
+      let errorMessage = err.message || 'Unknown error';
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      setError(`Failed to create order: ${errorMessage}`);
       setLoading(false);
-    });
-
-  } catch (err) {
-    console.error('create-order error:', err.message, err.response?.data);
-    let errorMessage = err.message || 'Unknown error';
-    if (err.response?.data?.error) {
-      errorMessage = err.response.data.error;
     }
-    setError(`Failed to create order: ${errorMessage}`);
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <motion.div className="payment-page" initial="hidden" animate="visible" variants={sectionVariants}>
+    <motion.div className="payment-page" initial="hidden" animate="visible" variants={sectionVariants} style={{ paddingBottom: window.innerWidth <= 600 ? '6.5rem' : undefined }}>
       <h1 className="payment-title">Unlock Your Coding Potential</h1>
       <p className="payment-subtitle">Choose a CodeTapasya plan to start learning today!</p>
       {error && <div className="error-message">{error}</div>}
@@ -262,18 +240,16 @@ const handlePayment = async () => {
             whileHover="hover"
             animate={selectedPlan === planKey ? 'selected' : 'initial'}
             onClick={() => {
-              console.log('Selected plan:', planKey);
               setSelectedPlan(planKey);
               navigate(`/payment/${planKey}`, { replace: true });
               setError('');
             }}
           >
-            {selectedPlan === planKey && <CheckCircleIcon className="selected-icon" />}
+            {/* Plan icon for mobile style */}
+            <span className="plan-icon">{planIcons[planKey]}</span>
             <h3>{plans[planKey].name}</h3>
-            <p className="price">₹{plans[planKey].price} <span>/{plans[planKey].duration}</span></p>
-            <ul>
-              {plans[planKey].features.map((feature, index) => <li key={index}>{feature}</li>)}
-            </ul>
+            <span className="price">₹{plans[planKey].price}</span>
+            {selectedPlan === planKey && <CheckCircleIcon className="selected-icon" />}
           </motion.div>
         ))}
       </div>
@@ -291,6 +267,7 @@ const handlePayment = async () => {
         variants={buttonVariants}
         whileHover="hover"
         whileTap="tap"
+        style={{ position: window.innerWidth <= 600 ? 'fixed' : undefined, left: 0, right: 0, bottom: 0, width: window.innerWidth <= 600 ? '100vw' : undefined, zIndex: 100 }}
       >
         {loading ? <span className="loading-spinner">Processing...</span> : 'Proceed to Pay'}
       </motion.button>

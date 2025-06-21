@@ -135,12 +135,24 @@ export default function UserProfile() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log('Auth state changed:', currentUser);
       if (currentUser) {
+        console.log('User UID:', currentUser.uid);
+        console.log('User displayName:', currentUser.displayName);
+        console.log('User email:', currentUser.email);
+        console.log('User photoURL:', currentUser.photoURL);
         setUser(currentUser);
         setDisplayName(currentUser.displayName || '');
         setPreviewURL(currentUser.photoURL || '');
       } else {
-        navigate('/login');
+        console.warn('No authenticated user found.');
+        setUser(null);
+        setDisplayName('');
+        setPreviewURL('');
+        // Only navigate if not already on /login
+        if (window.location.pathname !== '/login') {
+          navigate('/login');
+        }
       }
     });
     return () => unsubscribe();
@@ -169,16 +181,28 @@ export default function UserProfile() {
         setStats({ courses, codeLines });
         // Fetch engagement
         const engagementDoc = await getDoc(doc(db, 'userEngagement', user.uid));
-        let totalMinutes = 0, dailyMinutes = {}, courseProgress = {};
+        let totalMinutes = 0, dailyMinutes = {}, courseProgress = {}, userProgress = {}, dailyCourseReadMinutes = {};
         if (engagementDoc.exists()) {
           const data = engagementDoc.data();
           totalMinutes = data.totalMinutes || 0;
           dailyMinutes = data.dailyMinutes || {};
           courseProgress = data.courseProgress || {};
+          userProgress = data.userProgress || {};
+          dailyCourseReadMinutes = data.dailyCourseReadMinutes || {};
         }
-        setEngagement({ totalMinutes, dailyMinutes, courseProgress });
-        // Use dailyMinutes for streaks and calendar
-        const activityDates = Object.keys(dailyMinutes).filter(date => dailyMinutes[date] > 0);
+        // Prefer userProgress if it exists, else fallback to courseProgress
+        const progressData = Object.keys(userProgress).length > 0 ? userProgress : courseProgress;
+        setEngagement({ totalMinutes, dailyMinutes, courseProgress: progressData });
+        // Integrate both coding and reading activity for streaks
+        const allDates = new Set([
+          ...Object.keys(dailyMinutes),
+          ...Object.keys(dailyCourseReadMinutes)
+        ]);
+        const activityDates = Array.from(allDates).filter(date => {
+          const code = dailyMinutes[date] || 0;
+          const read = dailyCourseReadMinutes[date] || 0;
+          return code > 0 || read > 0;
+        });
         setActivityDates(activityDates);
         setStreakStats(calculateStreaks(activityDates));
       } catch (e) {
@@ -289,7 +313,9 @@ export default function UserProfile() {
     setSuccess('');
   };
 
-  if (!user) return <div className="loading">Loading profile...</div>;
+  if (user === null) {
+    return <div className="loading">Loading profile... (Check console for auth state)</div>;
+  }
 
   return (
     <div className="profile-github-bg">

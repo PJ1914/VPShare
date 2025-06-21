@@ -136,6 +136,60 @@
   box-shadow: 0 4px 16px rgba(16,185,129,0.13);
 }
 
+/* Code block copy button styles */
+.code-block-wrapper {
+  position: relative;
+  margin: 1.5em 0;
+  background: #f8fafc;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30,64,175,0.07);
+  padding-top: 2.2em;
+}
+.code-block-wrapper pre {
+  margin: 0;
+  padding: 1em;
+  background: #f1f5f9;
+  border-radius: 0 0 8px 8px;
+  font-size: 15px;
+  overflow-x: auto;
+}
+.code-block-wrapper .copy-code-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: var(--chat-primary, #1e40af);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(30,64,175,0.10);
+}
+.code-block-wrapper .copy-code-btn:hover {
+  background: var(--chat-secondary, #10b981);
+  color: #fff;
+}
+
+.code-block-wrapper code {
+  background: none;
+  color: #1e293b;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 15px;
+}
+
+/* Inline code block styling */
+.code-block-wrapper span.copy-code-btn {
+  position: static;
+  margin-right: 8px;
+  top: unset;
+  right: unset;
+  display: inline-block;
+}
+
 /* Responsive */
 @media (max-width: 500px) {
   .chat-box {

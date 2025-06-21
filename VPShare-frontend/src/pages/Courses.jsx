@@ -306,42 +306,51 @@ function Courses() {
           >
             <AnimatePresence mode="sync">
               {filteredCourses.length > 0 ? (
-                filteredCourses.map(course => (
-                  <motion.div
-                    key={course.id}
-                    className="course-card"
-                    variants={cardVariants}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    whileHover="hover"
-                  >
-                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
-                      {course.category}
-                    </span>
-                    <h3>{course.title}</h3>
-                    <p className="course-description">{course.description}</p>
-                    <p className="course-level">Level: {course.level}</p>
-                    {course.progress > 0 && (
-                      <div className="course-progress">
-                        <p>{course.progress}% Complete</p>
-                        <div className="progress-bar">
-                          <motion.div
-                            className="progress-fill"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${course.progress}%` }}
-                            transition={{ duration: 1, ease: 'easeOut' }}
-                          ></motion.div>
+                filteredCourses.map(course => {
+                  // Determine the section to continue from (default 0)
+                  const continueSection = course.progress && course.progress < 100 ? course.progressSectionIndex || 0 : 0;
+                  return (
+                    <motion.div
+                      key={course.id}
+                      className="course-card"
+                      variants={cardVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      whileHover="hover"
+                    >
+                      <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
+                        {course.category}
+                      </span>
+                      <h3>{course.title}</h3>
+                      <p className="course-description">{course.description}</p>
+                      <p className="course-level">Level: {course.level}</p>
+                      {course.progress > 0 && (
+                        <div className="course-progress">
+                          <p>{course.progress}% Complete</p>
+                          <div className="progress-bar">
+                            <motion.div
+                              className="progress-fill"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${course.progress}%` }}
+                              transition={{ duration: 1, ease: 'easeOut' }}
+                            ></motion.div>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    <motion.div variants={hoverVariants} whileHover="hover">
-                      <Link to={course.link} className="course-link" aria-label={`Go to ${course.title}`}>
-                        {course.progress > 0 ? 'Continue Course' : 'Start Course'}
-                      </Link>
+                      )}
+                      <motion.div variants={hoverVariants} whileHover="hover">
+                        <Link
+                          to={course.link}
+                          className="course-link"
+                          aria-label={`Go to ${course.title}`}
+                          state={{ continueSection: continueSection }}
+                        >
+                          {course.progress > 0 ? 'Continue Course' : 'Start Course'}
+                        </Link>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                ))
+                  );
+                })
               ) : (
                 !loading && !error && (
                   <motion.p

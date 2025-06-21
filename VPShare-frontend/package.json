@@ -22,6 +22,7 @@
     "axios-retry": "^4.5.0",
     "firebase": "^11.9.0",
     "framer-motion": "^12.16.0",
+    "html-react-parser": "^5.2.5",
     "lottie-react": "^2.4.1",
     "mathjs": "^14.5.2",
     "prismjs": "^1.30.0",
