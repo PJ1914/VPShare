@@ -1,0 +1,14 @@
+.github-page {
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.github-page h1 {
+  font-size: 2.5rem;
+  color: #24292e;
+}
+
+.github-page p {
+  font-size: 1.1rem;
+  color: #586069;
+}

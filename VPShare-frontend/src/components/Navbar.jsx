@@ -12,6 +12,10 @@ import CodeIcon from '@mui/icons-material/Code';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import FolderIcon from '@mui/icons-material/Folder';
+import QuizIcon from '@mui/icons-material/Quiz';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import Logo from '../assets/Logo 3.png';
 import '../styles/Navbar.css';
 
@@ -26,7 +30,7 @@ const logoVariants = {
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // --- CHANGE START ---
   // Initialize profile picture with the default avatar. It will only be updated
   // after a successful check of the user's photoURL.
@@ -34,8 +38,9 @@ function Navbar() {
   // --- CHANGE END ---
   const location = useLocation();
   const navigate = useNavigate();
-  const dropdownRef = useRef(null);
+  const profileItemRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const sidebarRef = useRef(null);
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -47,8 +52,7 @@ function Navbar() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsMobileMenuOpen(false);
-      setIsDropdownOpen(false);
-
+      setIsSidebarOpen(false);
       // Set profile picture directly; let <img onError> handle fallback
       if (currentUser && currentUser.photoURL) {
         setProfilePicture(currentUser.photoURL);
@@ -61,14 +65,20 @@ function Navbar() {
   }, []);
   // --- CHANGE END ---
 
-  // Close dropdown and mobile menu on outside click
+  // Close sidebar on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (event.target.closest('.nav-links a')) {
         return;
       }
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
+      if (
+        isSidebarOpen &&
+        profileItemRef.current &&
+        !profileItemRef.current.contains(event.target) &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setIsSidebarOpen(false);
       }
       if (
         mobileMenuRef.current &&
@@ -80,15 +90,22 @@ function Navbar() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    if (isSidebarOpen && sidebarRef.current) {
+      sidebarRef.current.focus();
+    }
+  }, [isSidebarOpen]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev);
-    setIsDropdownOpen(false);
+    setIsSidebarOpen(false);
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+    if (isMobileMenuOpen) setIsMobileMenuOpen(false);
   };
 
   const handleLogout = async () => {
@@ -166,58 +183,23 @@ function Navbar() {
             </Link>
           </li>
           {user ? (
-            <li className="profile-item" ref={dropdownRef}>
+            <li className="profile-item" ref={profileItemRef}>
               <button
                 className="profile-link"
-                onClick={toggleDropdown}
-                aria-label="Toggle profile menu"
+                onClick={toggleSidebar}
+                aria-label="Open profile sidebar"
               >
                 <div className="profile-picture-container">
                   <img
                     src={profilePicture}
                     alt="User Profile"
                     className="profile-picture"
-                    // --- CHANGE START ---
-                    // The onError handler is now just a final safety net, e.g., if the default
-                    // avatar file itself is missing. The console warning here is removed
-                    // to avoid duplication with the logic in useEffect.
                     onError={(e) => {
                       e.target.src = '/default-avatar.jpg';
                     }}
-                    // --- CHANGE END ---
                   />
                 </div>
               </button>
-              {isDropdownOpen && (
-                <ul className="profile-dropdown">
-                  <li>
-                    <Link
-                      to="/profile"
-                      className="dropdown-item"
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        closeMobileMenu();
-                      }}
-                    >
-                      <PersonIcon fontSize="small" className="dropdown-icon" />
-                      Profile
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item logout-button"
-                      onClick={() => {
-                        handleLogout();
-                        setIsDropdownOpen(false);
-                        closeMobileMenu();
-                      }}
-                    >
-                      <LogoutIcon fontSize="small" className="dropdown-icon" />
-                      Logout
-                    </button>
-                  </li>
-                </ul>
-              )}
             </li>
           ) : (
             <li>
@@ -241,6 +223,71 @@ function Navbar() {
           {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
       </div>
+      {/* Profile Sidebar and Backdrop */}
+      {isSidebarOpen && (
+        <div className="profile-sidebar-modal">
+          <div
+            className="profile-sidebar-backdrop"
+            onClick={() => setIsSidebarOpen(false)}
+            tabIndex={-1}
+            aria-label="Close profile sidebar"
+          ></div>
+          <aside
+            className="profile-sidebar"
+            tabIndex={0}
+            ref={sidebarRef}
+            onKeyDown={e => {
+              if (e.key === 'Escape') setIsSidebarOpen(false);
+            }}
+          >
+            <div className="profile-sidebar-header">
+              <img
+                src={profilePicture}
+                alt="User Profile"
+                className="profile-sidebar-picture"
+                onError={(e) => {
+                  e.target.src = '/default-avatar.jpg';
+                }}
+              />
+              <span className="profile-sidebar-username">Profile</span>
+              <button className="profile-sidebar-close" onClick={() => setIsSidebarOpen(false)} aria-label="Close profile sidebar">
+                <CloseIcon />
+              </button>
+            </div>
+            <ul className="profile-sidebar-list">
+              <li>
+                <Link to="/profile" className="profile-sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <PersonIcon className="sidebar-icon" /> Profile
+                </Link>
+              </li>
+              <li>
+                <Link to="/assignments" className="profile-sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <AssignmentIcon className="sidebar-icon" /> Assignments
+                </Link>
+              </li>
+              <li>
+                <Link to="/projects" className="profile-sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <FolderIcon className="sidebar-icon" /> Projects
+                </Link>
+              </li>
+              <li>
+                <Link to="/quizzes" className="profile-sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <QuizIcon className="sidebar-icon" /> Quizzes
+                </Link>
+              </li>
+              <li>
+                <Link to="/github" className="profile-sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <GitHubIcon className="sidebar-icon" /> GitHub
+                </Link>
+              </li>
+            </ul>
+            <div className="profile-sidebar-separator"></div>
+            <button className="profile-sidebar-link logout" onClick={() => { handleLogout(); setIsSidebarOpen(false); }}>
+              <LogoutIcon className="sidebar-icon" /> Logout
+            </button>
+          </aside>
+        </div>
+      )}
     </nav>
   );
 }

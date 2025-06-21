@@ -194,57 +194,26 @@
   border-color: var(--hover-color);
 }
 
-/* Profile Dropdown */
-.profile-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%); /* Use same gradient */
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  list-style: none;
-  padding: 0.5rem 0;
-  z-index: 1002;
-  min-width: 150px;
-}
-
-.profile-dropdown li {
-  margin: 0;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: white !important;
-  font-size: 0.95rem;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); /* Add shadow for better contrast */
-}
-
-.dropdown-item:hover {
-  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
-  color: var(--text-primary) !important;
-}
-
-.logout-button {
-  color: #ef4444 !important;
-}
-
-.logout-button:hover {
-  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
-  color: var(--text-primary) !important;
-}
-
-.dropdown-icon {
-  font-size: 1rem;
+/* Responsive: Make dropdown full width on mobile */
+@media (max-width: 640px) {
+  .profile-dropdown {
+    position: static;
+    min-width: 100vw;
+    border-radius: 0;
+    box-shadow: none;
+    margin-top: 0;
+    padding: 0.7rem 0 0.7rem 0;
+    background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  }
+  .dropdown-section-header {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .dropdown-item {
+    font-size: 1.15rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 /* Hamburger Menu for Mobile */
@@ -371,4 +340,164 @@
 .dropdown-item:focus {
   outline: 2px solid var(--hover-color);
   outline-offset: 2px;
+}
+
+/* Profile Sidebar Styles */
+.profile-sidebar-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.profile-sidebar-backdrop {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 41, 59, 0.45);
+  z-index: 0;
+  transition: background 0.2s;
+  pointer-events: auto;
+}
+
+.profile-sidebar {
+  position: relative;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 95vw;
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  box-shadow: -4px 0 24px 0 rgba(30, 64, 175, 0.13), -2px 0 8px 0 rgba(16, 185, 129, 0.10);
+  z-index: 2101;
+  display: flex;
+  flex-direction: column;
+  animation: sidebar-slide-in 0.25s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: auto;
+  outline: none;
+}
+
+.profile-sidebar * {
+  pointer-events: auto;
+}
+
+@keyframes sidebar-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.profile-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1.5px solid #e5e7eb22;
+  position: relative;
+}
+
+.profile-sidebar-picture {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid var(--cta-gradient-start);
+  background: #fff;
+}
+
+.profile-sidebar-username {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.01em;
+  flex: 1;
+}
+
+.profile-sidebar-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: absolute;
+  right: 1.2rem;
+  top: 1.2rem;
+  padding: 0.2rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.profile-sidebar-close:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.profile-sidebar-list {
+  list-style: none;
+  padding: 0.7rem 0 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.profile-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: #fff !important;
+  font-size: 1.08rem;
+  font-weight: 500;
+  padding: 0.7rem 2rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: background 0.18s, color 0.18s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.profile-sidebar-link:hover, .profile-sidebar-link:focus {
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  color: var(--text-primary) !important;
+  outline: none;
+}
+.profile-sidebar-link.logout {
+  color: #ef4444 !important;
+  margin-top: 0.7rem;
+  font-weight: 600;
+}
+.profile-sidebar-link.logout:hover, .profile-sidebar-link.logout:focus {
+  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  color: var(--text-primary) !important;
+}
+
+.profile-sidebar-separator {
+  border-top: 1.5px solid #e5e7eb;
+  margin: 1.1rem 0 0.5rem 0;
+  width: 85%;
+  align-self: center;
+  opacity: 0.7;
+}
+
+.sidebar-icon {
+  font-size: 1.18rem;
+}
+
+@media (max-width: 640px) {
+  .profile-sidebar {
+    width: 100vw;
+    max-width: 100vw;
+    border-radius: 0;
+    padding: 0;
+  }
+  .profile-sidebar-header {
+    padding: 1rem 1.1rem 0.8rem 1.1rem;
+  }
+  .profile-sidebar-link {
+    font-size: 1.15rem;
+    padding-left: 1.3rem;
+    padding-right: 1.3rem;
+  }
 }

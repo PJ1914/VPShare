@@ -1,0 +1,14 @@
+.projects-page {
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.projects-page h1 {
+  font-size: 2.5rem;
+  color: #008b8b;
+}
+
+.projects-page p {
+  font-size: 1.1rem;
+  color: #444;
+}

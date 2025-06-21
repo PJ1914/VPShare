@@ -83,7 +83,9 @@ const mapModuleIdToCategory = (moduleId, title = '') => {
     return 'Programming Languages';
   } else if (lowerSource.includes('java')) {
     return 'Programming Languages';
-  } else if (lowerSource.includes('cpp')) {
+  } else if (lowerSource.includes('c++')) {
+    return 'Programming Languages';
+  }else if (lowerSource.includes('c')){
     return 'Programming Languages';
   }
   return 'Misc';

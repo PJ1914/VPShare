@@ -12,6 +12,10 @@ import Payment from './pages/Payment';
 import PrivateRoute from './components/PrivateRoute';
 import CourseDetail from './pages/CourseDetail';
 import ErrorBoundary from './components/ErrorBoundary';
+import Assignments from './pages/Assignments';
+import GitHubPage from './pages/GitHub';
+import Projects from './pages/Projects';
+import Quizzes from './pages/Quizzes';
 
 function App() {
   return (
@@ -44,7 +48,6 @@ function App() {
         />
 
         {/* Course Detail with ErrorBoundary */}
-        {/* The :id captures the course ID from the URL (e.g., /courses/123) */}
         <Route
           path="/courses/:id"
           element={
@@ -56,7 +59,7 @@ function App() {
           }
         />
 
-        {/* Redirect unknown course paths (like /courses/) back to /courses. */}
+        {/* Redirect unknown course paths */}
         <Route path="/courses/*" element={<Navigate to="/courses" replace />} />
 
         <Route
@@ -73,6 +76,42 @@ function App() {
           element={
             <PrivateRoute>
               <Playground />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/assignments"
+          element={
+            <PrivateRoute>
+              <Assignments />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/github"
+          element={
+            <PrivateRoute>
+              <GitHubPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/projects"
+          element={
+            <PrivateRoute>
+              <Projects />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/quizzes"
+          element={
+            <PrivateRoute>
+              <Quizzes />
             </PrivateRoute>
           }
         />

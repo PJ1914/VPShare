@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase'; 
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
-import { Box, Button, Typography, Paper, TextField, Fade, Alert } from '@mui/material';
+import { Box, Button, Typography, Paper, TextField, Fade, Alert, InputAdornment, IconButton } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import GoogleIcon from '@mui/icons-material/Google'; // MUI icon for Google Auth
 import EmailIcon from '@mui/icons-material/Email'; // MUI icon for email field
@@ -11,6 +11,8 @@ import LoginIcon from '@mui/icons-material/Login'; // MUI icon for submit button
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount'; // MUI icon for toggle button
 import HomeIcon from '@mui/icons-material/Home'; // MUI icon for home link
 import GitHubIcon from '@mui/icons-material/GitHub'; // MUI icon for GitHub Auth
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import '../styles/Login.css';
 
 // Animation variants for the login card
@@ -41,6 +43,7 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -188,7 +191,7 @@ function Login() {
             >
               <TextField
                 label="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 fullWidth
@@ -197,7 +200,20 @@ function Login() {
                 className="login-input"
                 required
                 InputProps={{
-                  startAdornment: <LockIcon sx={{ color: 'gray', mr: 1 }} />,
+                  startAdornment: <LockIcon sx={{ color: 'gray', mr: 1 }} />, 
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        onClick={() => setShowPassword((show) => !show)}
+                        edge="end"
+                        size="small"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
                 }}
               />
             </motion.div>

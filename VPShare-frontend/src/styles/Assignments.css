@@ -1,0 +1,14 @@
+.assignments-page {
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.assignments-page h1 {
+  font-size: 2.5rem;
+  color: #0066cc;
+}
+
+.assignments-page p {
+  font-size: 1.1rem;
+  color: #333;
+}
