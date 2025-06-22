@@ -16,7 +16,17 @@ app = FastAPI()
 
 # Firebase Admin SDK Init
 if not firebase_admin._apps:
-    cred = credentials.Certificate("firebase_adminsdk.json")
+    # Load credentials from environment or fallback to file
+    service_account_json = os.getenv("FIREBASE_ADMINSDK_JSON")
+    if service_account_json:
+        try:
+            sa_info = json.loads(service_account_json)
+            cred = credentials.Certificate(sa_info)
+        except Exception as e:
+            print("Error loading Firebase credentials from env:", e)
+            raise
+    else:
+        cred = credentials.Certificate("firebase_adminsdk.json")
     firebase_admin.initialize_app(cred)
 
 # Allow CORS for frontend
