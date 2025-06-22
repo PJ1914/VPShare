@@ -89,7 +89,8 @@ const ChatAssistant = () => {
     setInput('');
     inputRef.current && inputRef.current.focus();
     try {
-      const apiUrl = import.meta.env.VITE_AI_CHAT_API_URL || 'http://127.0.0.1:8000/chat';
+      // Use production API URL or fall back to local development URL
+      const apiUrl = import.meta.env.VITE_AI_CHAT_API_URL || import.meta.env.VITE_AI_CHAT_API_URL_LOCAL;
       const token = await user.getIdToken();
       // Prepare last 20 messages as context
       const chatContext = messages.slice(-20).map(m => ({ from: m.from, text: m.text }));
