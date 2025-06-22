@@ -92,7 +92,7 @@ function calculateStreaks(activityDates) {
 }
 
 // Helper for GitHub-style streak calendar
-function getStreakCalendarData(activityDates, days = 56) {
+function getStreakCalendarData(activityDates, days = 56, dailyMinutes = {}) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const calendar = [];
@@ -101,9 +101,18 @@ function getStreakCalendarData(activityDates, days = 56) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
+    const minutes = dailyMinutes[dateStr] || 0;
+    // Level: 0 = none, 1 = 1-9 min, 2 = 10-29 min, 3 = 30-59 min, 4 = 60+ min
+    let level = 0;
+    if (minutes >= 60) level = 4;
+    else if (minutes >= 30) level = 3;
+    else if (minutes >= 10) level = 2;
+    else if (minutes >= 1) level = 1;
     calendar.push({
       date: dateStr,
       active: activitySet.has(dateStr),
+      level,
+      minutes,
     });
   }
   return calendar;
@@ -422,19 +431,21 @@ export default function UserProfile() {
             </div>
             {/* GitHub-style Streak Calendar */}
             <div className="streak-calendar" style={{gridTemplateColumns: 'repeat(7, 1fr)'}}>
-              {getStreakCalendarData(activityDates, 56).map((cell, idx) => (
+              {getStreakCalendarData(activityDates, 56, engagement.dailyMinutes).map((cell, idx) => (
                 <div
                   key={cell.date}
-                  className={`calendar-cell${cell.active ? ' active' : ''}`}
-                  title={cell.date + (cell.active ? ' - Active' : ' - No activity')}
-                  style={{background: cell.active ? 'var(--streak-highlight)' : '#e5e7eb', borderColor: cell.active ? 'var(--streak-highlight)' : '#e0e7ef'}}
+                  className={`calendar-cell${cell.active ? ' active' : ''}${cell.level ? ` level-${cell.level}` : ''}`}
+                  title={cell.date + (cell.active ? ` - ${cell.minutes} min` : ' - No activity')}
                 ></div>
               ))}
             </div>
             <div className="streak-calendar-legend">
               <span>Less</span>
-              <span className="calendar-cell" style={{background:'#e5e7eb',margin:'0 2px'}}></span>
-              <span className="calendar-cell" style={{background:'var(--streak-highlight)',margin:'0 2px'}}></span>
+              <span className="calendar-cell level-0"></span>
+              <span className="calendar-cell level-1"></span>
+              <span className="calendar-cell level-2"></span>
+              <span className="calendar-cell level-3"></span>
+              <span className="calendar-cell level-4"></span>
               <span>More</span>
             </div>
           </div>

@@ -19,21 +19,32 @@
 }
 
 .toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
   background: var(--chat-gradient);
   color: white;
-  font-size: 22px;
+  font-size: 28px;
   border: none;
-  padding: 14px 16px;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(30,64,175,0.18);
   transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
   outline: none;
+  padding: 0;
 }
 .toggle-button:hover {
   background: linear-gradient(135deg, #10b981 0%, #1e40af 100%);
   box-shadow: 0 6px 20px rgba(16,185,129,0.18);
   transform: scale(1.08);
+}
+.toggle-button svg {
+  font-size: 28px;
+  color: white;
 }
 
 .chat-box {
@@ -126,14 +137,35 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  transition: color 0.2s, box-shadow 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(30,64,175,0.10);
 }
 .chat-input button:hover {
-  background: var(--chat-send-hover);
-  color: #fff;
+  color: #ffdd57;
+  background: var(--chat-send-bg);
   transform: translateY(-2px) scale(1.04);
   box-shadow: 0 4px 16px rgba(16,185,129,0.13);
+}
+
+/* Typing animation styles */
+.typing-text {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  white-space: pre-line;
+}
+.typing-cursor {
+  display: inline-block;
+  width: 1ch;
+  color: #1e40af;
+  animation: blink-cursor 1s steps(1) infinite;
+  font-weight: bold;
+  font-size: 16px;
+}
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
 /* Code block copy button styles */
@@ -188,6 +220,29 @@
   top: unset;
   right: unset;
   display: inline-block;
+}
+
+/* CT Badge style */
+.ct-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--chat-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  box-shadow: 0 2px 8px rgba(30,64,175,0.10);
+  letter-spacing: 0.5px;
+  border: 2px solid var(--chat-secondary);
+  animation: ct-badge-pop 0.3s;
+}
+@keyframes ct-badge-pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* Responsive */

@@ -5,7 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import parse, { domToReact } from 'html-react-parser';
+import ReactMarkdown from 'react-markdown';
 import {
   AppBar,
   Toolbar,
@@ -45,7 +45,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import HomeIcon from '@mui/icons-material/Home';
 
 import '../styles/CourseDetail.css';
-
+import CourseCompletionModal from '../components/CourseCompletionModal';
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -96,49 +96,6 @@ const tocItemVariants = {
   }),
 };
 
-// Helper to render HTML content with code blocks as React elements with copy button
-function renderContentWithCopy(html) {
-  return parse(html, {
-    replace: (domNode) => {
-      if (domNode.name === 'pre' && domNode.children && domNode.children[0]?.name === 'code') {
-        const codeText = domNode.children[0].children?.map(child => child.data || '').join('') || '';
-        return (
-          <div className="code-block-wrapper">
-            <button
-              className="copy-code-btn"
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(codeText);
-              }}
-            >
-              Copy
-            </button>
-            <pre><code>{codeText}</code></pre>
-          </div>
-        );
-      }
-      if (domNode.name === 'code' && (!domNode.parent || domNode.parent.name !== 'pre')) {
-        const codeText = domNode.children?.map(child => child.data || '').join('') || '';
-        return (
-          <span className="code-block-wrapper">
-            <button
-              className="copy-code-btn"
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(codeText);
-              }}
-            >
-              Copy
-            </button>
-            <code>{codeText}</code>
-          </span>
-        );
-      }
-      return undefined;
-    },
-  });
-}
-
 function CourseDetail() {
   // All hooks must be at the top and never inside any condition, loop, or nested function
   const { id } = useParams();
@@ -160,6 +117,7 @@ function CourseDetail() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [contentHeight, setContentHeight] = useState('auto');
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const sidebarRef = useRef(null);
   const contentAreaRef = useRef(null);
   const isDraggingSidebar = useRef(false);
@@ -182,15 +140,19 @@ function CourseDetail() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentSectionIndex]);
 
-  // quizQuestions must be a plain variable, not a hook, and always defined at the top
-  let quizQuestions = [
-    { question: 'Which keyword declares a variable in JavaScript?', options: ['var', 'int', 'string', 'define'], correctAnswer: 'var' },
-    { question: 'What is the output of console.log(typeof null)?', options: ['null', 'object', 'undefined', 'string'], correctAnswer: 'object' },
-  ];
-  if (course && course.title && typeof course.title === 'string' && course.title.toLowerCase().includes('html')) {
+  // Replace hardcoded quizQuestions with dynamic or course-based questions if available
+  let quizQuestions = [];
+  if (course && course.quiz && Array.isArray(course.quiz)) {
+    quizQuestions = course.quiz;
+  } else if (course && course.title && typeof course.title === 'string' && course.title.toLowerCase().includes('html')) {
     quizQuestions = [
       { question: 'What does HTML stand for?', options: ['Hyper Text Markup Language', 'Hyper Transfer Markup Language', 'High Text Markup Language', 'Hyperlink Text Markup Language'], correctAnswer: 'Hyper Text Markup Language' },
       { question: 'Which tag is used to create a hyperlink?', options: ['<link>', '<a>', '<href>', '<url>'], correctAnswer: '<a>' },
+    ];
+  } else {
+    quizQuestions = [
+      { question: 'Which keyword declares a variable in JavaScript?', options: ['var', 'int', 'string', 'define'], correctAnswer: 'var' },
+      { question: 'What is the output of console.log(typeof null)?', options: ['null', 'object', 'undefined', 'string'], correctAnswer: 'object' },
     ];
   }
 
@@ -369,15 +331,29 @@ function CourseDetail() {
 
         elements.forEach((el) => {
           const tagName = el.tagName.toLowerCase();
-          if (['h1', 'h2', 'h3'].includes(tagName) && el.textContent.trim()) {
+          if (["h1", "h2", "h3"].includes(tagName) && el.textContent.trim()) {
             if (currentSection.content || currentSection.heading) {
               parsedSections.push({ ...currentSection });
             }
-            currentSection = { heading: el.outerHTML, content: '' };
+            // Use markdown heading syntax
+            let hashes = tagName === "h1" ? "#" : tagName === "h2" ? "##" : "###";
+            currentSection = { heading: `${hashes} ${el.textContent.trim()}`, content: '' };
             tocItems.push({ title: el.textContent.trim(), index: sectionIndex });
             sectionIndex++;
           } else if (el.textContent.trim()) {
-            currentSection.content += el.outerHTML;
+            // Try to convert code/pre blocks to markdown, otherwise use textContent
+            if (tagName === "pre" && el.querySelector('code')) {
+              const code = el.querySelector('code').textContent;
+              currentSection.content += `\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
+            } else if (tagName === "code") {
+              currentSection.content += `\`${el.textContent}\``;
+            } else if (tagName === "ul" || tagName === "ol") {
+              // Convert lists to markdown
+              const items = Array.from(el.children).map(li => `- ${li.textContent.trim()}`).join('\n');
+              currentSection.content += `\n${items}\n`;
+            } else {
+              currentSection.content += `\n${el.textContent.trim()}\n`;
+            }
           }
         });
 
@@ -443,8 +419,8 @@ function CourseDetail() {
       courseId: course.module_id,
       currentSectionIndex: sectionIndex,
       completedSections: [],
-      quizAnswers: {},
-      quizSubmitted: false,
+      quizAnswers: quizAnswers,
+      quizSubmitted: quizSubmitted,
     };
     const progressSnap = await getDoc(progressRef);
     if (progressSnap.exists()) {
@@ -453,14 +429,38 @@ function CourseDetail() {
         courseId: course.module_id,
         currentSectionIndex: sectionIndex,
         completedSections: Array.from(new Set([...(data.completedSections || []), sectionIndex])),
-        quizAnswers: data.quizAnswers || {},
-        quizSubmitted: data.quizSubmitted || false,
+        quizAnswers: data.quizAnswers || quizAnswers,
+        quizSubmitted: data.quizSubmitted || quizSubmitted,
       };
     } else {
       progressData.completedSections = [sectionIndex];
     }
     await setDoc(progressRef, progressData);
     setCompletedSections(new Set(progressData.completedSections));
+  };
+
+  // Save quiz progress to Firestore
+  const saveQuizProgress = async (answers, submitted) => {
+    if (!userId || !course) return;
+    const db = getFirestore();
+    const docId = `${userId}_${course.module_id}`;
+    const progressRef = doc(db, 'userProgress', docId);
+    const progressSnap = await getDoc(progressRef);
+    let progressData = {
+      courseId: course.module_id,
+      completedSections: Array.from(completedSections),
+      quizAnswers: answers,
+      quizSubmitted: submitted,
+    };
+    if (progressSnap.exists()) {
+      const data = progressSnap.data();
+      progressData = {
+        ...data,
+        quizAnswers: answers,
+        quizSubmitted: submitted,
+      };
+    }
+    await setDoc(progressRef, progressData);
   };
 
   // Load user progress from Firestore (match security rules)
@@ -476,6 +476,8 @@ function CourseDetail() {
         if (Array.isArray(data.completedSections)) {
           setCompletedSections(new Set(data.completedSections));
         }
+        if (data.quizAnswers) setQuizAnswers(data.quizAnswers);
+        if (data.quizSubmitted) setQuizSubmitted(data.quizSubmitted);
       }
     };
     fetchProgress();
@@ -565,7 +567,11 @@ function CourseDetail() {
   };
 
   const handleQuizAnswer = (questionIndex, option) => {
-    setQuizAnswers(prev => ({ ...prev, [questionIndex]: option }));
+    setQuizAnswers(prev => {
+      const updated = { ...prev, [questionIndex]: option };
+      saveQuizProgress(updated, quizSubmitted);
+      return updated;
+    });
   };
 
   const handleQuizSubmit = () => {
@@ -574,12 +580,23 @@ function CourseDetail() {
       return;
     }
     setQuizSubmitted(true);
+    saveQuizProgress(quizAnswers, true);
   };
 
   const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
   const toggleToc = () => setTocOpen(prev => !prev);
 
-  const progress = toc.length > 0 ? (completedSections.size / toc.length) * 100 : 0;
+  // Progress calculation: include quiz as a section if present
+  const totalSections = toc.length + 1; // +1 for quiz
+  const quizComplete = quizSubmitted && Object.keys(quizAnswers).length === quizQuestions.length;
+  const progress = totalSections > 0 ? ((completedSections.size + (quizComplete ? 1 : 0)) / totalSections) * 100 : 0;
+
+  // Show modal when course is completed
+  useEffect(() => {
+    if (progress === 100) {
+      setShowCompletionModal(true);
+    }
+  }, [progress]);
 
   if (loading) {
     return (
@@ -721,6 +738,11 @@ function CourseDetail() {
               <TrendingUpIcon className="mr-2" aria-hidden="true" />
               <Typography variant="caption">Progress: {progress.toFixed(0)}%</Typography>
               <LinearProgress variant="determinate" value={progress} className="progress-bar" />
+              {progress === 100 && (
+                <Typography variant="body2" className="course-completed-banner" color="primary">
+                  🎉 Course Completed!
+                </Typography>
+              )}
             </div>
             <TextField
               variant="outlined"
@@ -797,13 +819,58 @@ function CourseDetail() {
                 variants={sectionVariants}
               >
                 <div className="section-header">
-                  <div dangerouslySetInnerHTML={{ __html: sections[currentSectionIndex].heading }} />
+                  <ReactMarkdown>{sections[currentSectionIndex].heading}</ReactMarkdown>
                   {completedSections.has(currentSectionIndex) && (
                     <CheckCircleIcon className="section-completed" aria-label="Section completed" />
                   )}
                 </div>
-                {/* Render content with copy buttons for code blocks as React elements */}
-                <div>{renderContentWithCopy(sections[currentSectionIndex].content)}</div>
+                {/* If googleDocId is present, embed Google Doc, else render markdown */}
+                {sections[currentSectionIndex].googleDocId ? (
+                  <div className="google-doc-embed" style={{ margin: '24px 0' }}>
+                    <iframe
+                      src={`https://docs.google.com/document/d/${sections[currentSectionIndex].googleDocId}/preview`}
+                      width="100%"
+                      height="700"
+                      style={{ border: '1px solid #eee', borderRadius: 8 }}
+                      allowFullScreen
+                      title="Google Doc"
+                    />
+                    <div style={{ textAlign: 'right', marginTop: 8 }}>
+                      <a
+                        href={`https://docs.google.com/document/d/${sections[currentSectionIndex].googleDocId}/edit`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="open-doc-link"
+                        style={{ fontSize: 14, color: '#1976d2', textDecoration: 'underline' }}
+                      >
+                        Open in Google Docs ↗
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <ReactMarkdown
+                    components={{
+                      code({node, inline, className, children, ...props}) {
+                        return !inline ? (
+                          <div className="code-block-wrapper">
+                            <button
+                              className="copy-code-btn"
+                              type="button"
+                              onClick={() => navigator.clipboard.writeText(children)}
+                            >
+                              Copy
+                            </button>
+                            <pre><code className={className} {...props}>{children}</code></pre>
+                          </div>
+                        ) : (
+                          <code className={className} {...props}>{children}</code>
+                        );
+                      }
+                    }}
+                  >
+                    {sections[currentSectionIndex].content}
+                  </ReactMarkdown>
+                )}
                 {sections[currentSectionIndex].content.includes('<code>') && (
                   <Tooltip title="Execute the code snippet">
                     <span style={{ display: 'inline-block' }}>
@@ -927,6 +994,11 @@ function CourseDetail() {
                       You scored {Object.values(quizAnswers).filter((ans, i) => ans === quizQuestions[i].correctAnswer).length} out of {quizQuestions.length}!
                     </Typography>
                   )}
+                  {progress === 100 && (
+                    <Typography className="course-completed-banner" variant="h6" color="primary" aria-live="polite">
+                      🎉 Congratulations! You have completed this course.
+                    </Typography>
+                  )}
                 </div>
               </div>
             )}
@@ -941,6 +1013,26 @@ function CourseDetail() {
           </motion.div>
         </div>
       </div>
+      {progress === 100 && (
+        <CourseCompletionModal
+          open={showCompletionModal}
+          onClose={() => setShowCompletionModal(false)}
+          onShare={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'I completed a course on CodeTapasya!',
+                text: `I just completed the course "${course?.title}" on CodeTapasya! 🚀` ,
+                url: window.location.href
+              });
+            } else {
+              window.alert('Sharing is not supported on this device.');
+            }
+          }}
+          onDownload={() => window.print()} // Placeholder for certificate download
+          userName={getAuth().currentUser?.displayName || 'Coder'}
+          courseName={course?.title || 'this course'}
+        />
+      )}
     </div>
   );
 }

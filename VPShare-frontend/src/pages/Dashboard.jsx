@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import axios from 'axios';
@@ -72,6 +72,14 @@ function Dashboard() {
   const [recentActivities, setRecentActivities] = useState([]);
   const [courses, setCourses] = useState([]);
   const [userCourseProgress, setUserCourseProgress] = useState({});
+  const navigate = useNavigate();
+
+  // Handler for category navigation
+  const handleCategoryNavigate = (category) => {
+    // Capitalize first letter for filter match
+    const filter = category.charAt(0).toUpperCase() + category.slice(1);
+    navigate('/courses', { state: { filter } });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,9 +118,26 @@ function Dashboard() {
           const data = docSnap.data();
           if (data.courseId && Array.isArray(data.completedSections)) {
             progressMap[data.courseId] = data;
+            // Always resolve course title from courses list if not present
+            let courseTitle = data.courseTitle;
+            if (!courseTitle) {
+              const foundCourse = rawCourses.find(
+                (c) => c.module_id === data.courseId || c.id === data.courseId
+              );
+              courseTitle = foundCourse ? foundCourse.title : data.courseId;
+            }
+            const completedCount = data.completedSections.length;
+            let action = '';
+            if (completedCount === 0) {
+              action = `Started the course "${courseTitle}"`;
+            } else if (completedCount === 1) {
+              action = `Completed 1 section in "${courseTitle}"`;
+            } else {
+              action = `Completed ${completedCount} sections in "${courseTitle}"`;
+            }
             activities.push({
               id: docSnap.id,
-              action: `Completed ${data.completedSections.length} sections in ${data.courseTitle || data.courseId}`,
+              action,
               timestamp: 'Recently',
             });
           }
@@ -156,43 +181,33 @@ function Dashboard() {
     ? Math.round(categoryProgress.filter(p => p > 0).reduce((a, b) => a + b, 0) / categoryCounts)
     : 0;
 
-  // Sample blog data (replace with API call from services/)
-  const blogs = [
+  // Motivational quotes by team members
+  const motivationalQuotes = [
     {
-      id: 1,
-      category: 'Frontend',
-      title: 'Getting Started with HTML & CSS',
-      excerpt: 'Learn the basics of building web pages with HTML and styling with CSS.',
-      link: '/blogs/html-css',
+      text: "The only way to learn to code is to write code. Keep building, keep learning!",
+      author: "Pranay Jumbarthi",
     },
     {
-      id: 2,
-      category: 'Backend',
-      title: 'Introduction to Node.js',
-      excerpt: 'Discover how to build server-side applications using Node.js and Express.',
-      link: '/blogs/node-js',
+      text: "Every bug you fix is a step closer to mastery. Embrace the errors!",
+      author: "Vishnu Tej G",
     },
     {
-      id: 3,
-      category: 'Databases',
-      title: 'SQL for Beginners',
-      excerpt: 'Master the fundamentals of SQL to manage and query databases.',
-      link: '/blogs/sql',
+      text: "Consistency beats intensity. Code a little every day.",
+      author: "Saandeep",
     },
     {
-      id: 4,
-      category: 'Frontend',
-      title: 'React Basics',
-      excerpt: 'Dive into React to create dynamic user interfaces.',
-      link: '/blogs/react',
+      text: "Great developers aren’t born—they’re built, one project at a time.",
+      author: "Hemanth",
     },
   ];
 
-  // Sample motivational quote (can be fetched from an API like quotes.rest)
-  const motivationalQuote = {
-    text: "The only way to learn to code is to write code. Keep building, keep learning!",
-    author: "Unknown",
-  };
+  // Pick a quote based on user UID (so each user sees the same quote every time)
+  let quoteIndex = 0;
+  if (user && user.uid) {
+    // Simple hash: sum char codes of UID, mod quotes length
+    quoteIndex = user.uid.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % motivationalQuotes.length;
+  }
+  const motivationalQuote = motivationalQuotes[quoteIndex];
 
   const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
 
@@ -201,6 +216,9 @@ function Dashboard() {
       <div className="dashboard-container"><main className="dashboard-main"><h2>Loading your dashboard...</h2></main></div>
     );
   }
+
+  // Instead, use latest courses as 'blogs'
+  const latestCourses = courses.slice(0, 4); // Show 4 latest courses
 
   return (
     <div className="dashboard-container">
@@ -277,7 +295,9 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <Link to="/courses/frontend" className="progress-link">Continue Learning</Link>
+                <button className="progress-link" onClick={() => handleCategoryNavigate('Frontend')}>
+                  Continue Learning
+                </button>
               </motion.div>
             </motion.div>
             <motion.div
@@ -296,7 +316,9 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <Link to="/courses/backend" className="progress-link">Continue Learning</Link>
+                <button className="progress-link" onClick={() => handleCategoryNavigate('Backend')}>
+                  Continue Learning
+                </button>
               </motion.div>
             </motion.div>
             <motion.div
@@ -315,7 +337,9 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <Link to="/courses/databases" className="progress-link">Continue Learning</Link>
+                <button className="progress-link" onClick={() => handleCategoryNavigate('Databases')}>
+                  Continue Learning
+                </button>
               </motion.div>
             </motion.div>
           </div>
@@ -331,11 +355,12 @@ function Dashboard() {
         >
           <h2>Your Course Progress</h2>
           <div className="progress-container">
-            {courses.length === 0 && <p>No courses found.</p>}
+            {Object.keys(userCourseProgress).length === 0 && <p>You haven't started any courses yet.</p>}
             {courses.map((course) => {
               const progress = userCourseProgress[course.module_id];
+              if (!progress || !Array.isArray(progress.completedSections) || progress.completedSections.length === 0) return null;
               const totalSections = course.sections ? course.sections.length : 10; // fallback if sections not present
-              const completed = progress ? progress.completedSections.length : 0;
+              const completed = progress.completedSections.length;
               const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
               return (
                 <motion.div
@@ -373,20 +398,20 @@ function Dashboard() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
-          <h2>Latest Blogs</h2>
+          <h2>Latest Courses</h2>
           <div className="blog-container">
-            {blogs.map((blog) => (
+            {latestCourses.map((course) => (
               <motion.div
-                key={blog.id}
+                key={course.id || course.module_id}
                 className="blog-card"
                 variants={hoverVariants}
                 whileHover="hover"
               >
-                <span className={`blog-category ${blog.category.toLowerCase()}`}>{blog.category}</span>
-                <h3>{blog.title}</h3>
-                <p>{blog.excerpt}</p>
+                <span className={`blog-category ${course.category ? course.category.toLowerCase().replace(/\s/g, '-') : ''}`}>{course.category || 'Course'}</span>
+                <h3>{course.title || 'Untitled Course'}</h3>
+                <p>{course.description || 'No description provided.'}</p>
                 <motion.div variants={hoverVariants} whileHover="hover">
-                  <Link to={blog.link} className="blog-link">Read More</Link>
+                  <Link to={`/courses/${course.id || course.module_id}`} className="blog-link">View Course</Link>
                 </motion.div>
               </motion.div>
             ))}

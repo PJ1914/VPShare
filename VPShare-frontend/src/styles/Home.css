@@ -255,8 +255,27 @@
 .pricing-card .price {
   font-size: 2.2rem;
   color: #10b981;
-  font-family: 'Noto Sans', sans-serif;
+  font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.rupee {
+  font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1.3em;
+  color: #10b981;
+  margin-right: 2px;
+}
+
+.price-amount {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.4em;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
 }
 
 .pricing-card ul {

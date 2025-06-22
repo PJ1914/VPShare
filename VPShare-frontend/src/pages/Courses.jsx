@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
@@ -92,7 +92,11 @@ const mapModuleIdToCategory = (moduleId, title = '') => {
 };
 
 function Courses() {
-  const [filter, setFilter] = useState('All');
+  const location = useLocation();
+  const [filter, setFilter] = useState(() => {
+    // Use filter from navigation state if present, else default to 'All'
+    return location.state && location.state.filter ? location.state.filter : 'All';
+  });
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -172,10 +176,21 @@ function Courses() {
             if (!courseId) return null;
             const category = mapModuleIdToCategory(courseId, course.title);
             if (category === 'Misc') return null;
-            // Calculate percent complete
+            // Calculate percent complete (include quiz as a section if present)
             const progress = progressMap[courseId];
-            const totalSections = course.sections ? course.sections.length : 10; // fallback
-            const completed = progress ? progress.completedSections.length : 0;
+            let totalSections = Array.isArray(course.sections) ? course.sections.length : 10; // fallback
+            let completed = progress ? progress.completedSections.length : 0;
+            let quizComplete = false;
+            if (course.quiz) {
+              totalSections += 1; // Count quiz as a section
+              // Quiz is complete if quizSubmitted is true and all answers are present
+              if (progress && progress.quizSubmitted && progress.quizAnswers && Object.keys(progress.quizAnswers).length === (course.quiz.questions ? course.quiz.questions.length : 2)) {
+                quizComplete = true;
+              }
+            }
+            if (quizComplete) {
+              completed += 1;
+            }
             const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
             return {
               id: courseId,
@@ -201,6 +216,14 @@ function Courses() {
     fetchCoursesAndProgress();
     window.scrollTo(0, 0);
   }, [navigate]);
+
+  // Update filter if navigation state changes (e.g., user clicks category from Dashboard)
+  useEffect(() => {
+    if (location.state && location.state.filter && location.state.filter !== filter) {
+      setFilter(location.state.filter);
+    }
+    // eslint-disable-next-line
+  }, [location.state]);
 
   const filteredCourses = filter === 'All'
     ? courses.filter(course => course.category !== 'Misc')
@@ -329,27 +352,34 @@ function Courses() {
                       <p className="course-level">Level: {course.level}</p>
                       {course.progress > 0 && (
                         <div className="course-progress">
-                          <p>{course.progress}% Complete</p>
-                          <div className="progress-bar">
-                            <motion.div
-                              className="progress-fill"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${course.progress}%` }}
-                              transition={{ duration: 1, ease: 'easeOut' }}
-                            ></motion.div>
-                          </div>
+                          {course.progress === 100 ? (
+                            <p className="course-completed">Course Completed!</p>
+                          ) : (
+                            <>
+                              <p>{course.progress}% Complete</p>
+                              <div className="progress-bar">
+                                <motion.div
+                                  className="progress-fill"
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${course.progress}%` }}
+                                  transition={{ duration: 1, ease: 'easeOut' }}
+                                ></motion.div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
-                      <motion.div variants={hoverVariants} whileHover="hover">
+                      {/* Remove motion.div hover for the course-link button */}
+                      <div>
                         <Link
                           to={course.link}
                           className="course-link"
                           aria-label={`Go to ${course.title}`}
                           state={{ continueSection: continueSection }}
                         >
-                          {course.progress > 0 ? 'Continue Course' : 'Start Course'}
+                          {course.progress === 100 ? 'View Course' : course.progress > 0 ? 'Continue Course' : 'Start Course'}
                         </Link>
-                      </motion.div>
+                      </div>
                     </motion.div>
                   );
                 })

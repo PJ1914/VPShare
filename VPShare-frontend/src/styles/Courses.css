@@ -244,6 +244,12 @@
   color: var(--hover-color);
 }
 
+.course-link:focus, .course-link:active {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 221, 87, 0.4);
+  border-radius: 50px;
+}
+
 .loading-text,
 .error-text,
 .no-courses-found {

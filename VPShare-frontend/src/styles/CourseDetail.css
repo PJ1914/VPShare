@@ -620,3 +620,130 @@
     max-width: 90vw;
   }
 }
+
+/* Google Docs embed styling */
+.google-doc-embed {
+  margin: 24px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+}
+.google-doc-embed iframe {
+  width: 100%;
+  min-height: 400px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+}
+.open-doc-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #1976d2;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.open-doc-link:hover {
+  color: #0e4fa3;
+  text-decoration: underline;
+}
+
+/* Course Completion Celebration Modal */
+.completion-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.completion-modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 400px;
+  width: 90vw;
+  text-align: center;
+  position: relative;
+  animation: popIn 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.trophy-animation {
+  margin-bottom: 1.2rem;
+  animation: bounce 1.2s infinite alternate;
+}
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+.completion-modal h2 {
+  color: #1a1a1a;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.completion-modal .highlight {
+  color: #FFD700;
+  font-weight: bold;
+}
+.completion-modal p {
+  color: #444;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.modal-btn {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.share-btn {
+  background: #007bff;
+  color: #fff;
+}
+.share-btn:hover {
+  background: #0056b3;
+}
+.download-btn {
+  background: #FFD700;
+  color: #222;
+}
+.download-btn:hover {
+  background: #FFC300;
+}
+.close-btn {
+  background: #eee;
+  color: #333;
+}
+.close-btn:hover {
+  background: #ccc;
+}
+.confetti-overlay {
+  position: fixed !important;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none;
+  z-index: 1001;
+}
+@media (max-width: 600px) {
+  .completion-modal {
+    padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+    max-width: 95vw;
+  }
+  .completion-modal h2 {
+    font-size: 1.3rem;
+  }
+}
