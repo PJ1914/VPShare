@@ -21,6 +21,8 @@ const AiIcon = (props) => (
   </svg>
 );
 
+const TYPING_SPEED = 18; // ms per character
+
 const ChatAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -29,12 +31,25 @@ const ChatAssistant = () => {
   const [loading, setLoading] = useState(false);
   const [pendingBotText, setPendingBotText] = useState('');
   const [displayedBotText, setDisplayedBotText] = useState('');
-  const [completedBotText, setCompletedBotText] = useState('');
-  const [isAwaitingBot, setIsAwaitingBot] = useState(false);
+  const [isAwaitingBot, setIsAwaitingBot] = useState(false); // re-added missing state
+  const [pendingBotTempId, setPendingBotTempId] = useState(null); // unique ID for pending message
+  const hasPersistedRef = useRef(false);
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const chatRef = useRef(null);
   const typingIntervalRef = useRef(null);
+
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  // Cleanup typing interval on unmount
+  useEffect(() => {
+    return () => clearInterval(typingIntervalRef.current);
+  }, []);
 
   // Get user and listen for chat history
   useEffect(() => {
@@ -44,6 +59,7 @@ const ChatAssistant = () => {
     return () => unsubscribeAuth();
   }, []);
 
+  // Listen for chat history
   useEffect(() => {
     if (!user) {
       setMessages([]);
@@ -51,198 +67,181 @@ const ChatAssistant = () => {
     }
     const q = query(collection(db, 'userChats', user.uid, 'messages'), orderBy('createdAt'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // Sort by createdAt (timestamp) if available
       const sorted = snapshot.docs
-        .map(doc => ({ ...doc.data(), _id: doc.id }))
+        .map(snapDoc => ({ ...snapDoc.data(), _id: snapDoc.id }))
         .sort((a, b) => {
           if (!a.createdAt || !b.createdAt) return 0;
           return a.createdAt.seconds - b.createdAt.seconds;
         });
-      // Filter out the bot message that is currently being typed (avoid double display)
-      const filtered = pendingBotText
-        ? sorted.filter(m => !(m.from === 'bot' && m.text === pendingBotText))
+      // Filter out the bot message that is currently being typed
+      const filtered = pendingBotTempId
+        ? sorted.filter(m => m.tempId !== pendingBotTempId)
         : sorted;
       setMessages(filtered);
     });
     return () => unsubscribe();
-  }, [user, pendingBotText]);
+  }, [user, pendingBotTempId]);
 
-  useEffect(() => {
-    if (isOpen && chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, isOpen]);
+   // Scroll to bottom as the AI types
+   useEffect(() => {
+     if (isOpen && chatEndRef.current) {
+       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+     }
+   }, [messages, isOpen]);
 
-  // Scroll to bottom as the AI types
-  useEffect(() => {
-    if (isOpen && chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [displayedBotText, isOpen]);
+   // Close chat on outside click
+   useEffect(() => {
+     if (!isOpen) return;
+     function handleClickOutside(event) {
+       if (chatRef.current && !chatRef.current.contains(event.target)) {
+         setIsOpen(false);
+       }
+     }
+     document.addEventListener('mousedown', handleClickOutside);
+     return () => document.removeEventListener('mousedown', handleClickOutside);
+   }, [isOpen]);
 
-  // Close chat on outside click
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleClickOutside(event) {
-      if (chatRef.current && !chatRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+   const handleSend = async () => {
+     const messageText = input.trim();
+     if (!messageText || !user || loading) return;
+     setLoading(true);
+     setIsAwaitingBot(true);
+     setPendingBotText('');
+     setDisplayedBotText('');
+     const userMessage = { from: 'user', text: messageText, createdAt: serverTimestamp() };
+     await addDoc(collection(db, 'userChats', user.uid, 'messages'), userMessage);
+     setInput('');
+     inputRef.current?.focus();
+     try {
+       let token;
+       try {
+         token = await user.getIdToken();
+       } catch (authErr) {
+         console.error('Auth token error', authErr);
+         alert('Authentication error. Please log in again.');
+         setLoading(false);
+         return;
+       }
+       const apiUrl = import.meta.env.VITE_AI_CHAT_API_URL || import.meta.env.VITE_AI_CHAT_API_URL_LOCAL;
+       const chatContext = messages.slice(-20).map(m => ({ from: m.from, text: m.text })).concat({ from: 'user', text: messageText });
+       const userInfo = { uid: user.uid, displayName: user.displayName || '', email: user.email || '', photoURL: user.photoURL || '' };
+       const response = await axios.post(apiUrl, { message: messageText, chat_id: 'default', context: chatContext, user: userInfo }, { headers: { Authorization: `Bearer ${token}` } });
+       const reply = response.data.reply;
+       // assign a unique tempId
+       const tempId = String(Date.now());
+       hasPersistedRef.current = false;
+       setPendingBotTempId(tempId);
+       setPendingBotText(reply);
+     } catch (err) {
+       console.error('Backend error:', err?.response?.data || err.message);
+       alert('Error sending message. Please try again.');
+       setPendingBotText('Sorry, something went wrong.');
+     }
+     setLoading(false);
+   };
 
-  const handleSend = async () => {
-    const messageText = input.trim();
-    if (!messageText || !user || loading) return;
-    setLoading(true);
-    setIsAwaitingBot(true);
-    setPendingBotText('');
-    setDisplayedBotText('');
-    // Save user message to Firestore
-    const userMessage = { from: 'user', text: messageText, createdAt: serverTimestamp() };
-    await addDoc(collection(db, 'userChats', user.uid, 'messages'), userMessage);
-    // Clear input and refocus
-    setInput('');
-    inputRef.current?.focus();
-    try {
-      // Use production API URL or fall back to local development URL
-      const apiUrl = import.meta.env.VITE_AI_CHAT_API_URL || import.meta.env.VITE_AI_CHAT_API_URL_LOCAL;
-      const token = await user.getIdToken();
-      // Prepare last 20 messages as context
-      const chatContext = messages.slice(-20).map(m => ({ from: m.from, text: m.text })).concat({ from: 'user', text: messageText });
-      // Prepare user info
-      const userInfo = {
-        uid: user.uid,
-        displayName: user.displayName || '',
-        email: user.email || '',
-        photoURL: user.photoURL || ''
-      };
-      const response = await axios.post(
-        apiUrl,
-        {
-          message: messageText,
-          chat_id: 'default',
-          context: chatContext,
-          user: userInfo
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const reply = response.data.reply;
-      setPendingBotText(reply);
-      // Keep awaiting until typing effect completes
-    } catch (err) {
-      console.error('Backend error:', err?.response?.data || err.message);
-      setPendingBotText('Sorry, something went wrong.');
-      // setIsAwaitingBot will be cleared after typing animation in effect
-    }
-    setLoading(false);
-    // Re-focus input on mobile to keep keyboard open
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300);
-    }
-  };
+   // Typing animation for bot
+   useEffect(() => {
+     if (!pendingBotText || !pendingBotTempId) return;
+     setDisplayedBotText('');
+     let i = 0;
+     clearInterval(typingIntervalRef.current);
+     typingIntervalRef.current = setInterval(() => {
+       setDisplayedBotText((prev) => {
+         if (i >= pendingBotText.length) {
+           clearInterval(typingIntervalRef.current);
+           if (!hasPersistedRef.current) {
+             hasPersistedRef.current = true;
+             addDoc(collection(db, 'userChats', user.uid, 'messages'), { from: 'bot', text: pendingBotText, createdAt: serverTimestamp(), tempId: pendingBotTempId });
+             setIsAwaitingBot(false);
+             setPendingBotText('');
+             setPendingBotTempId(null);
+           }
+           return prev;
+         }
+         i++;
+         return pendingBotText.slice(0, i);
+       });
+     }, TYPING_SPEED);
+     return () => clearInterval(typingIntervalRef.current);
+   }, [pendingBotText, pendingBotTempId, user]);
 
-  // Typing animation for bot
-  useEffect(() => {
-    if (!pendingBotText) return;
-    setDisplayedBotText('');
-    let i = 0;
-    typingIntervalRef.current && clearInterval(typingIntervalRef.current);
-    typingIntervalRef.current = setInterval(() => {
-      setDisplayedBotText((prev) => {
-        if (i >= pendingBotText.length) {
-          clearInterval(typingIntervalRef.current);
-          // Persist bot message to Firestore after typing
-          addDoc(collection(db, 'userChats', user.uid, 'messages'), {
-            from: 'bot',
-            text: pendingBotText,
-            createdAt: serverTimestamp(),
-          });
-          setIsAwaitingBot(false);
-          setPendingBotText('');
-          return prev;
-        }
-        i++;
-        return pendingBotText.slice(0, i);
-      });
-    }, 18); // ~55 chars/sec
-    return () => clearInterval(typingIntervalRef.current);
-  }, [pendingBotText, user]);
-
-  return (
-    <div className={`chat-assistant ${isOpen ? 'open' : ''}`} ref={chatRef}>
-      <IconButton className="toggle-button" onClick={() => setIsOpen(prev => !prev)} size="large" aria-label={isOpen ? 'Close chat' : 'Open AI chat'}>
-        {isOpen ? <CloseIcon fontSize="inherit" /> : <AiIcon />}
-      </IconButton>
-      {isOpen && (
-        <div className="chat-box">
-          <div className="chat-history">
-            {messages.map((msg, index) => (
-              <div key={msg._id || index} className={`message ${msg.from}`}>
-                {msg.from === 'bot' && (
-                  <span className="ct-badge">CT</span>
-                )}
-                {msg.from === 'bot' ? (
-                  <ReactMarkdown
-                    components={{
-                      a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />, 
-                      code({ inline, className, children, ...props }) {
-                        const codeContent = String(children).replace(/\n$/, '');
-                        return inline ? (
-                          <code className={className} {...props}>{codeContent}</code>
-                        ) : (
-                          <div className="code-block-wrapper">
-                            <button className="copy-code-btn" onClick={() => navigator.clipboard.writeText(codeContent)}>Copy</button>
-                            <pre><code className={className} {...props}>{codeContent}</code></pre>
-                          </div>
-                        );
-                      }
-                    }}
-                  >
-                    {msg.text}
-                  </ReactMarkdown>
-                ) : (
-                  msg.text
-                )}
-              </div>
-            ))}
-            {isAwaitingBot && pendingBotText === '' && (
-              <div className="message bot typing-indicator">
-                <span className="ct-badge">CT</span>
-                <div className="typing-dots">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-            )}
-            {pendingBotText && (
-              <div className="message bot loading">
-                <span className="ct-badge">CT</span>
-                <span className="typing-text">
-                  <ReactMarkdown>{displayedBotText || '‎'}</ReactMarkdown>
-                  {displayedBotText.length < pendingBotText.length && <span className="typing-cursor">|</span>}
-                </span>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="chat-input">
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !loading && !pendingBotText && handleSend()}
-              placeholder={loading || pendingBotText ? 'Waiting for response...' : 'Type a message...'}
-              disabled={loading || isAwaitingBot || !!pendingBotText}
-            />
-            <button onClick={handleSend} disabled={loading || isAwaitingBot || !!pendingBotText || !input.trim()}>{loading || isAwaitingBot || pendingBotText ? '...' : 'Send'}</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+   return (
+     <div className={`chat-assistant ${isOpen ? 'open' : ''}`} ref={chatRef}>
+       <IconButton className="toggle-button" onClick={() => setIsOpen(prev => !prev)} size="large" aria-label={isOpen ? 'Close chat' : 'Open AI chat'}>
+         {isOpen ? <CloseIcon fontSize="inherit" /> : <AiIcon />}
+       </IconButton>
+       {isOpen && (
+         <div className="chat-box">
+           <div className="chat-history">
+             {messages.map((msg, index) => (
+               <div key={msg._id || index} className={`message ${msg.from}`}>
+                 {msg.from === 'bot' && (
+                   <span className="ct-badge">CT</span>
+                 )}
+                 {msg.from === 'bot' ? (
+                   <ReactMarkdown
+                     components={{
+                       a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />, 
+                       code({ inline, className, children, ...props }) {
+                         const codeContent = String(children).replace(/\n$/, '');
+                         if (inline) return <code className={className} {...props}>{codeContent}</code>;
+                         return (
+                           <div className="code-block-wrapper">
+                             <button
+                               className="copy-code-btn"
+                               onClick={async () => {
+                                 try { await navigator.clipboard.writeText(codeContent); }
+                                 catch { alert('Copy failed. Please copy manually.'); }
+                               }}
+                             >Copy</button>
+                             <pre aria-label="Code block" tabIndex={0}><code className={className} {...props}>{codeContent}</code></pre>
+                           </div>
+                         );
+                       }
+                     }}
+                   >
+                     {msg.text}
+                   </ReactMarkdown>
+                 ) : (
+                   msg.text
+                 )}
+               </div>
+             ))}
+             {isAwaitingBot && pendingBotText === '' && (
+               <div className="message bot typing-indicator">
+                 <span className="ct-badge">CT</span>
+                 <div className="typing-dots">
+                   <span></span><span></span><span></span>
+                 </div>
+               </div>
+             )}
+             {pendingBotText && (
+               <div className="message bot loading">
+                 <span className="ct-badge">CT</span>
+                 <span className="typing-text">
+                   <ReactMarkdown>{displayedBotText || '‎'}</ReactMarkdown>
+                   {displayedBotText.length < pendingBotText.length && <span className="typing-cursor">|</span>}
+                 </span>
+               </div>
+             )}
+             <div ref={chatEndRef} />
+           </div>
+           <div className="chat-input">
+             <input
+               ref={inputRef}
+               value={input}
+               onChange={(e) => setInput(e.target.value)}
+               onKeyDown={(e) => e.key === 'Enter' && !loading && !pendingBotText && handleSend()}
+               placeholder={loading || pendingBotText ? 'Waiting for response...' : 'Type a message...'}
+               disabled={loading || isAwaitingBot || !!pendingBotText}
+             />
+             <button onClick={handleSend} disabled={loading || isAwaitingBot || !!pendingBotText || !input.trim()}>{loading || isAwaitingBot || pendingBotText ? '...' : 'Send'}</button>
+           </div>
+         </div>
+       )}
+     </div>
+   );
 };
 
 export default ChatAssistant;

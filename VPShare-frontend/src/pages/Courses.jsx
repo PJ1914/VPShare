@@ -40,53 +40,21 @@ const cardVariants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
-// Helper to check if a string is a UUID
-const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
+// Replace mapModuleIdToCategory with CATEGORY_MAP approach
+const CATEGORY_MAP = {
+  html: 'Frontend', css: 'Frontend', javascript: 'Frontend', react: 'Frontend',
+  node: 'Backend', express: 'Backend', api: 'Backend',
+  sql: 'Databases', database: 'Databases', mongodb: 'Databases',
+  git: 'Version Control', github: 'Version Control',
+  agile: 'Project Management', scrum: 'Project Management', project: 'Project Management',
+  python: 'Programming Languages', java: 'Programming Languages', 'c++': 'Programming Languages', c: 'Programming Languages'
+};
 const mapModuleIdToCategory = (moduleId, title = '') => {
-  let source = moduleId;
-  if (isUUID(moduleId) && title) {
-    source = title;
-  }
-  const lowerSource = source.toLowerCase();
-  if (lowerSource.includes('html')) {
-    return 'Frontend';
-  } else if (lowerSource.includes('css')) {
-    return 'Frontend';
-  } else if (lowerSource.includes('javascript')) {
-    return 'Frontend';
-  } else if (lowerSource.includes('react')) {
-    return 'Frontend';
-  } else if (lowerSource.includes('node')) {
-    return 'Backend';
-  } else if (lowerSource.includes('express')) {
-    return 'Backend';
-  } else if (lowerSource.includes('api')) {
-    return 'Backend';
-  } else if (lowerSource.includes('sql')) {
-    return 'Databases';
-  } else if (lowerSource.includes('database')) {
-    return 'Databases';
-  } else if (lowerSource.includes('mongodb')) {
-    return 'Databases';
-  } else if (lowerSource.includes('git')) {
-    return 'Version Control';
-  } else if (lowerSource.includes('github')) {
-    return 'Version Control';
-  } else if (lowerSource.includes('agile')) {
-    return 'Project Management';
-  } else if (lowerSource.includes('scrum')) {
-    return 'Project Management';
-  } else if (lowerSource.includes('project')) {
-    return 'Project Management';
-  } else if (lowerSource.includes('python')) {
-    return 'Programming Languages';
-  } else if (lowerSource.includes('java')) {
-    return 'Programming Languages';
-  } else if (lowerSource.includes('c++')) {
-    return 'Programming Languages';
-  }else if (lowerSource.includes('c')){
-    return 'Programming Languages';
+  const source = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(moduleId) && title
+    ? title.toLowerCase()
+    : moduleId.toLowerCase();
+  for (const [key, category] of Object.entries(CATEGORY_MAP)) {
+    if (source.includes(key)) return category;
   }
   return 'Misc';
 };
@@ -119,7 +87,7 @@ function Courses() {
 
       let authToken;
       try {
-        authToken = await user.getIdToken();
+        authToken = await user.getIdToken(true); // force refresh
       } catch (tokenError) {
         setError("Authentication error. Please log out and log in again.");
         setLoading(false);
@@ -171,49 +139,34 @@ function Courses() {
 
         // Merge progress into courses
         const enrichedCourses = rawData
-          .map(course => {
+          .map((course, index) => {
             const courseId = course.module_id;
-            if (!courseId) return null;
+            if (!courseId) {
+              console.warn('Missing module_id for course', course);
+              return null;
+            }
             const category = mapModuleIdToCategory(courseId, course.title);
             if (category === 'Misc') return null;
-            // Calculate percent complete (include quiz as a section if present)
-            const progress = progressMap[courseId];
-            let totalSections = Array.isArray(course.sections) ? course.sections.length : 10; // fallback
-            let completed = progress ? progress.completedSections.length : 0;
+            // totalSections fallback to 0
+            const totalSections = Array.isArray(course.sections) ? course.sections.length : 0;
+            let completed = progressMap[courseId]?.completedSections?.length || 0;
             let quizComplete = false;
             if (course.quiz) {
-              totalSections += 1; // Count quiz as a section
-              // Quiz is complete if quizSubmitted is true and all answers are present
-              if (progress && progress.quizSubmitted && progress.quizAnswers && Object.keys(progress.quizAnswers).length === (course.quiz.questions ? course.quiz.questions.length : 2)) {
+              const questionsCount = Array.isArray(course.quiz.questions)
+                ? course.quiz.questions.length
+                : 0;
+              if (progressMap[courseId]?.quizSubmitted &&
+                  Array.isArray(progressMap[courseId].quizAnswers) &&
+                  progressMap[courseId].quizAnswers.length === questionsCount) {
                 quizComplete = true;
               }
             }
-            if (quizComplete) {
-              completed += 1;
-            }
-            // Cap percent at 100 when completed meets or exceeds total sections
-            let percent = 0;
-            if (totalSections > 0) {
-              if (completed >= totalSections) {
-                percent = 100;
-              } else {
-                percent = Math.round((completed / totalSections) * 100);
-              }
-            }
-            // Determine next section index for continuation (0-based)
-            const progressSectionIndex = completed < totalSections ? completed : totalSections - 1;
-            return {
-              id: courseId,
-              title: course.title || 'Untitled Course',
-              description: course.description || 'No description provided.',
-              category: category,
-              level: course.level || 'Beginner',
-              link: `/courses/${courseId}`,
-              progress: percent,
-              progressSectionIndex,
-            };
+            if (quizComplete) completed += 1;
+            const percent = totalSections > 0 ? Math.min(100, Math.round((completed / totalSections) * 100)) : 0;
+            const progressSectionIndex = completed < totalSections ? completed : Math.max(0, totalSections - 1);
+            return { id: courseId, title: course.title || 'Untitled Course', description: course.description || 'No description provided.', category, level: course.level || 'Beginner', link: `/courses/${courseId}`, progress: percent, progressSectionIndex };
           })
-          .filter(course => course !== null);
+          .filter(Boolean);
 
         setCourses(enrichedCourses);
       } catch (err) {
@@ -228,13 +181,20 @@ function Courses() {
     window.scrollTo(0, 0);
   }, [navigate]);
 
-  // Update filter if navigation state changes (e.g., user clicks category from Dashboard)
+  // Update filter effect with proper deps
   useEffect(() => {
-    if (location.state && location.state.filter && location.state.filter !== filter) {
-      setFilter(location.state.filter);
+    const newFilter = location.state?.filter;
+    if (newFilter && newFilter !== filter) {
+      setFilter(newFilter);
     }
-    // eslint-disable-next-line
-  }, [location.state]);
+  }, [location.state, filter]);
+
+  // Helper for CTA text
+  const getCourseCTA = (progress) => {
+    if (progress === 100) return 'View Course';
+    if (progress > 0) return 'Continue Course';
+    return 'Start Course';
+  };
 
   const filteredCourses = filter === 'All'
     ? courses.filter(course => course.category !== 'Misc')
@@ -318,7 +278,9 @@ function Courses() {
           {loading && (
             <div className="loading-container">
               <p className="loading-text">Loading courses...</p>
-              <div className="spinner" role="status" aria-label="Loading"></div>
+              <div className="spinner" role="status" aria-label="Loading">
+                <span className="sr-only">Loading...</span>
+              </div>
             </div>
           )}
           {error && (
@@ -340,60 +302,48 @@ function Courses() {
             initial="hidden"
             animate="visible"
           >
-            <AnimatePresence mode="sync">
+            <AnimatePresence>
               {filteredCourses.length > 0 ? (
-                filteredCourses.map(course => {
-                  // Determine the section to continue from (default 0)
-                  const continueSection = course.progress && course.progress < 100 ? course.progressSectionIndex || 0 : 0;
-                  return (
-                    <motion.div
-                      key={course.id}
-                      className="course-card"
-                      variants={cardVariants}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      whileHover="hover"
-                    >
-                      <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
-                        {course.category}
-                      </span>
-                      <h3>{course.title}</h3>
-                      <p className="course-description">{course.description}</p>
-                      <p className="course-level">Level: {course.level}</p>
-                      {course.progress > 0 && (
-                        <div className="course-progress">
-                          {course.progress === 100 ? (
-                            <p className="course-completed">Course Completed!</p>
-                          ) : (
-                            <>
-                              <p>{course.progress}% Complete</p>
-                              <div className="progress-bar">
-                                <motion.div
-                                  className="progress-fill"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${course.progress}%` }}
-                                  transition={{ duration: 1, ease: 'easeOut' }}
-                                ></motion.div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {/* Remove motion.div hover for the course-link button */}
-                      <div>
-                        <Link
-                          to={course.link}
-                          className="course-link"
-                          aria-label={`Go to ${course.title}`}
-                          state={{ continueSection: continueSection }}
-                        >
-                          {course.progress === 100 ? 'View Course' : course.progress > 0 ? 'Continue Course' : 'Start Course'}
-                        </Link>
+                filteredCourses.map((course, index) => (
+                  <motion.div key={course.id || `fallback-${index}`} className="course-card" variants={cardVariants} initial="initial" animate="animate" exit="exit" whileHover="hover">
+                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
+                      {course.category}
+                    </span>
+                    <h3>{course.title}</h3>
+                    <p className="course-description">{course.description}</p>
+                    <p className="course-level">Level: {course.level}</p>
+                    {course.progress > 0 && (
+                      <div className="course-progress">
+                        {course.progress === 100 ? (
+                          <p className="course-completed">Course Completed!</p>
+                        ) : (
+                          <>
+                            <p>{course.progress}% Complete</p>
+                            <div className="progress-bar">
+                              <motion.div
+                                className="progress-fill"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${course.progress}%` }}
+                                transition={{ duration: 1, ease: 'easeOut' }}
+                              ></motion.div>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    </motion.div>
-                  );
-                })
+                    )}
+                    {/* Remove motion.div hover for the course-link button */}
+                    <div>
+                      <Link
+                        to={course.link}
+                        className="course-link"
+                        aria-label={`Go to ${course.title}`}
+                        state={{ continueSection: course.progressSectionIndex }}
+                      >
+                        {getCourseCTA(course.progress)}
+                      </Link>
+                    </div>
+                  </motion.div>
+                ))
               ) : (
                 !loading && !error && (
                   <motion.p
