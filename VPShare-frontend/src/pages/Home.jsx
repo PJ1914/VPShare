@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import '../styles/Home.css';
 import SubscriptionBanner from '../components/SubscriptionBanner';
+import HeroCarousel from '../components/HeroCarousel';
+import CodeIcon from '@mui/icons-material/Code';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import SchoolIcon from '@mui/icons-material/School';
+import WebIcon from '@mui/icons-material/Web';
+import StorageIcon from '@mui/icons-material/Storage';
 
 // Animation variants for sections
 const sectionVariants = {
@@ -24,35 +30,8 @@ function Home() {
   return (
     <>
       <main className="home-main">
-        {/* Hero Section */}
-        <motion.section
-          className="hero"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div
-            className="hero-content"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <h1>Master Web Development with CodeTapasya</h1>
-            <p className="hero-subtitle">
-              Your journey to becoming a full-stack developer starts here. Explore cutting-edge tools and comprehensive courses!
-            </p>
-            <motion.div
-              role="button"
-              tabIndex={0}
-              variants={hoverVariants}
-              whileHover="hover"
-            >
-              <Link to="/payment/monthly" className="cta-button">
-                Get Started Today
-              </Link>
-            </motion.div>
-          </motion.div>
-        </motion.section>
+        {/* Hero Carousel Section */}
+        <HeroCarousel />
 
         {/* Vision Section */}
         <motion.section
@@ -79,19 +58,13 @@ function Home() {
           <h2>Featured Tools & Features</h2>
           <p>Discover the powerful tools that make CodeTapasya stand out!</p>
           <div className="tools-container">
-            <motion.div
-              className="tool-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
+              <CodeIcon fontSize="large" color="primary" className="tool-icon" />
               <h3>Coding Playground</h3>
               <p>Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
             </motion.div>
-            <motion.div
-              className="tool-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
+              <GitHubIcon fontSize="large" color="secondary" className="tool-icon" />
               <h3>GitHub Integration</h3>
               <p>Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
               <motion.div
@@ -105,11 +78,8 @@ function Home() {
                 </Link>
               </motion.div>
             </motion.div>
-            <motion.div
-              className="tool-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
+              <SchoolIcon fontSize="large" color="success" className="tool-icon" />
               <h3>Learning Courses</h3>
               <p>Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
               <motion.div
@@ -136,27 +106,18 @@ function Home() {
         >
           <h2>Explore Our Learning Paths</h2>
           <div className="paths-container">
-            <motion.div
-              className="path-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
+              <WebIcon fontSize="large" color="primary" className="path-icon" />
               <h3>Frontend Development</h3>
               <p>Learn HTML, CSS, JavaScript, and React to build stunning user interfaces.</p>
             </motion.div>
-            <motion.div
-              className="path-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
+              <CodeIcon fontSize="large" color="secondary" className="path-icon" />
               <h3>Backend Development</h3>
               <p>Master Node.js, Express, and APIs to power your applications.</p>
             </motion.div>
-            <motion.div
-              className="path-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
+            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
+              <StorageIcon fontSize="large" color="success" className="path-icon" />
               <h3>Databases</h3>
               <p>Understand MySQL and MongoDB to manage data effectively.</p>
             </motion.div>

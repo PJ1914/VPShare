@@ -88,9 +88,9 @@ function Payment() {
   };
 
   useEffect(() => {
-    console.log('Checking Firebase auth...');
+    // Initialize Firebase auth check without verbose logging
     if (!plans[initialPlan]) {
-      console.warn('Invalid plan:', initialPlan);
+      console.warn('Invalid plan selected. Defaulting to Monthly Plan.');
       setSelectedPlan('monthly');
       navigate('/payment/monthly', { replace: true });
       setError('Invalid plan selected. Defaulting to Monthly Plan.');

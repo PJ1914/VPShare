@@ -249,7 +249,9 @@ function Navbar() {
                   e.target.src = '/default-avatar.jpg';
                 }}
               />
-              <span className="profile-sidebar-username">Profile</span>
+              <span className="profile-sidebar-username">
+                {user?.displayName || user?.email?.split('@')[0] || 'Profile'}
+              </span>
               <button className="profile-sidebar-close" onClick={() => setIsSidebarOpen(false)} aria-label="Close profile sidebar">
                 <CloseIcon />
               </button>

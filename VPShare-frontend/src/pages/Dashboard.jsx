@@ -97,49 +97,47 @@ function Dashboard() {
       }
       setUser({ name: currentUser.displayName || 'Learner' });
       try {
-        // 1. Fetch courses from backend
+        // Parallel fetch of courses and user progress
         const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-        const token = await currentUser.getIdToken();
-        const headers = { 'Authorization': `Bearer ${token}` };
-        const response = await axios.get(apiUrl, { headers });
-        const rawCourses = Array.isArray(response.data)
-          ? response.data
-          : response.data.Items || response.data.courses || [];
+        const db = getFirestore();
+        const progressQuery = query(
+          collection(db, 'userProgress'),
+          where('__name__', '>=', `${currentUser.uid}_`),
+          where('__name__', '<', `${currentUser.uid}_\uf8ff`)
+        );
+        const tokenPromise = currentUser.getIdToken();
+        const [coursesRes, querySnapshot] = await Promise.all([
+          tokenPromise.then(token =>
+            axios.get(apiUrl, { headers: { Authorization: `Bearer ${token}` } })
+          ),
+          getDocs(progressQuery)
+        ]);
+        const rawCourses = Array.isArray(coursesRes.data)
+          ? coursesRes.data
+          : coursesRes.data.Items || coursesRes.data.courses || [];
         setCourses(rawCourses);
 
-        // 2. Fetch user progress from Firestore
-        const db = getFirestore();
-        const progressCol = collection(db, 'userProgress');
-        const q = query(progressCol, where('__name__', '>=', `${currentUser.uid}_`), where('__name__', '<', `${currentUser.uid}_\uf8ff`));
-        const querySnapshot = await getDocs(q);
+        // Process progress and recent activities
         const progressMap = {};
-        let activities = [];
+        const activities = [];
         querySnapshot.forEach((docSnap) => {
           const data = docSnap.data();
           if (data.courseId && Array.isArray(data.completedSections)) {
             progressMap[data.courseId] = data;
-            // Always resolve course title from courses list if not present
+            // Determine course title
             let courseTitle = data.courseTitle;
             if (!courseTitle) {
-              const foundCourse = rawCourses.find(
-                (c) => c.module_id === data.courseId || c.id === data.courseId
-              );
-              courseTitle = foundCourse ? foundCourse.title : data.courseId;
+              const found = rawCourses.find(c => c.module_id === data.courseId || c.id === data.courseId);
+              courseTitle = found ? found.title : data.courseId;
             }
-            const completedCount = data.completedSections.length;
-            let action = '';
-            if (completedCount === 0) {
-              action = `Started the course "${courseTitle}"`;
-            } else if (completedCount === 1) {
-              action = `Completed 1 section in "${courseTitle}"`;
-            } else {
-              action = `Completed ${completedCount} sections in "${courseTitle}"`;
-            }
-            activities.push({
-              id: docSnap.id,
-              action,
-              timestamp: 'Recently',
-            });
+            const count = data.completedSections.length;
+            const action =
+              count === 0
+                ? `Started the course "${courseTitle}"`
+                : count === 1
+                ? `Completed 1 section in "${courseTitle}"`
+                : `Completed ${count} sections in "${courseTitle}"`;
+            activities.push({ id: docSnap.id, action, timestamp: 'Recently' });
           }
         });
         setUserCourseProgress(progressMap);
@@ -213,7 +211,7 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-container"><main className="dashboard-main"><h2>Loading your dashboard...</h2></main></div>
+      <div className="dashboard-container"><main className="dashboard-main"></main></div>
     );
   }
 

@@ -1,0 +1,122 @@
+.hero-carousel {
+  width: 100%;
+  height: 80vh;
+  position: relative;
+  overflow: hidden;
+}
+.carousel-slide {
+  background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
+  color: white;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  position: relative;
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  border-image: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end)) 1;
+  overflow: hidden;
+}
+
+/* Decorative bottom fade overlay */
+.carousel-slide::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 25px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+}
+
+/* Decorative floating circle */
+.carousel-slide::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: 5%;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, rgba(255,255,255,0.2), transparent 60%);
+  border-radius: 50%;
+  z-index: 1;
+  animation: float 8s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-15px, 15px); }
+}
+
+.carousel-text h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+.carousel-text p {
+  font-size: 1.25rem;
+}
+.carousel .control-dots .dot {
+  background: rgba(255, 255, 255, 0.7);
+}
+.carousel .control-dots .dot.selected {
+  background: white;
+}
+
+/* 3D Canvas styling */
+.slide-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.carousel-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure text stands out over 3D canvas */
+.carousel-text {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+/* Slide transition and scale */
+.carousel .slide {
+  opacity: 0.5;
+  transform: scale(0.98);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.carousel .slide.selected {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Slide hover scale */
+.carousel-slide:hover {
+  transform: scale(1.02);
+}
+
+/* Ensure text content stays above decorative elements */
+.carousel-text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure slide content including 3D canvas is clipped by border radius */
+.carousel-slide {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* Rounded corners for the Canvas wrapper */
+.slide-canvas {
+  border-radius: 16px;
+  overflow: hidden;
+}

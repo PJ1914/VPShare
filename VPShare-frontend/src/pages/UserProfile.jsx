@@ -144,17 +144,11 @@ export default function UserProfile() {
   useEffect(() => {
     window.scrollTo(0, 0);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log('Auth state changed:', currentUser);
-      if (currentUser) {
-        console.log('User UID:', currentUser.uid);
-        console.log('User displayName:', currentUser.displayName);
-        console.log('User email:', currentUser.email);
-        console.log('User photoURL:', currentUser.photoURL);
+       if (currentUser) {
         setUser(currentUser);
         setDisplayName(currentUser.displayName || '');
         setPreviewURL(currentUser.photoURL || '');
       } else {
-        console.warn('No authenticated user found.');
         setUser(null);
         setDisplayName('');
         setPreviewURL('');
