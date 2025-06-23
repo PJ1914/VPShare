@@ -528,15 +528,20 @@ function CourseDetail() {
   // Helper to check if device is mobile or tablet
   const isMobileOrTablet = () => window.innerWidth <= 1024;
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Save progress on current section before moving
+    await markSectionComplete(currentSectionIndex);
     setCurrentSectionIndex((prev) => Math.min(prev + 1, sections.length - 1));
   };
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
+    // Save progress on current section before going back
+    await markSectionComplete(currentSectionIndex);
     setCurrentSectionIndex((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleTocClick = (index) => {
-    markSectionComplete(currentSectionIndex);
+  const handleTocClick = async (index) => {
+    // Save progress on current section before navigating
+    await markSectionComplete(currentSectionIndex);
     setCurrentSectionIndex(index);
     setIsSidebarOpen(false);
     contentAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -589,7 +594,12 @@ function CourseDetail() {
   // Progress calculation: include quiz as a section if present
   const totalSections = toc.length + 1; // +1 for quiz
   const quizComplete = quizSubmitted && Object.keys(quizAnswers).length === quizQuestions.length;
-  const progress = totalSections > 0 ? ((completedSections.size + (quizComplete ? 1 : 0)) / totalSections) * 100 : 0;
+  // Calculate progress percentage, capped at 100%
+  let progress = 0;
+  if (totalSections > 0) {
+    const raw = ((completedSections.size + (quizComplete ? 1 : 0)) / totalSections) * 100;
+    progress = Math.min(100, Math.round(raw));
+  }
 
   // Show modal when course is completed
   useEffect(() => {
@@ -651,6 +661,9 @@ function CourseDetail() {
       </div>
     );
   }
+
+  // Safely access the current section or default to empty
+  const currentSection = sections[currentSectionIndex] || { heading: '', content: '', googleDocId: null };
 
   return (
     <div className="course-detail" role="main">
@@ -819,16 +832,16 @@ function CourseDetail() {
                 variants={sectionVariants}
               >
                 <div className="section-header">
-                  <ReactMarkdown>{sections[currentSectionIndex].heading}</ReactMarkdown>
+                  <ReactMarkdown>{currentSection.heading || ''}</ReactMarkdown>
                   {completedSections.has(currentSectionIndex) && (
                     <CheckCircleIcon className="section-completed" aria-label="Section completed" />
                   )}
                 </div>
                 {/* If googleDocId is present, embed Google Doc, else render markdown */}
-                {sections[currentSectionIndex].googleDocId ? (
+                {currentSection.googleDocId ? (
                   <div className="google-doc-embed" style={{ margin: '24px 0' }}>
                     <iframe
-                      src={`https://docs.google.com/document/d/${sections[currentSectionIndex].googleDocId}/preview`}
+                      src={`https://docs.google.com/document/d/${currentSection.googleDocId}/preview`}
                       width="100%"
                       height="700"
                       style={{ border: '1px solid #eee', borderRadius: 8 }}
@@ -837,7 +850,7 @@ function CourseDetail() {
                     />
                     <div style={{ textAlign: 'right', marginTop: 8 }}>
                       <a
-                        href={`https://docs.google.com/document/d/${sections[currentSectionIndex].googleDocId}/edit`}
+                        href={`https://docs.google.com/document/d/${currentSection.googleDocId}/edit`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="open-doc-link"
@@ -868,10 +881,10 @@ function CourseDetail() {
                       }
                     }}
                   >
-                    {sections[currentSectionIndex].content}
+                    {currentSection.content || ''}
                   </ReactMarkdown>
                 )}
-                {sections[currentSectionIndex].content.includes('<code>') && (
+                {currentSection.content && currentSection.content.includes('<code>') && (
                   <Tooltip title="Execute the code snippet">
                     <span style={{ display: 'inline-block' }}>
                       <Button
@@ -887,7 +900,7 @@ function CourseDetail() {
                     </span>
                   </Tooltip>
                 )}
-                {sections[currentSectionIndex].content.includes('<code>') && codeOutputs[currentSectionIndex] && (
+                {currentSection.content.includes('<code>') && codeOutputs[currentSectionIndex] && (
                   <div className="code-output">
                     <Tooltip title="Hide code output">
                       <span style={{ display: 'inline-block' }}>

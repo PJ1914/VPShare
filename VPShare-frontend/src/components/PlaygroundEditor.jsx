@@ -494,23 +494,23 @@ function PlaygroundEditor() {
 
   useEffect(() => {
     let rafId;
-    const rafHandleHeightResize = (e) => {
-      rafId = requestAnimationFrame(() => handleHeightResize(e));
+    const handleMouseMove = (e) => {
+      rafId = requestAnimationFrame(() => {
+        handleHeightResize(e);
+        handleWidthResize(e);
+      });
     };
-    const rafHandleWidthResize = (e) => {
-      rafId = requestAnimationFrame(() => handleWidthResize(e));
+    const handleMouseUp = () => {
+      stopHeightResize();
+      stopWidthResize();
     };
 
-    window.addEventListener('mousemove', rafHandleHeightResize);
-    window.addEventListener('mouseup', stopHeightResize);
-    window.addEventListener('mousemove', rafHandleWidthResize);
-    window.addEventListener('mouseup', stopWidthResize);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      window.removeEventListener('mousemove', rafHandleHeightResize);
-      window.removeEventListener('mouseup', stopHeightResize);
-      window.removeEventListener('mousemove', rafHandleWidthResize);
-      window.removeEventListener('mouseup', stopWidthResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [isMobile]);
@@ -571,7 +571,10 @@ function PlaygroundEditor() {
           >
             <option value="">Select a repository</option>
             {githubRepos.map(repo => (
-              <option key={repo.full_name} value={repo.full_name}>{repo.full_name}</option>
+              <option key={repo.full_name} value={repo.full_name}>
+                {/* Folder icon as prefix */}
+                📁 {repo.full_name}
+              </option>
             ))}
           </select>
         ) : (
@@ -902,8 +905,8 @@ function PlaygroundEditor() {
                   <option value="">Select a repository</option>
                   {githubRepos.map(repo => (
                     <option key={repo.full_name} value={repo.full_name}>
-                      {/* Unicode folder icon as prefix for visual cue */}
-                      5C1 {repo.full_name}
+                      {/* Folder icon as prefix */}
+                      📁 {repo.full_name}
                     </option>
                   ))}
                 </select>

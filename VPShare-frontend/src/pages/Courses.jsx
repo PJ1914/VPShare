@@ -191,7 +191,17 @@ function Courses() {
             if (quizComplete) {
               completed += 1;
             }
-            const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
+            // Cap percent at 100 when completed meets or exceeds total sections
+            let percent = 0;
+            if (totalSections > 0) {
+              if (completed >= totalSections) {
+                percent = 100;
+              } else {
+                percent = Math.round((completed / totalSections) * 100);
+              }
+            }
+            // Determine next section index for continuation (0-based)
+            const progressSectionIndex = completed < totalSections ? completed : totalSections - 1;
             return {
               id: courseId,
               title: course.title || 'Untitled Course',
@@ -200,6 +210,7 @@ function Courses() {
               level: course.level || 'Beginner',
               link: `/courses/${courseId}`,
               progress: percent,
+              progressSectionIndex,
             };
           })
           .filter(course => course !== null);

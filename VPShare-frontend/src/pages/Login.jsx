@@ -103,11 +103,30 @@ function Login() {
         animate="visible"
         variants={cardVariants}
       >
-        <Paper elevation={6} className="login-card">
-          <Typography variant="h4" className="login-title">
+        <Paper
+          elevation={6}
+          className="login-card"
+          sx={{
+            width: { xs: '100%', sm: '400px' },
+            maxWidth: '100%',
+            mx: 'auto',
+            borderRadius: { xs: 0, sm: '14px' },
+            boxShadow: { xs: 'none', sm: '0 4px 24px rgba(16,185,129,0.13), 0 1.5px 4px rgba(30,64,175,0.08)' },
+            p: { xs: 2, sm: 4 }
+          }}
+        >
+          <Typography
+            variant="h4"
+            className="login-title"
+            sx={{ fontSize: { xs: '1.3rem', sm: '2rem' }, textAlign: { xs: 'center', sm: 'left' } }}
+          >
             {isLogin ? 'Welcome Back' : 'Join CodeTapasya'}
           </Typography>
-          <Typography variant="body1" className="login-subtitle">
+          <Typography
+            variant="body1"
+            className="login-subtitle"
+            sx={{ fontSize: { xs: '0.9rem', sm: '1.1rem' }, textAlign: { xs: 'center', sm: 'left' }, mb: { xs: 1, sm: 2 } }}
+          >
             Sign in to start your web development journey
           </Typography>
 
@@ -161,7 +180,16 @@ function Login() {
           </motion.div>
 
           {/* Manual Login/Register Form */}
-          <Box component="form" onSubmit={handleManualSubmit} className="manual-form">
+          <Box
+            component="form"
+            onSubmit={handleManualSubmit}
+            className="manual-form"
+            sx={{
+              width: { xs: '100%', sm: '80%' },
+              mx: 'auto',
+              gap: { xs: 1, sm: 2 }
+            }}
+          >
             <motion.div
               variants={formElementVariants}
               initial="hidden"
@@ -247,7 +275,7 @@ function Login() {
           >
             <Typography variant="body2">
               {isLogin ? "Don't have an account?" : 'Already have an account?'}
-              <motion.div whileHover="hover" variants={buttonHoverVariants} display="inline-block">
+              <motion.span whileHover="hover" variants={buttonHoverVariants} className="inline-block">
                 <Button
                   variant="text"
                   onClick={() => setIsLogin(!isLogin)}
@@ -256,7 +284,7 @@ function Login() {
                 >
                   {isLogin ? 'Register' : 'Login'}
                 </Button>
-              </motion.div>
+              </motion.span>
             </Typography>
           </motion.div>
 
@@ -269,12 +297,12 @@ function Login() {
             transition={{ delay: 0.8 }}
           >
             <Typography variant="body2">
-              <motion.div whileHover="hover" variants={buttonHoverVariants} display="inline-block">
+              <motion.span whileHover="hover" variants={buttonHoverVariants} className="inline-block">
                 <Link to="/">
                   <HomeIcon sx={{ verticalAlign: 'middle', mr: 0.5 }} />
                   Back to Home
                 </Link>
-              </motion.div>
+              </motion.span>
             </Typography>
           </motion.div>
         </Paper>

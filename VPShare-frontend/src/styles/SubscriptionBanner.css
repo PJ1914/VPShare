@@ -127,3 +127,43 @@
     margin-left: 0.2rem;
   }
 }
+
+/* Tablet adjustments */
+@media (max-width: 900px) and (min-width: 601px) {
+  .subscription-banner {
+    bottom: 24px;
+    padding: 1rem 1rem;
+    font-size: 1rem;
+    gap: 0.8rem;
+  }
+  .banner-subscribe-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+  }
+}
+
+/* Extra-small devices: stack vertically */
+@media (max-width: 450px) {
+  .subscription-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.6rem;
+    gap: 0.4rem;
+    bottom: 16px;
+  }
+  .banner-icon {
+    margin: 0;
+  }
+  .banner-message {
+    margin-right: 0;
+  }
+  .banner-subscribe-btn,
+  .banner-close-btn {
+    width: 100%;
+    margin: 0;
+    margin-top: 0.5rem;
+  }
+  .banner-close-btn {
+    align-self: flex-end;
+  }
+}

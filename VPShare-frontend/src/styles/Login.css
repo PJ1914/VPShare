@@ -145,9 +145,14 @@
 
 /* Toggle Text and Button */
 .toggle-text {
-  margin-top: 1rem;
+  margin: 1rem 0;
   font-size: 0.9rem;
   color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .toggle-button {
@@ -185,6 +190,12 @@
 .home-link a:hover {
   color: var(--cta-gradient-end);
   background: rgba(16, 185, 129, 0.08);
+}
+
+/* Utility for inline-block display */
+.inline-block {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Responsive Design */
@@ -227,36 +238,63 @@
 
 @media (max-width: 480px) {
   .login-card {
-    padding: 0.7rem;
-    max-width: 100vw;
-    width: 100vw;
-    border-radius: 0;
-    box-shadow: none;
+    width: 100vw !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 1rem !important;
+    margin: 0 !important;
   }
+
+  .login-container {
+    padding: 0 !important;
+  }
+
+  .auth-icons-row {
+    gap: 1rem;
+    margin: 1rem 0 !important;
+  }
+
+  .google-auth-button,
+  .github-auth-button {
+    width: 45px !important;
+    height: 45px !important;
+    min-width: 45px !important;
+    min-height: 45px !important;
+    font-size: 1.2rem !important;
+  }
+
   .login-title {
-    font-size: 1.1rem;
+    font-size: 1.3rem !important;
   }
+
   .login-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.9rem !important;
   }
+
   .manual-form {
-    gap: 0.5rem;
+    gap: 0.5rem !important;
+    width: 100% !important;
   }
-  .login-input {
-    margin-bottom: 0.5rem;
-    font-size: 0.98rem;
+
+  .login-input .MuiInputBase-root {
+    font-size: 1rem !important;
   }
+
   .submit-button {
-    width: 100%;
+    width: 100% !important;
+    font-size: 1rem !important;
     padding: 0.6rem !important;
-    font-size: 0.98rem !important;
   }
-  .google-auth-button, .github-auth-button {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
-    font-size: 1.1rem;
+
+  .toggle-text {
+    font-size: 0.8rem !important;
+    text-align: center;
+  }
+
+  .home-link {
+    font-size: 0.8rem !important;
+    text-align: center;
   }
 }
 

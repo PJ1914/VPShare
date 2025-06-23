@@ -168,6 +168,35 @@
   51%, 100% { opacity: 0; }
 }
 
+/* Typing indicator dots animation */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+}
+.typing-indicator .typing-dots {
+  display: flex;
+  gap: 6px;
+}
+.typing-indicator .typing-dots span {
+  width: 8px;
+  height: 8px;
+  background: var(--chat-primary);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: typingDot 1s infinite;
+}
+.typing-indicator .typing-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-indicator .typing-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes typingDot {
+  0%, 20%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
 /* Code block copy button styles */
 .code-block-wrapper {
   position: relative;
@@ -246,16 +275,85 @@
 }
 
 /* Responsive */
-@media (max-width: 500px) {
-  .chat-box {
-    width: 98vw;
-    max-width: 98vw;
-    right: 1vw;
-    left: 1vw;
-    min-width: unset;
-  }
+@media (max-width: 600px) {
   .chat-assistant {
-    right: 2vw;
-    bottom: 2vw;
+    bottom: 16px;
+    right: 16px;
+  }
+  .toggle-button {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+  .chat-box {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95vw;
+    max-height: 80vh;
+    margin-top: 8px;
+    border-radius: 12px;
+  }
+  .chat-input {
+    flex-direction: column;
+  }
+  .chat-input input {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .chat-input button {
+    margin-left: 0;
+    width: 100%;
+    padding: 8px 0;
+  }
+  /* Ensure chat history doesn’t overflow on small screens */
+  .chat-history {
+    padding: 12px 8px;
+  }
+  /* Reduce code-block margins on mobile */
+  .code-block-wrapper {
+    margin: 1em 0;
+    padding-top: 1.8em;
+  }
+  .chat-input input {
+    font-size: 14px;
+  }
+  .chat-input button {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  .message {
+    font-size: 14px;
+    padding: 6px 10px;
+    max-width: 90%;
+  }
+  .code-block-wrapper pre {
+    font-size: 14px;
+    padding: 0.8em;
+  }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+  .chat-box {
+    width: 360px;
+    max-height: 70vh;
+  }
+}
+/* Responsive tweaks for chat assistant on very small screens */
+@media (max-width: 400px) {
+  .ct-badge {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    margin-right: 4px;
+  }
+  .chat-history {
+    padding: 12px 6px;
+  }
+  .code-block-wrapper {
+    padding-top: 1.5em;
+    margin: 0.8em 0;
   }
 }
