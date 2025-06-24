@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import './ChatAssistant.css';
+import '../styles/ChatAssistant.css';
 import { auth, db } from '../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, getDocs } from 'firebase/firestore';
