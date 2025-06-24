@@ -12,6 +12,28 @@ import {
   TrendingUp as TrendingUpIcon,
   History as HistoryIcon,
   FormatQuote as QuoteIcon,
+  Dashboard as DashboardIcon,
+  School as SchoolIcon,
+  AutoGraph as AutoGraphIcon,
+  EmojiEvents as EmojiEventsIcon,
+  Refresh as RefreshIcon,
+  Settings as SettingsIcon,
+  Insights as InsightsIcon,
+  Timeline as TimelineIcon,
+  BookmarkBorder as BookmarkIcon,
+  PlayCircleOutline as PlayIcon,
+  Assignment as AssignmentIcon,
+  Quiz as QuizIcon,
+  GitHub as GitHubIcon,
+  Notifications as NotificationsIcon,
+  Star as StarIcon,
+  Speed as SpeedIcon,
+  AssignmentTurnedIn as CompletedIcon,
+  Lightbulb as LightbulbIcon,
+  Psychology as PsychologyIcon,
+  Web as WebIcon,
+  Storage as StorageIcon,
+  Api as ApiIcon,
 } from '@mui/icons-material';
 import '../styles/Dashboard.css';
 
@@ -84,10 +106,9 @@ function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const auth = getAuth();
-      const currentUser = auth.currentUser;
+      const auth = getAuth();      const currentUser = auth.currentUser;
       if (!currentUser) {
-        setUser({ name: 'Learner' });
+        setUser({ name: 'Learner', uid: null });
         setCourses([]);
         setUserCourseProgress({});
         setRecentActivities([]);
@@ -95,7 +116,7 @@ function Dashboard() {
         setLoading(false);
         return;
       }
-      setUser({ name: currentUser.displayName || 'Learner' });
+      setUser({ name: currentUser.displayName || 'Learner', uid: currentUser.uid });
       try {
         // Parallel fetch of courses and user progress
         const apiUrl = import.meta.env.VITE_COURSES_API_URL;
@@ -198,20 +219,34 @@ function Dashboard() {
       author: "Hemanth",
     },
   ];
-
   // Pick a quote based on user UID (so each user sees the same quote every time)
   let quoteIndex = 0;
   if (user && user.uid) {
     // Simple hash: sum char codes of UID, mod quotes length
     quoteIndex = user.uid.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % motivationalQuotes.length;
+  } else {
+    // Fallback: use current date to rotate quotes for non-logged-in users
+    const today = new Date();
+    quoteIndex = (today.getDate() + today.getMonth()) % motivationalQuotes.length;
   }
   const motivationalQuote = motivationalQuotes[quoteIndex];
 
   const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
-
   if (loading) {
     return (
-      <div className="dashboard-container"><main className="dashboard-main"></main></div>
+      <div className="dashboard-container">
+        <main className="dashboard-main">
+          <div className="loading-skeleton">
+            <div className="skeleton-welcome"></div>
+            <div className="skeleton-progress"></div>
+            <div className="skeleton-cards">
+              <div className="skeleton-card"></div>
+              <div className="skeleton-card"></div>
+              <div className="skeleton-card"></div>
+            </div>
+          </div>
+        </main>
+      </div>
     );
   }
 
@@ -227,18 +262,40 @@ function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-        >
-          <motion.div
+        >          <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            className="welcome-content"
           >
-            <h1>Welcome Back, {user.name}!</h1>
-            <p>Your journey to mastering web development continues here.</p>
+            <div className="welcome-text">
+              <h1>Welcome Back, {user.name}!</h1>
+              <p>Your journey to mastering web development continues here.</p>
+            </div>
+            <div className="welcome-actions">
+              <motion.button
+                className="action-btn primary"
+                variants={hoverVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/courses')}
+              >
+                <SchoolIcon />
+                Browse Courses
+              </motion.button>
+              <motion.button
+                className="action-btn secondary"
+                variants={hoverVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => window.location.reload()}
+              >
+                <RefreshIcon />
+                Refresh Data
+              </motion.button>
+            </div>
           </motion.div>
-        </motion.section>
-
-        {/* Overall Progress Widget */}
+        </motion.section>        {/* Enhanced Overall Progress Widget */}
         <motion.section
           className="overall-progress-section"
           initial="hidden"
@@ -246,15 +303,73 @@ function Dashboard() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
+          <div className="progress-stats-grid">
+            <motion.div
+              className="stat-card"
+              variants={hoverVariants}
+              whileHover="hover"
+            >
+              <div className="stat-icon">
+                <TrendingUpIcon />
+              </div>
+              <div className="stat-content">
+                <h3>{overallProgress}%</h3>
+                <p>Overall Progress</p>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="stat-card"
+              variants={hoverVariants}
+              whileHover="hover"
+            >
+              <div className="stat-icon">
+                <LibraryBooksIcon />
+              </div>
+              <div className="stat-content">
+                <h3>{courses.length}</h3>
+                <p>Available Courses</p>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="stat-card"
+              variants={hoverVariants}
+              whileHover="hover"
+            >
+              <div className="stat-icon">
+                <CompletedIcon />
+              </div>
+              <div className="stat-content">
+                <h3>{Object.keys(userCourseProgress).length}</h3>
+                <p>Courses Started</p>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="stat-card"
+              variants={hoverVariants}
+              whileHover="hover"
+            >
+              <div className="stat-icon">
+                <EmojiEventsIcon />
+              </div>
+              <div className="stat-content">
+                <h3>{recentActivities.length}</h3>
+                <p>Recent Activities</p>
+              </div>
+            </motion.div>
+          </div>
+          
           <motion.div
             className="overall-progress-widget"
             variants={hoverVariants}
             whileHover="hover"
           >
-            <TrendingUpIcon className="overall-progress-icon" />
+            <AutoGraphIcon className="overall-progress-icon" />
             <div className="overall-progress-text">
-              <h3>Overall Progress</h3>
-              <p>{overallProgress}% Complete</p>
+              <h3>Learning Journey</h3>
+              <p>{overallProgress}% Complete Across All Categories</p>
             </div>
             <div className="overall-progress-bar">
               <motion.div
@@ -276,14 +391,18 @@ function Dashboard() {
           variants={sectionVariants}
         >
           <h2>Your Learning Progress</h2>
-          <div className="progress-container">
-            <motion.div
-              className="progress-card"
+          <div className="progress-container">            <motion.div
+              className="progress-card frontend"
               variants={hoverVariants}
               whileHover="hover"
             >
-              <h3>Frontend</h3>
-              <p>{progress.frontend}% Complete</p>
+              <div className="progress-card-header">
+                <WebIcon className="category-icon" />
+                <div className="progress-info">
+                  <h3>Frontend</h3>
+                  <p>{progress.frontend}% Complete</p>
+                </div>
+              </div>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
@@ -293,18 +412,32 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <button className="progress-link" onClick={() => handleCategoryNavigate('Frontend')}>
+                <button 
+                  className="progress-link" 
+                  onClick={() => handleCategoryNavigate('Frontend')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryNavigate('Frontend');
+                    }
+                  }}
+                >
+                  <PlayIcon />
                   Continue Learning
                 </button>
               </motion.div>
-            </motion.div>
-            <motion.div
-              className="progress-card"
+            </motion.div>            <motion.div
+              className="progress-card backend"
               variants={hoverVariants}
               whileHover="hover"
             >
-              <h3>Backend</h3>
-              <p>{progress.backend}% Complete</p>
+              <div className="progress-card-header">
+                <ApiIcon className="category-icon" />
+                <div className="progress-info">
+                  <h3>Backend</h3>
+                  <p>{progress.backend}% Complete</p>
+                </div>
+              </div>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
@@ -314,18 +447,32 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <button className="progress-link" onClick={() => handleCategoryNavigate('Backend')}>
+                <button 
+                  className="progress-link" 
+                  onClick={() => handleCategoryNavigate('Backend')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryNavigate('Backend');
+                    }
+                  }}
+                >
+                  <PlayIcon />
                   Continue Learning
                 </button>
               </motion.div>
-            </motion.div>
-            <motion.div
-              className="progress-card"
+            </motion.div>            <motion.div
+              className="progress-card databases"
               variants={hoverVariants}
               whileHover="hover"
             >
-              <h3>Databases</h3>
-              <p>{progress.databases}% Complete</p>
+              <div className="progress-card-header">
+                <StorageIcon className="category-icon" />
+                <div className="progress-info">
+                  <h3>Databases</h3>
+                  <p>{progress.databases}% Complete</p>
+                </div>
+              </div>
               <div className="progress-bar">
                 <motion.div
                   className="progress-fill"
@@ -335,7 +482,17 @@ function Dashboard() {
                 ></motion.div>
               </div>
               <motion.div variants={hoverVariants} whileHover="hover">
-                <button className="progress-link" onClick={() => handleCategoryNavigate('Databases')}>
+                <button 
+                  className="progress-link" 
+                  onClick={() => handleCategoryNavigate('Databases')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryNavigate('Databases');
+                    }
+                  }}
+                >
+                  <PlayIcon />
                   Continue Learning
                 </button>
               </motion.div>
@@ -351,9 +508,15 @@ function Dashboard() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
-          <h2>Your Course Progress</h2>
-          <div className="progress-container">
-            {Object.keys(userCourseProgress).length === 0 && <p>You haven't started any courses yet.</p>}
+          <h2>Your Course Progress</h2>          <div className="progress-container">
+            {Object.keys(userCourseProgress).length === 0 ? (
+              <div className="empty-state">
+                <LibraryBooksIcon className="empty-icon" />
+                <h3>No courses started yet</h3>
+                <p>Start your learning journey by exploring our courses!</p>
+                <Link to="/courses" className="empty-cta">Browse Courses</Link>
+              </div>
+            ) : null}
             {courses.map((course) => {
               const progress = userCourseProgress[course.module_id];
               if (!progress || !Array.isArray(progress.completedSections) || progress.completedSections.length === 0) return null;
@@ -424,22 +587,29 @@ function Dashboard() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
-          <h2>Recent Activity</h2>
-          <div className="recent-activity-container">
-            {recentActivities.map((activity) => (
-              <motion.div
-                key={activity.id}
-                className="activity-card"
-                variants={hoverVariants}
-                whileHover="hover"
-              >
-                <HistoryIcon className="activity-icon" />
-                <div className="activity-details">
-                  <p className="activity-action">{activity.action}</p>
-                  <p className="activity-timestamp">{activity.timestamp}</p>
-                </div>
-              </motion.div>
-            ))}
+          <h2>Recent Activity</h2>          <div className="recent-activity-container">
+            {recentActivities.length === 0 ? (
+              <div className="empty-state">
+                <HistoryIcon className="empty-icon" />
+                <h3>No recent activity</h3>
+                <p>Start learning to see your progress here!</p>
+              </div>
+            ) : (
+              recentActivities.map((activity) => (
+                <motion.div
+                  key={activity.id}
+                  className="activity-card"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                >
+                  <HistoryIcon className="activity-icon" />
+                  <div className="activity-details">
+                    <p className="activity-action">{activity.action}</p>
+                    <p className="activity-timestamp">{activity.timestamp}</p>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.section>
 
@@ -462,9 +632,7 @@ function Dashboard() {
               <footer>— {motivationalQuote.author}</footer>
             </blockquote>
           </motion.div>
-        </motion.section>
-
-        {/* Quick Links */}
+        </motion.section>        {/* Enhanced Quick Links */}
         <motion.section
           className="quick-links"
           initial="hidden"
@@ -472,45 +640,53 @@ function Dashboard() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
-          <h2>Quick Links</h2>
+          <h2>Quick Actions</h2>
           <div className="quick-links-container">
             <motion.div variants={hoverVariants} whileHover="hover">
-              <Link to="/Courses" className="quick-link-card">
+              <Link to="/Courses" className="quick-link-card primary">
                 <span className="quick-link-icon"><LibraryBooksIcon /></span>
-                <span className="quick-link-text">Browse All Courses</span>
+                <span className="quick-link-text">Browse Courses</span>
+                <span className="quick-link-desc">Explore all available courses</span>
               </Link>
             </motion.div>
-            {/* New: Go to Courses API link */}
-            {coursesApiUrl && (
-              <motion.div variants={hoverVariants} whileHover="hover">
-                <a
-                  href={coursesApiUrl}
-                  className="quick-link-card"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Go to Courses API"
-                >
-                  <span className="quick-link-icon"><LibraryBooksIcon /></span>
-                  <span className="quick-link-text">Go to Courses API</span>
-                </a>
-              </motion.div>
-            )}
+            
             <motion.div variants={hoverVariants} whileHover="hover">
-              <Link to="/profile" className="quick-link-card">
-                <span className="quick-link-icon"><PersonIcon /></span>
-                <span className="quick-link-text">Update Profile</span>
-              </Link>
-            </motion.div>
-            <motion.div variants={hoverVariants} whileHover="hover">
-              <Link to="/support" className="quick-link-card">
-                <span className="quick-link-icon"><SupportIcon /></span>
-                <span className="quick-link-text">Get Support</span>
-              </Link>
-            </motion.div>
-            <motion.div variants={hoverVariants} whileHover="hover">
-              <Link to="/playground" className="quick-link-card">
+              <Link to="/playground" className="quick-link-card secondary">
                 <span className="quick-link-icon"><CodeIcon /></span>
                 <span className="quick-link-text">Code Playground</span>
+                <span className="quick-link-desc">Test your code instantly</span>
+              </Link>
+            </motion.div>
+            
+            <motion.div variants={hoverVariants} whileHover="hover">
+              <Link to="/assignments" className="quick-link-card success">
+                <span className="quick-link-icon"><AssignmentIcon /></span>
+                <span className="quick-link-text">Assignments</span>
+                <span className="quick-link-desc">View and submit assignments</span>
+              </Link>
+            </motion.div>
+            
+            <motion.div variants={hoverVariants} whileHover="hover">
+              <Link to="/quizzes" className="quick-link-card warning">
+                <span className="quick-link-icon"><QuizIcon /></span>
+                <span className="quick-link-text">Quizzes</span>
+                <span className="quick-link-desc">Test your knowledge</span>
+              </Link>
+            </motion.div>
+            
+            <motion.div variants={hoverVariants} whileHover="hover">
+              <Link to="/projects" className="quick-link-card info">
+                <span className="quick-link-icon"><GitHubIcon /></span>
+                <span className="quick-link-text">Projects</span>
+                <span className="quick-link-desc">Showcase your work</span>
+              </Link>
+            </motion.div>
+            
+            <motion.div variants={hoverVariants} whileHover="hover">
+              <Link to="/profile" className="quick-link-card purple">
+                <span className="quick-link-icon"><PersonIcon /></span>
+                <span className="quick-link-text">Profile</span>
+                <span className="quick-link-desc">Update your profile</span>
               </Link>
             </motion.div>
           </div>

@@ -22,15 +22,14 @@ function SubscriptionBanner() {
   };
 
   if (!visible) return null;
-
   return (
     <div className="subscription-banner">
-      <span className="banner-icon"><StarIcon style={{ fontSize: '1.7rem' }} /></span>
+      <span className="banner-icon"><StarIcon /></span>
       <span className="banner-message">
-        Unlock all features and premium content with a CodeTapasya subscription!
+        Unlock premium features with CodeTapasya Pro!
       </span>
       <Link to="/payment/monthly" className="banner-subscribe-btn">
-        Subscribe Now
+        Subscribe
       </Link>
       <button className="banner-close-btn" onClick={handleClose} aria-label="Close subscription reminder">×</button>
     </div>

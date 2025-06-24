@@ -1,17 +1,23 @@
+/* Import modern fonts to match the design system */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
 :root {
   --primary-gradient-start: #1e40af;
   --primary-gradient-end: #10b981;
-  --streak-level-0: #e5e7eb;
-  --streak-level-1: #e6f3ff;
-  --streak-level-2: #b3d4ff;
-  --streak-level-3: #66a3ff;
-  --streak-level-4: #1e40af;
+  --cta-gradient-start: #10b981;
+  --cta-gradient-end: #34d399;
   --text-primary: #1f2937;
   --text-secondary: #4b5563;
   --background-light: #f9fafb;
   --background-dark: #1f2937;
   --card-background-light: #ffffff;
   --card-background-dark: #374151;
+  --border-light: #e5e7eb;
+  --border-dark: #4b5563;
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --shadow-light: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --shadow-dark: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
 *,
@@ -33,181 +39,394 @@ body.dark {
 .profile-github-bg {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, var(--background-light), #e0f2fe);
+  background: linear-gradient(135deg, var(--background-light) 0%, #e0f2fe 100%);
+  font-family: 'Inter', sans-serif;
   display: flex;
   justify-content: center;
-  padding: clamp(0.5rem, 2vw, 1rem);
+  padding: clamp(1rem, 3vw, 2rem);
 }
 
 .profile-github-bg.dark {
-  background: linear-gradient(135deg, var(--background-dark), #2d3748);
+  background: linear-gradient(135deg, var(--background-dark) 0%, #1e293b 100%);
 }
 
 .profile-github-container {
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: clamp(320px, 90vw, 1400px);
-  margin: clamp(1rem, 3vw, 2rem) auto;
-  gap: clamp(1rem, 2vw, 2rem);
+  max-width: clamp(320px, 95vw, 1400px);
+  margin: 0 auto;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
   align-items: flex-start;
 }
 
 .profile-github-sidebar {
-  width: clamp(250px, 25vw, 300px);
-  background: var(--card-background-light);
-  border-radius: clamp(8px, 1.5vw, 12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  padding: clamp(1rem, 2vw, 2rem);
+  width: clamp(280px, 28vw, 350px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: var(--shadow-light);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
   position: sticky;
   top: clamp(1rem, 2vw, 2rem);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.profile-github-sidebar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .profile-github-sidebar.dark {
-  background: var(--card-background-dark);
+  background: rgba(55, 65, 81, 0.95);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  box-shadow: var(--shadow-dark);
 }
 
 .profile-github-avatar-wrap {
   position: relative;
-  margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+  display: flex;
+  justify-content: center;
 }
 
 .profile-github-avatar {
-  width: clamp(80px, 10vw, 120px);
-  height: clamp(80px, 10vw, 120px);
+  width: clamp(100px, 12vw, 140px);
+  height: clamp(100px, 12vw, 140px);
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--primary-gradient-start);
-  transition: transform 0.3s ease;
+  border: 4px solid var(--primary-gradient-start);
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.2);
 }
 
 .profile-github-avatar:hover {
   transform: scale(1.05);
+  border-color: var(--primary-gradient-end);
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.3);
 }
 
 .edit-avatar-btn {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: var(--primary-gradient-start);
+  bottom: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
   color: white;
   border: none;
   border-radius: 50%;
-  width: clamp(25px, 3vw, 30px);
-  height: clamp(25px, 3vw, 30px);
+  width: clamp(30px, 4vw, 36px);
+  height: clamp(30px, 4vw, 36px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .edit-avatar-btn:hover {
-  background: var(--primary-gradient-end);
+  background: linear-gradient(135deg, var(--primary-gradient-end) 0%, var(--cta-gradient-end) 100%);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
 }
 
 .profile-github-name {
-  font-size: clamp(1.5rem, 3vw, 1.8rem);
-  font-weight: 600;
-  margin: 0.5rem 0;
+  font-size: clamp(1.6rem, 3.5vw, 2rem);
+  font-weight: 800;
+  margin: clamp(1rem, 2vw, 1.5rem) 0 0.5rem 0;
   text-align: center;
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .profile-github-email {
-  font-size: clamp(0.85rem, 2vw, 1rem);
+  font-size: clamp(0.9rem, 2.2vw, 1.1rem);
   color: var(--text-secondary);
   text-align: center;
   word-break: break-all;
+  margin-bottom: 0.5rem;
 }
 
 .profile-github-bio {
-  font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+  font-size: clamp(0.85rem, 2vw, 1rem);
   color: var(--text-secondary);
   text-align: center;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.5;
+  font-style: italic;
 }
 
 .profile-github-social {
   display: flex;
-  gap: clamp(0.5rem, 1.5vw, 1rem);
+  gap: clamp(0.75rem, 2vw, 1.25rem);
   justify-content: center;
-  margin: clamp(0.5rem, 1.5vw, 1rem) 0;
+  margin: clamp(1rem, 2vw, 1.5rem) 0;
 }
 
 .profile-github-social a {
   color: var(--primary-gradient-start);
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(30, 64, 175, 0.1);
 }
 
 .profile-github-social a:hover {
   color: var(--primary-gradient-end);
+  background: rgba(16, 185, 129, 0.1);
+  transform: translateY(-2px);
 }
 
 .profile-github-edit-fields {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.3rem, 1vw, 0.5rem);
-  margin-top: clamp(0.5rem, 1.5vw, 1rem);
+  gap: clamp(0.75rem, 1.5vw, 1rem);
+  margin-top: clamp(1rem, 2vw, 1.5rem);
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.profile-github-bg.dark .profile-github-edit-fields {
+  border-top-color: var(--border-dark);
+}
+
+.edit-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.edit-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 3vw, 2rem);
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+  text-transform: none;
+  letter-spacing: 0.5px;
+}
+
+.edit-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.edit-toggle-btn:hover::before {
+  left: 100%;
+}
+
+.edit-toggle-btn:hover {
+  background: linear-gradient(135deg, var(--primary-gradient-end) 0%, var(--primary-gradient-start) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.35);
+}
+
+.edit-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.edit-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary-gradient-end);
+  outline-offset: 2px;
+}
+
+/* Editing state styling */
+.profile-github-edit-fields.editing .edit-toggle-btn {
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+  box-shadow: 0 6px 20px rgba(107, 114, 128, 0.25);
+}
+
+.profile-github-edit-fields.editing .edit-toggle-btn:hover {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  box-shadow: 0 10px 30px rgba(107, 114, 128, 0.35);
 }
 
 .profile-label {
-  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   color: var(--text-primary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-label svg {
+  color: var(--primary-gradient-start);
+  font-size: 1.1rem !important;
+}
+
+.edit-form {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+.profile-github-bg.dark .edit-form {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(71, 85, 105, 0.3);
+}
+
+.input-group {
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.time-range-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--card-background-light);
+  color: var(--text-primary);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.time-range-select:focus {
+  outline: none;
+  border-color: var(--primary-gradient-start);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.profile-github-bg.dark .time-range-select {
+  background: var(--card-background-dark);
+  border-color: var(--border-dark);
+  color: #ffffff;
+}
+
+.profile-github-bg.dark .time-range-select:focus {
+  border-color: var(--primary-gradient-end);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.card-icon {
+  color: var(--primary-gradient-start);
 }
 
 .profile-input {
-  padding: clamp(0.4rem, 1vw, 0.5rem);
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  padding: clamp(0.6rem, 1.5vw, 0.75rem);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   width: 100%;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  background: var(--card-background-light);
+  font-family: 'Inter', sans-serif;
 }
 
 .profile-input:focus {
   border-color: var(--primary-gradient-start);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+  transform: translateY(-1px);
 }
 
 .profile-input:disabled {
   background: #f3f4f6;
   cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.profile-github-bg.dark .profile-input {
+  background: var(--card-background-dark);
+  border-color: var(--border-dark);
+  color: #ffffff;
+}
+
+.profile-github-bg.dark .profile-input:focus {
+  border-color: var(--primary-gradient-end);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .profile-github-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(0.3rem, 1vw, 0.5rem);
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
   justify-content: center;
-  margin-top: clamp(0.5rem, 1.5vw, 1rem);
+  margin-top: clamp(1rem, 2vw, 1.5rem);
 }
 
 .update-button,
 .cancel-button,
 .export-button,
 .theme-button {
-  background: var(--primary-gradient-start);
   color: white;
   border: none;
-  padding: clamp(0.4rem, 1vw, 0.5rem) clamp(0.8rem, 2vw, 1rem);
-  border-radius: 6px;
-  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  padding: clamp(0.6rem, 1.5vw, 0.75rem) clamp(1.2rem, 2.5vw, 1.5rem);
+  border-radius: 12px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.update-button {
+  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
 }
 
 .cancel-button {
-  background: #6b7280;
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
 }
 
 .export-button {
-  background: var(--primary-gradient-end);
+  background: linear-gradient(135deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .theme-button {
-  background: #4b5563;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .update-button:hover,
@@ -215,6 +434,7 @@ body.dark {
 .export-button:hover,
 .theme-button:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .update-button:disabled,
@@ -377,29 +597,112 @@ body.dark {
 .streak-info {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  background: linear-gradient(90deg, #e0f2fe, var(--card-background-light));
-  border-radius: 6px;
-  padding: clamp(0.8rem, 2vw, 1rem);
-  margin-bottom: 1rem;
+  background: linear-gradient(135deg, 
+    rgba(16, 185, 129, 0.08) 0%, 
+    rgba(30, 64, 175, 0.05) 50%, 
+    var(--card-background-light) 100%);
+  border-radius: 16px;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+}
+
+.streak-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.15);
 }
 
 .streak-info.dark {
-  background: linear-gradient(90deg, #4b5563, var(--card-background-dark));
+  background: linear-gradient(135deg, 
+    rgba(16, 185, 129, 0.12) 0%, 
+    rgba(30, 64, 175, 0.08) 50%, 
+    var(--card-background-dark) 100%);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.streak-main {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1rem);
 }
 
 .streak-icon {
   color: var(--primary-gradient-end);
+  font-size: clamp(2rem, 4vw, 2.5rem) !important;
+  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+  transition: all 0.3s ease;
 }
 
-.streak-info p {
+/* Only animate when there's actually a streak */
+.streak-info:not([data-streak="0"]) .streak-icon {
+  animation: flame 2s ease-in-out infinite alternate;
+}
+
+@keyframes flame {
+  0% { transform: scale(1) rotate(-1deg); }
+  100% { transform: scale(1.05) rotate(1deg); }
+}
+
+/* Dim the icon when streak is 0 */
+.streak-info[data-streak="0"] .streak-icon {
+  opacity: 0.6;
+  color: #9ca3af;
+}
+
+.streak-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.current-streak {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: var(--primary-gradient-start);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.streak-label {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
-  margin: 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.streak-secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .longest-streak {
-  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
   color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  background: rgba(30, 64, 175, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(30, 64, 175, 0.2);
+  transition: all 0.3s ease;
+}
+
+.longest-streak:hover {
+  background: rgba(30, 64, 175, 0.15);
+  transform: scale(1.02);
 }
 
 .streak-calendar {
@@ -605,6 +908,31 @@ body.dark {
     width: clamp(8px, 1.8vw, 12px);
     height: clamp(8px, 1.8vw, 12px);
   }
+
+  .streak-info {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .streak-main {
+    justify-content: center;
+  }
+
+  .streak-secondary {
+    align-items: center;
+    text-align: center;
+  }
+
+  .longest-streak {
+    justify-content: center;
+  }
+
+  .edit-toggle-btn {
+    padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(1.2rem, 2.5vw, 1.5rem);
+    font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  }
 }
 
 @media (max-width: 480px) {
@@ -679,9 +1007,15 @@ body.dark {
   .badge-card,
   .calendar-cell,
   .progress-bar-fill,
-  .progress-bar-sparkle {
+  .progress-bar-sparkle,
+  .streak-icon,
+  .edit-toggle-btn {
     transition: none;
     transform: none;
     animation: none;
+  }
+
+  .edit-toggle-btn::before {
+    display: none;
   }
 }

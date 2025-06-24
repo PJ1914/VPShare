@@ -18,6 +18,8 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--carousel-radius);
+  contain: layout style paint;
+  will-change: transform;
 }
 
 .carousel-slide {
@@ -32,6 +34,8 @@
   border-radius: var(--carousel-radius);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+  contain: layout style paint;
+  transform: translateZ(0);
 }
 
 .carousel-slide::before {
@@ -71,23 +75,6 @@
   opacity: 0.9;
 }
 
-.carousel-cta {
-  background: white;
-  color: var(--primary-gradient-start);
-  border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.3s ease, background 0.3s ease;
-}
-
-.carousel-cta:hover {
-  background: #f0f0f0;
-  transform: translateY(-2px);
-}
-
 .carousel .control-dots {
   bottom: 15px;
   padding: 0 10px;
@@ -104,39 +91,8 @@
 }
 
 .carousel .control-dots .dot:hover,
-.carousel .control-dots .dot.selected {
-  background: white;
+.carousel .control-dots .dot.selected {  background: white;
   transform: scale(1.3);
-}
-
-.carousel .control-arrow {
-  width: clamp(40px, 8vw, 50px);
-  height: clamp(40px, 8vw, 50px);
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  top  : 50%;
-  transform: translateY(-50%);
-  transition: background 0.3s ease;
-  z-index: 3;
-  opacity: 0.8;
-}
-
-.carousel .control-prev.control-arrow {
-  left: 10px;
-}
-
-.carousel .control-next.control-arrow {
-  right: 10px;
-}
-
-.carousel .control-arrow:hover {
-  background: rgba(0, 0, 0, 0.7);
-  opacity: 1;
-}
-
-.carousel .control-arrow:before {
-  color: white;
-  font-size: clamp(20px, 4vw, 24px);
 }
 
 .carousel .slide {
@@ -161,7 +117,56 @@
   }
 }
 
-/* Responsive Design */
+/* Enhanced Responsive Design */
+
+/* Ultra-wide and large desktop screens */
+@media (min-width: 1400px) {
+  .hero-carousel {
+    max-width: 1600px;
+    height: 75vh;
+  }
+
+  .carousel-slide {
+    height: 75vh;
+    padding: 0 6rem;
+  }
+
+  .carousel-text {
+    max-width: 45%;
+  }
+
+  .carousel-text h1 {
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+  }
+
+  .carousel-text p {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+  }
+}
+
+@media (max-width: 1200px) {
+  .hero-carousel {
+    height: 65vh;
+  }
+
+  .carousel-slide {
+    height: 65vh;
+    padding: 0 3.5rem;
+  }
+
+  .carousel-text {
+    max-width: 65%;
+  }
+
+  .carousel-text h1 {
+    font-size: clamp(2rem, 4.8vw, 2.8rem);
+  }
+
+  .carousel-text p {
+    font-size: clamp(1rem, 2.3vw, 1.25rem);
+  }
+}
+
 @media (max-width: 1024px) {
   .hero-carousel {
     height: 60vh;
@@ -179,13 +184,8 @@
   .carousel-text h1 {
     font-size: clamp(1.8rem, 4.5vw, 2.5rem);
   }
-
   .carousel-text p {
     font-size: clamp(0.9rem, 2.2vw, 1.2rem);
-  }
-
-  .carousel-cta {
-    padding: 0.7rem 1.8rem;
   }
 }
 
@@ -208,20 +208,8 @@
 
   .carousel-text h1 {
     font-size: clamp(1.5rem, 4vw, 2rem);
-  }
-
-  .carousel-text p {
+  }  .carousel-text p {
     font-size: clamp(0.85rem, 2vw, 1rem);
-  }
-
-  .carousel-cta {
-    padding: 0.6rem 1.5rem;
-    font-size: clamp(0.8rem, 1.8vw, 0.95rem);
-  }
-
-  .carousel .control-arrow {
-    width: clamp(30px, 7vw, 40px);
-    height: clamp(30px, 7vw, 40px);
   }
 }
 
@@ -244,33 +232,65 @@
   .carousel-text h1 {
     font-size: clamp(1.2rem, 3.5vw, 1.6rem);
   }
-
   .carousel-text p {
     font-size: clamp(0.75rem, 1.8vw, 0.9rem);
     margin-bottom: 1rem;
   }
 
-  .carousel-cta {
-    padding: 0.5rem 1.2rem;
-    font-size: clamp(0.7rem, 1.6vw, 0.85rem);
-  }
-
   .carousel .control-dots {
     bottom: 10px;
   }
-
   .carousel .control-dots .dot {
     width: 8px;
     height: 8px;
     margin: 0 5px;
   }
+}
 
-  .carousel .control-arrow {
-    width: clamp(25px, 6vw, 35px);
-    height: clamp(25px, 6vw, 35px);
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slide,
+  .carousel-text,
+  .carousel .slide,  .carousel .control-dots .dot {
+    animation: none !important;
+    transition: opacity 0.3s ease !important;
   }
 
-  .carousel .control-arrow:before {
-    font-size: clamp(16px, 3.5vw, 20px);
+  .slideIn {
+    animation: none !important;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.carousel .control-dots .dot:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .carousel .control-dots .dot {
+    border: 2px solid white;
+  }
+
+  .carousel .control-arrow {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+  }
+}
+
+/* Print styles */
+@media print {
+  .hero-carousel {
+    height: auto;
+    overflow: visible;
+  }
+
+  .carousel-slide {
+    height: auto;
+    page-break-inside: avoid;
+  }
+  .carousel .control-dots {
+    display: none;
   }
 }

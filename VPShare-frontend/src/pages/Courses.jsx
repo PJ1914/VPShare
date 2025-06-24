@@ -302,14 +302,23 @@ function Courses() {
             initial="hidden"
             animate="visible"
           >
-            <AnimatePresence>
-              {filteredCourses.length > 0 ? (
+            <AnimatePresence>              {filteredCourses.length > 0 ? (
                 filteredCourses.map((course, index) => (
-                  <motion.div key={course.id || `fallback-${index}`} className="course-card" variants={cardVariants} initial="initial" animate="animate" exit="exit" whileHover="hover">
-                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
+                  <motion.div 
+                    key={course.id || `fallback-${index}`} 
+                    className="course-card" 
+                    variants={cardVariants} 
+                    initial="initial" 
+                    animate="animate" 
+                    exit="exit" 
+                    whileHover="hover"
+                    role="article"
+                    aria-labelledby={`course-title-${course.id}`}
+                    tabIndex="0"
+                  >                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
                       {course.category}
                     </span>
-                    <h3>{course.title}</h3>
+                    <h3 id={`course-title-${course.id}`}>{course.title}</h3>
                     <p className="course-description">{course.description}</p>
                     <p className="course-level">Level: {course.level}</p>
                     {course.progress > 0 && (
@@ -330,14 +339,19 @@ function Courses() {
                           </>
                         )}
                       </div>
-                    )}
-                    {/* Remove motion.div hover for the course-link button */}
+                    )}                    {/* Remove motion.div hover for the course-link button */}
                     <div>
                       <Link
                         to={course.link}
                         className="course-link"
                         aria-label={`Go to ${course.title}`}
                         state={{ continueSection: course.progressSectionIndex }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // Navigate programmatically if needed
+                          }
+                        }}
                       >
                         {getCourseCTA(course.progress)}
                       </Link>

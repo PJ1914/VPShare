@@ -31,6 +31,7 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   // --- CHANGE START ---
   // Initialize profile picture with the default avatar. It will only be updated
   // after a successful check of the user's photoURL.
@@ -41,6 +42,19 @@ function Navbar() {
   const profileItemRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const sidebarRef = useRef(null);
+  const hamburgerRef = useRef(null);
+  const profileButtonRef = useRef(null);
+
+  // Enhanced scroll detection for floating navbar effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      setIsScrolled(scrollTop > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -64,13 +78,15 @@ function Navbar() {
     return () => unsubscribe();
   }, []);
   // --- CHANGE END ---
-
-  // Close sidebar on outside click
+  // Enhanced outside click handler with better performance
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Skip if clicking on nav links
       if (event.target.closest('.nav-links a')) {
         return;
       }
+      
+      // Handle sidebar closing
       if (
         isSidebarOpen &&
         profileItemRef.current &&
@@ -80,7 +96,10 @@ function Navbar() {
       ) {
         setIsSidebarOpen(false);
       }
+      
+      // Handle mobile menu closing
       if (
+        isMobileMenuOpen &&
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target) &&
         !event.target.closest('.hamburger')
@@ -88,24 +107,52 @@ function Navbar() {
         setIsMobileMenuOpen(false);
       }
     };
+    
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isSidebarOpen]);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isSidebarOpen, isMobileMenuOpen]);
+
+  // Enhanced keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        if (isSidebarOpen) {
+          setIsSidebarOpen(false);
+        } else if (isMobileMenuOpen) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarOpen, isMobileMenuOpen]);
 
   useEffect(() => {
     if (isSidebarOpen && sidebarRef.current) {
       sidebarRef.current.focus();
     }
   }, [isSidebarOpen]);
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev);
     setIsSidebarOpen(false);
+    // Add haptic feedback for mobile devices
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   };
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
     if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+    // Add haptic feedback for mobile devices
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   };
 
   const handleLogout = async () => {
@@ -120,9 +167,8 @@ function Navbar() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
-
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="navbar-container">
         <Link to="/" className="logo">
           <motion.img
@@ -182,18 +228,20 @@ function Navbar() {
               Playground
             </Link>
           </li>
-          {user ? (
-            <li className="profile-item" ref={profileItemRef}>
+          {user ? (            <li className="profile-item" ref={profileItemRef}>
               <button
                 className="profile-link"
                 onClick={toggleSidebar}
                 aria-label="Open profile sidebar"
-              >
-                <div className="profile-picture-container">
-                  <img
+                ref={profileButtonRef}
+              >                <div className="profile-picture-container">
+                  <motion.img
                     src={profilePicture}
                     alt="User Profile"
                     className="profile-picture"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
                     onError={(e) => {
                       e.target.src = '/default-avatar.jpg';
                     }}
@@ -213,15 +261,22 @@ function Navbar() {
               </Link>
             </li>
           )}
-        </ul>
-        <button
+        </ul>        <motion.button
           className="hamburger"
           onClick={toggleMobileMenu}
           aria-label="Toggle navigation menu"
           aria-expanded={isMobileMenuOpen}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          ref={hamburgerRef}
         >
-          {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-        </button>
+          <motion.div
+            animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </motion.div>
+        </motion.button>
       </div>
       {/* Profile Sidebar and Backdrop */}
       {isSidebarOpen && (

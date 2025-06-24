@@ -7,6 +7,7 @@
   padding: 0 1rem;
   font-family: 'Inter', sans-serif;
   background: linear-gradient(to bottom, #f9fafb, #ffffff);
+  min-height: 100vh;
 }
 
 /* Hero Section */
@@ -65,13 +66,23 @@
   border-radius: 50px;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .cta-button:hover {
   background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+}
+
+.cta-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .cta-button.secondary {
@@ -81,6 +92,7 @@
 
 .cta-button.secondary:hover {
   background: linear-gradient(90deg, #9ca3af 0%, #6b7280 100%);
+  box-shadow: 0 8px 25px rgba(107, 114, 128, 0.6);
 }
 
 /* Vision Section */
@@ -115,8 +127,16 @@
 .featured-tools h2 {
   font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: #1f2937;
+}
+
+.featured-tools > p {
+  font-size: 1.3rem;
+  color: #4b5563;
+  max-width: 700px;
+  margin: 0 auto 3rem auto;
+  line-height: 1.6;
 }
 
 .tools-container {
@@ -124,34 +144,66 @@
   gap: 2.5rem;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: stretch;
 }
 
 .tool-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   padding: 2.5rem;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 350px;
   border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.tool-card:hover::before {
+  transform: scaleX(1);
 }
 
 .tool-card:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   transform: translateY(-5px);
+  border-color: #10b981;
 }
 
 .tool-card h3 {
   font-size: 1.9rem;
   margin-bottom: 1rem;
   color: #1f2937;
+  font-weight: 700;
 }
 
 .tool-card p {
   font-size: 1.2rem;
   color: #4b5563;
   margin-bottom: 1.5rem;
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+.tool-icon {
+  margin-bottom: 1.5rem !important;
+  font-size: 3rem !important;
 }
 
 /* Learning Paths Section */
@@ -172,33 +224,65 @@
   gap: 2.5rem;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: stretch;
 }
 
 .path-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   padding: 2.5rem;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 350px;
   border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+
+.path-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.path-card:hover::before {
+  transform: scaleX(1);
 }
 
 .path-card:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   transform: translateY(-5px);
+  border-color: #1e40af;
 }
 
 .path-card h3 {
   font-size: 1.9rem;
   margin-bottom: 1rem;
   color: #1f2937;
+  font-weight: 700;
 }
 
 .path-card p {
   font-size: 1.2rem;
   color: #4b5563;
+  line-height: 1.6;
+}
+
+.path-icon {
+  margin-bottom: 1.5rem !important;
+  font-size: 3rem !important;
 }
 
 /* Pricing Section */
@@ -227,10 +311,11 @@
   flex-wrap: wrap;
   justify-content: center;
   margin-bottom: 2.5rem;
+  align-items: stretch;
 }
 
 .pricing-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   padding: 2.5rem;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
@@ -238,12 +323,35 @@
   max-width: 350px;
   border: 1px solid #e5e7eb;
   text-align: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.pricing-card:hover::before {
+  transform: scaleX(1);
 }
 
 .pricing-card:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   transform: translateY(-5px);
+  border-color: #10b981;
 }
 
 .pricing-card h3 {
@@ -259,15 +367,17 @@
   margin-bottom: 1.5rem;
   display: flex;
   align-items: baseline;
-  gap: 2px;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: nowrap;
 }
 
 .rupee {
   font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
-  font-size: 1.3em;
+  font-size: 1.2em;
   color: #10b981;
-  margin-right: 2px;
+  line-height: 1;
 }
 
 .price-amount {
@@ -276,6 +386,7 @@
   font-weight: 700;
   color: #222;
   letter-spacing: 0.5px;
+  line-height: 1;
 }
 
 .pricing-card ul {
@@ -317,18 +428,104 @@
   margin-bottom: 2.5rem;
 }
 
-/* Responsive Design */
+/* Enhanced Responsive Design with additional breakpoints */
+
+/* Ultra-wide screens */
+@media (min-width: 1440px) {
+  .home-main {
+    max-width: 1400px;
+    padding: 0 2rem;
+  }
+
+  .tools-container,
+  .paths-container {
+    gap: 3rem;
+  }
+
+  .pricing-container {
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto 2.5rem auto;
+  }
+
+  .tool-card,
+  .path-card,
+  .pricing-card {
+    max-width: 380px;
+  }
+
+  .hero h1 {
+    font-size: 4rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.8rem;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .home-main {
+    max-width: 1300px;
+    padding: 0 1.5rem;
+  }
+
+  .tools-container,
+  .paths-container,
+  .pricing-container {
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .home-main {
+    padding: 0 1.5rem;
+  }
+
+  .tools-container,
+  .paths-container,
+  .pricing-container {
+    gap: 2rem;
+  }
+
+  .tool-card,
+  .path-card,
+  .pricing-card {
+    max-width: 400px;
+  }
+}
+
 @media (max-width: 768px) {
+  .home-main {
+    margin: 1rem auto;
+    padding: 0 1rem;
+  }
+
   .hero {
-    padding: 3rem 0;
+    padding: 3rem 1rem;
+    margin: 0 0 2rem 0;
   }
 
   .hero h1 {
     font-size: 2.8rem;
+    line-height: 1.2;
   }
 
   .hero-subtitle {
     font-size: 1.4rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  .vision,
+  .featured-tools,
+  .learning-paths,
+  .pricing {
+    padding: 3rem 1rem;
+  }
+
+  .cta {
+    padding: 4rem 1rem;
+    margin: 1rem 0;
   }
 
   .vision h2,
@@ -337,6 +534,16 @@
   .pricing h2,
   .cta h2 {
     font-size: 2.3rem;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+  }
+
+  .vision p,
+  .pricing p,
+  .cta p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
   }
 
   .tools-container,
@@ -344,21 +551,164 @@
   .pricing-container {
     flex-direction: column;
     align-items: center;
+    gap: 1.5rem;
+  }
+
+  .tool-card,
+  .path-card,
+  .pricing-card {
+    max-width: 100%;
+    width: 100%;
+    padding: 2rem;
+  }
+
+  .tool-card h3,
+  .path-card h3,
+  .pricing-card h3 {
+    font-size: 1.7rem;
+  }
+
+  .tool-card p,
+  .path-card p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .pricing-card .price {
+    font-size: 2rem;
+    justify-content: center;
+  }
+
+  .pricing-card li {
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 480px) {
+  .home-main {
+    padding: 0 0.75rem;
+  }
+
+  .hero {
+    padding: 2.5rem 0.75rem;
+    border-radius: 12px;
+  }
+
   .hero h1 {
     font-size: 2.2rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
   }
 
   .hero-subtitle {
     font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .vision,
+  .featured-tools,
+  .learning-paths,
+  .pricing {
+    padding: 2.5rem 0.75rem;
+  }
+
+  .cta {
+    padding: 3rem 0.75rem;
+    border-radius: 12px;
+  }
+
+  .vision h2,
+  .featured-tools h2,
+  .learning-paths h2,
+  .pricing h2,
+  .cta h2 {
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+
+  .vision p,
+  .pricing p,
+  .cta p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+  }
+
+  .tool-card,
+  .path-card,
+  .pricing-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .tool-card h3,
+  .path-card h3,
+  .pricing-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tool-card p,
+  .path-card p {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .pricing-card .price {
+    font-size: 1.8rem;
+  }
+
+  .rupee {
+    font-size: 1.2em;
+  }
+
+  .price-amount {
+    font-size: 1.3em;
+  }
+
+  .pricing-card li {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   .cta-button {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
+    border-radius: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .home-main {
+    padding: 0 0.5rem;
+  }
+
+  .hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .vision h2,
+  .featured-tools h2,
+  .learning-paths h2,
+  .pricing h2,
+  .cta h2 {
+    font-size: 1.8rem;
+  }
+
+  .tool-card,
+  .path-card,
+  .pricing-card {
+    padding: 1.25rem;
+  }
+
+  .cta-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -370,4 +720,30 @@
   .cta-button {
     transition: none;
   }
+
+  .tool-card::before,
+  .path-card::before,
+  .pricing-card::before {
+    transition: none;
+  }
+
+  .tool-card:hover,
+  .path-card:hover,
+  .pricing-card:hover,
+  .cta-button:hover {
+    transform: none;
+  }
+}
+
+/* Focus styles for accessibility */
+.cta-button:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+.tool-card:focus-visible,
+.path-card:focus-visible,
+.pricing-card:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: 2px;
 }

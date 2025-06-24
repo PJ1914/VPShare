@@ -1,25 +1,26 @@
 .subscription-banner {
   position: fixed;
-  bottom: 32px;
+  bottom: clamp(16px, 4vw, 32px);
   left: 50%;
   transform: translateX(-50%);
   background: #fff;
   color: #222;
-  padding: 1.2rem 2.2rem 1.2rem 1.2rem;
-  border-radius: 2.5rem;
+  padding: clamp(0.8rem, 2.5vw, 1.2rem) clamp(1rem, 3vw, 2.2rem) clamp(0.8rem, 2.5vw, 1.2rem) clamp(0.8rem, 2.5vw, 1.2rem);
+  border-radius: clamp(1rem, 4vw, 2.5rem);
   box-shadow: 0 8px 32px rgba(16, 185, 129, 0.13), 0 2px 8px rgba(30,64,175,0.08);
   display: flex;
   align-items: center;
-  gap: 1.1rem;
-  z-index: 1000;
+  gap: clamp(0.5rem, 2vw, 1.1rem);  z-index: 999;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  font-size: 1.13rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.13rem);
   animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) 1;
   border: 1.5px solid #e0e7ef;
-  min-width: 320px;
-  max-width: 95vw;
+  min-width: clamp(280px, 85vw, 320px);
+  max-width: clamp(320px, 95vw, 600px);
+  width: fit-content;
   box-sizing: border-box;
-  transition: box-shadow 0.2s, border 0.2s;
+  transition: box-shadow 0.2s, border 0.2s, transform 0.2s;
+  touch-action: manipulation;
 }
 .subscription-banner:hover {
   box-shadow: 0 12px 36px rgba(16,185,129,0.18), 0 4px 16px rgba(30,64,175,0.12);
@@ -35,13 +36,13 @@
   background: linear-gradient(135deg, #10b981 0%, #1e40af 100%);
   color: #fff;
   border-radius: 50%;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: clamp(2rem, 5vw, 2.4rem);
+  height: clamp(2rem, 5vw, 2.4rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  margin-right: 0.5rem;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  margin-right: clamp(0.3rem, 1vw, 0.5rem);
   box-shadow: 0 2px 8px rgba(16,185,129,0.10);
   flex-shrink: 0;
 }
@@ -50,27 +51,31 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: #222;
-  margin-right: 0.5rem;
+  margin-right: clamp(0.3rem, 1vw, 0.5rem);
   flex: 1 1 auto;
   min-width: 0;
-  white-space: pre-line;
+  white-space: nowrap;
   line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .banner-subscribe-btn {
   background: linear-gradient(90deg, #10b981 0%, #1e40af 100%);
   color: #fff;
   border: none;
-  border-radius: 1.5rem;
-  padding: 0.7rem 1.5rem;
+  border-radius: clamp(0.8rem, 2vw, 1.5rem);
+  padding: clamp(0.5rem, 1.5vw, 0.7rem) clamp(0.8rem, 2.5vw, 1.5rem);
   font-weight: 700;
-  font-size: 1.05rem;
-  margin-left: 0.5rem;
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  margin-left: clamp(0.3rem, 1vw, 0.5rem);
   text-decoration: none;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(16,185,129,0.10);
-  outline: none;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.10);  outline: none;
   white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  min-height: 44px; /* WCAG touch target minimum */
 }
 .banner-subscribe-btn:hover, .banner-subscribe-btn:focus {
   background: linear-gradient(90deg, #1e40af 0%, #10b981 100%);
@@ -82,88 +87,201 @@
   background: #f3f4f6;
   color: #222;
   border: none;
-  font-size: 1.3rem;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 700;
-  margin-left: 0.7rem;
+  margin-left: clamp(0.4rem, 1.5vw, 0.7rem);
   cursor: pointer;
   line-height: 1;
   border-radius: 50%;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: clamp(1.8rem, 4vw, 2.1rem);
+  height: clamp(1.8rem, 4vw, 2.1rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 4px rgba(30,64,175,0.07);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;  box-shadow: 0 1px 4px rgba(30,64,175,0.07);
   flex-shrink: 0;
+  touch-action: manipulation;
+  min-width: 44px; /* WCAG touch target minimum */
+  min-height: 44px;
 }
 .banner-close-btn:hover, .banner-close-btn:focus {
   background: #ffeaea;
   color: #e11d48;
 }
 
-@media (max-width: 600px) {
+/* Enhanced Mobile-First Responsive Design */
+
+/* Very small mobile devices (320px - 479px) */
+@media (max-width: 479px) {
   .subscription-banner {
-    padding: 0.7rem 0.7rem 0.7rem 0.7rem;
-    font-size: 0.98rem;
-    border-radius: 1.2rem;
+    bottom: 12px;
+    left: 8px;
+    right: 8px;
+    transform: none;
+    width: calc(100vw - 16px);
+    max-width: none;
     min-width: 0;
-    gap: 0.5rem;
+    padding: 0.8rem;
+    gap: 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    flex-wrap: wrap;
   }
+  
   .banner-icon {
-    width: 1.7rem;
-    height: 1.7rem;
+    width: 1.8rem;
+    height: 1.8rem;
     font-size: 1rem;
-    margin-right: 0.2rem;
-  }
-  .banner-subscribe-btn {
-    padding: 0.5rem 0.9rem;
-    font-size: 0.95rem;
-  }
-  .banner-close-btn {
-    width: 1.3rem;
-    height: 1.3rem;
-    font-size: 0.95rem;
-    margin-left: 0.2rem;
-  }
-}
-
-/* Tablet adjustments */
-@media (max-width: 900px) and (min-width: 601px) {
-  .subscription-banner {
-    bottom: 24px;
-    padding: 1rem 1rem;
-    font-size: 1rem;
-    gap: 0.8rem;
-  }
-  .banner-subscribe-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
-  }
-}
-
-/* Extra-small devices: stack vertically */
-@media (max-width: 450px) {
-  .subscription-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0.6rem;
-    gap: 0.4rem;
-    bottom: 16px;
-  }
-  .banner-icon {
-    margin: 0;
-  }
-  .banner-message {
     margin-right: 0;
   }
-  .banner-subscribe-btn,
-  .banner-close-btn {
-    width: 100%;
-    margin: 0;
-    margin-top: 0.5rem;
+  
+  .banner-message {
+    flex: 1 1 100%;
+    margin: 0.3rem 0;
+    white-space: normal;
+    text-align: center;
+    order: 1;
   }
+  
+  .banner-subscribe-btn {
+    flex: 1 1 auto;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    margin: 0;
+    order: 2;
+  }
+  
   .banner-close-btn {
-    align-self: flex-end;
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: 1rem;
+    margin: 0;
+    order: 3;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Small mobile devices (480px - 599px) */
+@media (min-width: 480px) and (max-width: 599px) {
+  .subscription-banner {
+    bottom: 16px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: calc(100vw - 24px);
+    max-width: none;
+    padding: 0.9rem;
+    gap: 0.7rem;
+    border-radius: 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .banner-message {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+  }
+}
+
+/* Tablets and small laptops (600px - 899px) */
+@media (min-width: 600px) and (max-width: 899px) {
+  .subscription-banner {
+    bottom: 20px;
+    max-width: 90vw;
+    padding: 1rem 1.5rem;
+    gap: 0.9rem;
+    border-radius: 1.8rem;
+    font-size: 1rem;
+  }
+  
+  .banner-subscribe-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Large tablets and desktops (900px+) */
+@media (min-width: 900px) {
+  .subscription-banner {
+    bottom: 32px;
+    max-width: 700px;
+    padding: 1.2rem 2rem 1.2rem 1.2rem;
+    gap: 1.1rem;
+    border-radius: 2.5rem;
+    font-size: 1.13rem;
+  }
+}
+
+/* Ultra-wide screens (1400px+) */
+@media (min-width: 1400px) {
+  .subscription-banner {
+    bottom: 40px;
+    max-width: 800px;
+    padding: 1.4rem 2.4rem 1.4rem 1.4rem;
+  }
+}
+
+/* Landscape mode adjustments for small devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .subscription-banner {
+    bottom: 8px;
+    padding: 0.6rem;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .banner-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .banner-subscribe-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  
+  .banner-close-btn {
+    width: 1.4rem;
+    height: 1.4rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Safe area support for devices with notches */
+@supports (bottom: env(safe-area-inset-bottom)) {
+  .subscription-banner {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .subscription-banner {
+    border: 2px solid #000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .banner-subscribe-btn {
+    border: 2px solid #fff;
+  }
+  
+  .banner-close-btn {
+    border: 2px solid #222;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .subscription-banner {
+    animation: none;
+    transition: none;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 }

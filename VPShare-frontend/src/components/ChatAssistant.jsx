@@ -24,11 +24,21 @@ import InputAdornment from '@mui/material/InputAdornment';
 import ReactMarkdown from 'react-markdown';
 import { formatDistanceToNow } from 'date-fns';
 import { debounce } from 'lodash';
+import StopIcon from '@mui/icons-material/Stop';
 
 const TYPING_SPEED = 18; // ms per character
 
 const ChatAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
+  // Load chat open state from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('chatOpen');
+    if (stored === 'true') setIsOpen(true);
+  }, []);
+  // Persist chat open state
+  useEffect(() => {
+    localStorage.setItem('chatOpen', isOpen);
+  }, [isOpen]);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [style, setStyle] = useState('detailed');
@@ -46,6 +56,7 @@ const ChatAssistant = () => {
   const inputRef = useRef(null);
   const chatRef = useRef(null);
   const typingIntervalRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Focus input when chat opens
   useEffect(() => {
@@ -136,14 +147,17 @@ const ChatAssistant = () => {
 
   // Debounced send handler
   const handleSend = useCallback(debounce(async () => {
-    const messageText = input.trim();
-    if (!messageText || !user || loading || isAwaitingBot) return;
-    setLoading(true);
-    setIsAwaitingBot(true);
-    setPendingBotText('');
-    setDisplayedBotText('');
-    const userMessage = { from: 'user', text: messageText, createdAt: serverTimestamp() };
+    // Initialize abort controller for this request
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
     try {
+      const messageText = input.trim();
+      if (!messageText || !user || loading || isAwaitingBot) return;
+      setLoading(true);
+      setIsAwaitingBot(true);
+      setPendingBotText('');
+      setDisplayedBotText('');
+      const userMessage = { from: 'user', text: messageText, createdAt: serverTimestamp() };
       await addDoc(collection(db, 'userChats', user.uid, 'messages'), userMessage);
       setInput('');
       inputRef.current?.focus();
@@ -153,16 +167,21 @@ const ChatAssistant = () => {
         const chatContext = messages.slice(-20).map(m => ({ from: m.from, text: m.text })).concat({ from: 'user', text: messageText });
         const userInfo = { uid: user.uid, displayName: user.displayName || '', email: user.email || '', photoURL: user.photoURL || '' };
         const response = await axios.post(apiUrl, { message: messageText, chat_id: 'default', context: chatContext, user: userInfo, style, language }, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          signal
         });
         const reply = response.data.reply || 'No response from AI.';
-        const tempId = String(Date.now());
+        const tempId = crypto.randomUUID();
         hasPersistedRef.current = false;
         setPendingBotTempId(tempId);
         setPendingBotText(reply);
       } catch (err) {
-        console.error('Backend error:', err?.response?.data || err.message);
-        setPendingBotText('Sorry, something went wrong. Please try again.');
+        if (err.name === 'CanceledError' || err.name === 'AbortError') {
+          console.log('AI response aborted');
+        } else {
+          console.error('Backend error:', err?.response?.data || err.message);
+          setPendingBotText('Sorry, something went wrong. Please try again.');
+        }
       }
     } catch (err) {
       console.error('Firestore write error:', err);
@@ -229,13 +248,15 @@ const ChatAssistant = () => {
       await navigator.clipboard.writeText(code);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      alert('Copy failed. Please copy manually.');
+    } catch (err) {
+      console.error('Clipboard error:', err);
+      alert('Failed to copy code. Please try manually.');
     }
   };
 
   // Handle popover open/close
   const handlePopoverOpen = (event) => {
+    if (!isOpen) return;
     setAnchorEl(event.currentTarget);
   };
 
@@ -245,10 +266,20 @@ const ChatAssistant = () => {
 
   const open = Boolean(anchorEl);
 
+  // Stop response handler
+  const handleStop = () => {
+    abortControllerRef.current?.abort();
+    clearInterval(typingIntervalRef.current);
+    setIsAwaitingBot(false);
+    setPendingBotText('');
+    setDisplayedBotText('');
+    setPendingBotTempId(null);
+    setLoading(false);
+  };
+
   return (
-    <div className={`chat-assistant ${isOpen ? 'open' : ''}`} ref={chatRef}>
-      <IconButton
-        className="toggle-button"
+    <div className={`chat-assistant ${isOpen ? 'open' : ''}`} ref={chatRef}>      <IconButton
+        className="chat-toggle-button"
         onClick={() => setIsOpen(prev => !prev)}
         size="large"
         aria-label={isOpen ? 'Close chat' : 'Open CodeTapasya AI chat'}
@@ -266,6 +297,11 @@ const ChatAssistant = () => {
             </Tooltip>
           </div>
           <div className="chat-history">
+            {messages.length === 0 && !isAwaitingBot && !pendingBotText && (
+              <div className="empty-state" role="status" aria-live="polite">
+                🤖 Ask anything related to coding, projects, Git, or tech. I'm here to help!
+              </div>
+            )}
             {messages.map((msg, index) => (
               <div key={msg._id || index} className={`message ${msg.from}`} role="log" aria-live="polite">
                 {msg.from === 'bot' && <ChatBubbleOutlineIcon className="message-icon" />}
@@ -343,6 +379,10 @@ const ChatAssistant = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.shiftKey) {
+                  e.preventDefault();
+                  return;
+                }
                 if (e.key === 'Enter' && !e.shiftKey && !loading && !isAwaitingBot && !pendingBotText) {
                   e.preventDefault();
                   handleSend();
@@ -351,56 +391,85 @@ const ChatAssistant = () => {
               placeholder={loading || isAwaitingBot || pendingBotText ? 'Waiting...' : 'Ask CodeTapasya AI...'}
               disabled={loading || isAwaitingBot || !!pendingBotText}
               aria-label="Chat input"
-              variant="outlined"
-              size="small"
+              variant="outlined"              size="small"
               multiline
               maxRows={3}
               fullWidth
               autoFocus
               InputProps={{
                 sx: {
-                  borderRadius: '32px',
+                  borderRadius: '20px',
                   background: 'var(--background-light)',
-                  fontSize: 'clamp(12px, 1.5vw, 14px)',
-                  padding: '4px 8px',
+                  fontSize: '14px',
+                  padding: '10px 14px',
+                  minHeight: '52px',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: 'var(--border-color)',
+                    borderWidth: '1.5px',
+                    transition: 'all 0.2s ease',
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
                     borderColor: 'var(--primary-gradient-start)',
+                    borderWidth: '2px',
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: 'var(--primary-gradient-start)',
                     borderWidth: '2px',
-                  },
-                },
+                    boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)',
+                  },                },
                 startAdornment: (
                   <InputAdornment position="start">
                     <IconButton
                       onClick={handlePopoverOpen}
                       aria-label="Open response options"
-                      sx={{ color: 'var(--primary-gradient-end)', p: 0.5 }}
+                      sx={{ 
+                        p: 1.2,
+                        minWidth: '48px',
+                        minHeight: '48px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(30, 64, 175, 0.08)',
+                          transform: 'scale(1.05)',
+                        }
+                      }}
                     >
                       <ExpandLessIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
+                    </IconButton>                  </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={handleSend}
-                      disabled={loading || isAwaitingBot || !!pendingBotText || !input.trim()}
-                      aria-label="Send message"
+                      className={`send-stop-button ${isAwaitingBot ? 'loading' : ''}`}
+                      onClick={isAwaitingBot ? handleStop : handleSend}
+                      disabled={!input.trim() && !isAwaitingBot}
+                      aria-label={isAwaitingBot ? 'Stop response' : 'Send message'}
                       sx={{
-                        color: 'var(--primary-gradient-end)',
-                        background: 'linear-gradient(135deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%)',
-                        borderRadius: '16px',
-                        p: 0.5,
-                        '&:hover': { background: 'var(--hover-color)' },
-                        '&:disabled': { background: '#d1d5db', opacity: 0.6 },
+                        minWidth: '48px',
+                        minHeight: '48px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(30, 64, 175, 0.08)',
+                          transform: 'scale(1.05)',
+                        },
+                        '&:disabled': {
+                          opacity: 0.4,
+                          transform: 'none',
+                        }
                       }}
                     >
-                      {loading || isAwaitingBot || pendingBotText ? <CircularProgress size={18} color="inherit" /> : <SendIcon fontSize="small" />}
+                      {isAwaitingBot ? (
+                        <div style={{ position: 'relative', width: '20px', height: '20px' }}>
+                          <StopIcon fontSize="small" />
+                          <CircularProgress 
+                            className="overlay-spinner" 
+                            size={20} 
+                            thickness={2}
+                          />
+                        </div>
+                      ) : (
+                        <SendIcon fontSize="small" />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -409,30 +478,57 @@ const ChatAssistant = () => {
             <Popover
               open={open}
               anchorEl={anchorEl}
-              onClose={handlePopoverClose}
-              anchorOrigin={{
+              onClose={handlePopoverClose}              anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'center',
               }}
               transformOrigin={{
                 vertical: 'bottom',
                 horizontal: 'center',
-              }}
-              sx={{
+              }}sx={{
                 '& .MuiPopover-paper': {
-                  padding: '12px',
-                  borderRadius: '12px',
-                  background: 'var(--background-light)',
-                  boxShadow: '0 6px 24px rgba(30, 64, 175, 0.2)',
-                  width: 'clamp(220px, 60vw, 300px)',
-                  border: '1px solid var(--border-color)',
-                  animation: 'popover-pop 0.2s ease-in-out',
+                  padding: 'clamp(16px, 4vw, 24px)',
+                  borderRadius: 'clamp(8px, 2vw, 12px)',
+                  background: '#ffffff',
+                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05)',
+                  width: 'clamp(280px, 85vw, 380px)',
+                  maxWidth: '95vw',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  animation: 'popover-pop 0.15s ease-out',
+                  overflow: 'visible',
+                  margin: '8px',
+                  '@media (max-width: 600px)': {
+                    width: 'calc(100vw - 32px)',
+                    maxWidth: 'calc(100vw - 32px)',
+                    padding: '20px',
+                    borderRadius: '12px',
+                    margin: '16px',
+                  },
+                  '@media (min-width: 601px) and (max-width: 960px)': {
+                    width: 'clamp(320px, 60vw, 400px)',
+                    padding: '22px',
+                  },
+                  '@media (min-width: 961px)': {
+                    width: 'clamp(340px, 45vw, 380px)',
+                    padding: '24px',
+                  },
                 },
               }}
             >
-              <div className="chat-options">
-                <FormControl variant="outlined" size="small" fullWidth sx={{ mb: 1.5 }}>
-                  <InputLabel id="chat-style-label">Response Style</InputLabel>
+              <div className="chat-options">                <FormControl variant="outlined" size="small" fullWidth sx={{ mb: 'clamp(12px, 3vw, 20px)' }}>
+                  <InputLabel
+                    id="chat-style-label"
+                    sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)',
+                      fontWeight: 500,
+                      color: '#6b7280',
+                      '&.Mui-focused': {
+                        color: '#3b82f6',
+                      }
+                    }}
+                  >
+                    Response Style
+                  </InputLabel>
                   <Select
                     labelId="chat-style-label"
                     id="chat-style-select"
@@ -440,19 +536,65 @@ const ChatAssistant = () => {
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
                     sx={{
-                      background: 'var(--chat-bot-bg)',
-                      borderRadius: '8px',
-                      '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--border-color)' },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--primary-gradient-start)' },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--primary-gradient-start)' },
+                      background: '#f9fafb',
+                      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+                      minHeight: 'clamp(44px, 10vw, 48px)',
+                      fontSize: 'clamp(13px, 2.5vw, 14px)',
+                      '& .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#e5e7eb',
+                        borderWidth: '1px',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#d1d5db',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#3b82f6',
+                        borderWidth: '2px',
+                      },
+                      '@media (max-width: 600px)': {
+                        minHeight: '50px',
+                        fontSize: '14px',
+                      },
+                    }}
+                  >                    <MenuItem value="auto" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      Auto (Recommended)
+                    </MenuItem>
+                    <MenuItem value="detailed" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      Detailed
+                    </MenuItem>
+                    <MenuItem value="short" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      Short
+                    </MenuItem>
+                  </Select>                </FormControl>
+                <FormControl variant="outlined" size="small" fullWidth>
+                  <InputLabel
+                    id="chat-language-label"
+                    sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)',
+                      fontWeight: 500,
+                      color: '#6b7280',
+                      '&.Mui-focused': {
+                        color: '#3b82f6',
+                      }
                     }}
                   >
-                    <MenuItem value="detailed">Detailed</MenuItem>
-                    <MenuItem value="short">Short</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControl variant="outlined" size="small" fullWidth>
-                  <InputLabel id="chat-language-label">Language</InputLabel>
+                    Language
+                  </InputLabel>
                   <Select
                     labelId="chat-language-label"
                     id="chat-language-select"
@@ -460,16 +602,50 @@ const ChatAssistant = () => {
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     sx={{
-                      background: 'var(--chat-bot-bg)',
-                      borderRadius: '8px',
-                      '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--border-color)' },
-                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--primary-gradient-start)' },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--primary-gradient-start)' },
+                      background: '#f9fafb',
+                      borderRadius: 'clamp(6px, 1.5vw, 8px)',
+                      minHeight: 'clamp(44px, 10vw, 48px)',
+                      fontSize: 'clamp(13px, 2.5vw, 14px)',
+                      '& .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#e5e7eb',
+                        borderWidth: '1px',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#d1d5db',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': { 
+                        borderColor: '#3b82f6',
+                        borderWidth: '2px',
+                      },
+                      '@media (max-width: 600px)': {
+                        minHeight: '50px',
+                        fontSize: '14px',
+                      },
                     }}
-                  >
-                    <MenuItem value="en">English</MenuItem>
-                    <MenuItem value="hi">Hindi</MenuItem>
-                    <MenuItem value="te">Telugu</MenuItem>
+                  >                    <MenuItem value="en" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      English
+                    </MenuItem>
+                    <MenuItem value="hi" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      Hindi
+                    </MenuItem>
+                    <MenuItem value="te" sx={{ 
+                      fontSize: 'clamp(13px, 2.5vw, 14px)', 
+                      minHeight: 'clamp(40px, 8vw, 44px)', 
+                      padding: 'clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px)',
+                      '@media (max-width: 600px)': { fontSize: '14px', minHeight: '48px', padding: '12px 16px' }
+                    }}>
+                      Telugu
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </div>

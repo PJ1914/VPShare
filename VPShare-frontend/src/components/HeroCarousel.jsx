@@ -28,18 +28,18 @@ const HeroCarousel = () => (
     infiniteLoop
     showThumbs={false}
     showStatus={false}
+    showArrows={false}
+    showIndicators={true}
     interval={4000}
     swipeable
     emulateTouch
     transitionTime={600}
     className="hero-carousel"
-  >
-    {slides.map((slide, idx) => (
+  >{slides.map((slide, idx) => (
       <div key={idx} className="carousel-slide">
         <div className="carousel-text">
           <h1>{slide.title}</h1>
           <p>{slide.subtitle}</p>
-          <button className="carousel-cta">Explore Now</button>
         </div>
       </div>
     ))}

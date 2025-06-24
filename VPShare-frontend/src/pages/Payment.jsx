@@ -13,6 +13,15 @@ import FlashOnIcon from '@mui/icons-material/FlashOn';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import SecurityIcon from '@mui/icons-material/Security';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PeopleIcon from '@mui/icons-material/People';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import DiscountIcon from '@mui/icons-material/Discount';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -39,35 +48,46 @@ function Payment() {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [error, setError] = useState('');
   const [userToken, setUserToken] = useState(null);
-
   const plans = {
     'one-day': {
       name: 'One-Day Plan',
       price: 10,
       amount: 1000,
       duration: '24 hours',
-      features: ['24-hour full access', 'All courses and projects', 'Community support'],
+      features: ['24-hour full access', 'All courses and projects', 'Community support', 'Code playground access'],
+      badge: 'Quick Start',
+      popular: false,
+      savings: null,
     },
     weekly: {
       name: 'Weekly Plan',
       price: 49,
       amount: 4900,
       duration: '7 days',
-      features: ['7-day full access', 'All courses and projects', 'Community support', 'Weekly progress tracking'],
+      features: ['7-day full access', 'All courses and projects', 'Community support', 'Weekly progress tracking', 'Assignment submissions'],
+      badge: 'Best for Beginners',
+      popular: false,
+      savings: null,
     },
     monthly: {
       name: 'Monthly Plan',
       price: 99,
       amount: 9900,
       duration: '30 days',
-      features: ['30-day full access', 'All courses and projects', 'Priority support', 'Monthly progress tracking'],
+      features: ['30-day full access', 'All courses and projects', 'Priority support', 'Monthly progress tracking', 'Certificate eligibility'],
+      badge: 'Most Popular',
+      popular: true,
+      savings: 'Save 20%',
     },
     'six-month': {
       name: '6-Month Plan',
       price: 449,
       amount: 44900,
       duration: '6 months',
-      features: ['6-month full access', 'All courses and projects', 'Priority support', 'Exclusive projects'],
+      features: ['6-month full access', 'All courses and projects', 'Priority support', 'Exclusive projects', 'Career guidance', 'Interview prep'],
+      badge: 'Best Value',
+      popular: false,
+      savings: 'Save 35%',
     },
     yearly: {
       name: 'Yearly Plan',
@@ -75,6 +95,9 @@ function Payment() {
       amount: 79900,
       duration: '1 year',
       features: ['1-year full access', 'All courses and projects', 'Priority support', 'Early access to new courses'],
+      badge: 'Premium',
+      popular: false,
+      savings: 'Save 50%',
     },
   };
 
@@ -229,12 +252,11 @@ function Payment() {
     <motion.div className="payment-page" initial="hidden" animate="visible" variants={sectionVariants} style={{ paddingBottom: window.innerWidth <= 600 ? '6.5rem' : undefined }}>
       <h1 className="payment-title">Unlock Your Coding Potential</h1>
       <p className="payment-subtitle">Choose a CodeTapasya plan to start learning today!</p>
-      {error && <div className="error-message">{error}</div>}
-      <div className="plans-container">
+      {error && <div className="error-message">{error}</div>}      <div className="plans-container">
         {Object.keys(plans).map((planKey) => (
           <motion.div
             key={planKey}
-            className={`plan-card ${selectedPlan === planKey ? 'selected' : ''}`}
+            className={`plan-card ${selectedPlan === planKey ? 'selected' : ''} ${plans[planKey].popular ? 'popular' : ''}`}
             variants={cardVariants}
             initial="initial"
             whileHover="hover"
@@ -245,31 +267,120 @@ function Payment() {
               setError('');
             }}
           >
-            {/* Plan icon for mobile style */}
-            <span className="plan-icon">{planIcons[planKey]}</span>
-            <h3>{plans[planKey].name}</h3>
-            <span className="price">₹{plans[planKey].price}</span>
-            {selectedPlan === planKey && <CheckCircleIcon className="selected-icon" />}
+            {plans[planKey].popular && (
+              <div className="popular-badge">
+                <StarIcon /> {plans[planKey].badge}
+              </div>
+            )}
+            {plans[planKey].savings && (
+              <div className="savings-badge">
+                <DiscountIcon /> {plans[planKey].savings}
+              </div>
+            )}
+            
+            <div className="plan-header">
+              <span className="plan-icon">{planIcons[planKey]}</span>
+              <div className="plan-info">
+                <h3>{plans[planKey].name}</h3>
+                <p className="plan-duration">
+                  <AccessTimeIcon fontSize="small" />
+                  {plans[planKey].duration}
+                </p>
+              </div>
+            </div>
+            
+            <div className="plan-pricing">
+              <span className="price">₹{plans[planKey].price}</span>
+              <span className="per-period">for {plans[planKey].duration}</span>
+            </div>
+            
+            <div className="plan-features">
+              {plans[planKey].features.map((feature, index) => (
+                <div key={index} className="feature-item">
+                  <CheckCircleIcon className="feature-check" />
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+            
+            {selectedPlan === planKey && <VerifiedIcon className="selected-icon" />}
           </motion.div>
         ))}
-      </div>
-      <div className="selected-plan-details">
-        <h2>Plan Summary: {plans[selectedPlan].name}</h2>
-        <p className="price">Total: ₹{plans[selectedPlan].price} for {plans[selectedPlan].duration}</p>
-        <ul>
-          {plans[selectedPlan].features.map((feature, index) => <li key={index}>{feature}</li>)}
-        </ul>
-      </div>
-      <motion.button
+      </div>      <div className="selected-plan-details">
+        <div className="plan-summary-header">
+          <h2>
+            <MonetizationOnIcon />
+            Plan Summary: {plans[selectedPlan].name}
+          </h2>
+          {plans[selectedPlan].popular && (
+            <div className="popular-indicator">
+              <TrendingUpIcon />
+              Most Popular Choice
+            </div>
+          )}
+        </div>
+        
+        <div className="pricing-breakdown">
+          <div className="price-display">
+            <span className="total-label">Total Amount</span>
+            <span className="total-price">₹{plans[selectedPlan].price}</span>
+            <span className="duration-label">for {plans[selectedPlan].duration}</span>
+          </div>
+          
+          {plans[selectedPlan].savings && (
+            <div className="savings-info">
+              <DiscountIcon />
+              <span>You save with this plan: {plans[selectedPlan].savings}</span>
+            </div>
+          )}
+        </div>
+        
+        <div className="features-included">
+          <h3>
+            <VerifiedIcon />
+            What's Included
+          </h3>
+          <div className="features-grid">
+            {plans[selectedPlan].features.map((feature, index) => (
+              <div key={index} className="feature-highlight">
+                <CheckCircleIcon className="feature-icon" />
+                <span>{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="security-info">
+          <SecurityIcon />
+          <span>Secure payment powered by Razorpay</span>
+        </div>
+      </div>      <motion.button
         className="pay-button"
         onClick={handlePayment}
         disabled={loading || !razorpayLoaded || !userToken}
         variants={buttonVariants}
         whileHover="hover"
         whileTap="tap"
-        style={{ position: window.innerWidth <= 600 ? 'fixed' : undefined, left: 0, right: 0, bottom: 0, width: window.innerWidth <= 600 ? '100vw' : undefined, zIndex: 100 }}
+        style={{ 
+          position: window.innerWidth <= 600 ? 'fixed' : undefined, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          width: window.innerWidth <= 600 ? '100vw' : undefined, 
+          zIndex: 100 
+        }}
       >
-        {loading ? <span className="loading-spinner">Processing...</span> : 'Proceed to Pay'}
+        {loading ? (
+          <span className="loading-spinner">
+            <AccessTimeIcon />
+            Processing Payment...
+          </span>
+        ) : (
+          <span className="pay-button-content">
+            <CreditCardIcon />
+            Proceed to Pay ₹{plans[selectedPlan].price}
+          </span>
+        )}
       </motion.button>
     </motion.div>
   );

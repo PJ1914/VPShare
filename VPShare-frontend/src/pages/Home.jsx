@@ -62,8 +62,7 @@ function Home() {
               <CodeIcon fontSize="large" color="primary" className="tool-icon" />
               <h3>Coding Playground</h3>
               <p>Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
-            </motion.div>
-            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
+            </motion.div>            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
               <GitHubIcon fontSize="large" color="secondary" className="tool-icon" />
               <h3>GitHub Integration</h3>
               <p>Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
@@ -72,13 +71,18 @@ function Home() {
                 tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
               >
                 <Link to="/github" className="cta-button secondary">
                   Connect Now
                 </Link>
               </motion.div>
-            </motion.div>
-            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
+            </motion.div>            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
               <SchoolIcon fontSize="large" color="success" className="tool-icon" />
               <h3>Learning Courses</h3>
               <p>Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
@@ -87,6 +91,12 @@ function Home() {
                 tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
               >
                 <Link to="/courses" className="cta-button">
                   Explore Courses
@@ -147,12 +157,17 @@ function Home() {
                 <li>Access to blogs</li>
                 <li>View sample projects</li>
                 <li>Community access</li>
-              </ul>
-              <motion.div
+              </ul>              <motion.div
                 role="button"
                 tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
               >
                 <Link to="/courses" className="cta-button secondary">
                   Explore Free
@@ -171,12 +186,17 @@ function Home() {
                 <li>All courses and projects</li>
                 <li>Priority support</li>
                 <li>Monthly progress tracking</li>
-              </ul>
-              <motion.div
+              </ul>              <motion.div
                 role="button"
                 tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
               >
                 <Link to="/payment/monthly" className="cta-button">
                   Subscribe Now
@@ -195,23 +215,35 @@ function Home() {
                 <li>All courses and projects</li>
                 <li>Priority support</li>
                 <li>Early access to new courses</li>
-              </ul>
-              <motion.div
+              </ul>              <motion.div
                 role="button"
                 tabIndex={0}
                 variants={hoverVariants}
                 whileHover="hover"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
               >
                 <Link to="/payment/yearly" className="cta-button">
                   Subscribe Now
                 </Link>
               </motion.div>
             </motion.div>
-          </div>
-          <motion.div
+          </div>          <motion.div
             className="see-all-subscriptions"
             variants={hoverVariants}
             whileHover="hover"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.currentTarget.querySelector('a').click();
+              }
+            }}
           >
             <Link to="/payment/monthly" className="cta-button">
               See All Subscriptions
@@ -228,12 +260,17 @@ function Home() {
           variants={sectionVariants}
         >
           <h2>Ready to Start Your Journey?</h2>
-          <p>Join thousands of learners mastering web development with CodeTapasya.</p>
-          <motion.div
+          <p>Join thousands of learners mastering web development with CodeTapasya.</p>          <motion.div
             role="button"
             tabIndex={0}
             variants={hoverVariants}
             whileHover="hover"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.currentTarget.querySelector('a').click();
+              }
+            }}
           >
             <Link to="/payment/monthly" className="cta-button">
               Join Now
