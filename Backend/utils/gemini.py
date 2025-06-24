@@ -4,7 +4,7 @@ import google.generativeai as genai
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.0-flash")
 
-def get_gemini_reply(prompt_parts):
+def get_gemini_reply(prompt_parts, style='detailed', language='en'):
     # Comprehensive system prompt for CodeTapasya
     system_prompt = (
         "You are CodeTapasya, the official AI assistant for the CodeTapasya platform. "
@@ -24,8 +24,19 @@ def get_gemini_reply(prompt_parts):
         "You are allowed to use markdown, code blocks, and hyperlinks in your answers. "
         "Always answer as a helpful, knowledgeable, and friendly AI assistant for CodeTapasya."
     )
-    # Prepend system prompt
-    full_prompt = [system_prompt] + prompt_parts[-50:]
+    # Insert style and language directives
+    style_instr = (
+        "Respond in short and sweet style." if style == 'short' else
+        "Respond in detailed and comprehensive style."
+    )
+    lang_map = {
+        'en': "Respond in English.",
+        'hi': "Respond in Hindi.",
+        'te': "Respond in Telugu."
+    }
+    lang_instr = lang_map.get(language, "Respond in English.")
+    # Prepend system prompt, style, and language instructions
+    full_prompt = [system_prompt, style_instr, lang_instr] + prompt_parts[-50:]
     response = model.generate_content(full_prompt)
     # Prefer markdown output if available
     if hasattr(response, 'text'):

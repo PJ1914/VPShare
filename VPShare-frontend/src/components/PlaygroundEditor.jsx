@@ -27,7 +27,7 @@ import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, updateDoc, getDoc, increment, onSnapshot, serverTimestamp, deleteField } from 'firebase/firestore';
-import LogoCT from '../assets/Logo Of CT.png';
+import LogoCT from '../assets/CT Logo.png';
 
 // Language mode mapping based on file extension
 const extensionToMode = {

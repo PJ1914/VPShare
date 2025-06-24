@@ -16,7 +16,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import FolderIcon from '@mui/icons-material/Folder';
 import QuizIcon from '@mui/icons-material/Quiz';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import Logo from '../assets/Logo 3.png';
+import Logo from '../assets/CT Logo.png';
 import '../styles/Navbar.css';
 
 // Animation variants for the logo

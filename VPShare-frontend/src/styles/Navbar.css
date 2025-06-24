@@ -64,6 +64,8 @@
   object-fit: contain;
   transition: filter 0.3s ease;
   position: relative;
+  /* Make the logo white and add a drop shadow for better visibility */
+  filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 /* Fire animation pseudo-element (simulating fire on the right side) */
@@ -114,7 +116,8 @@
 
 /* Hover effect for the logo */
 .logo:hover .logo-image {
-  filter: brightness(0) saturate(100%) invert(83%) sepia(35%) saturate(463%) hue-rotate(2deg) brightness(105%) contrast(101%);
+  /* On hover, change to the brand's hover color and keep a subtle shadow */
+  filter: brightness(0) saturate(100%) invert(83%) sepia(35%) saturate(463%) hue-rotate(2deg) brightness(105%) contrast(101%) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
 /* Navigation Links */
