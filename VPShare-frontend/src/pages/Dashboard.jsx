@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import {
   LibraryBooks as LibraryBooksIcon,
@@ -104,94 +104,195 @@ function Dashboard() {
   };
 
   useEffect(() => {
+    let isMounted = true; // Flag to prevent state updates if component unmounts
+    
     const fetchData = async () => {
+      if (!isMounted) return; // Don't proceed if component unmounted
+      
       setLoading(true);
-      const auth = getAuth();      const currentUser = auth.currentUser;
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      
       if (!currentUser) {
-        setUser({ name: 'Learner', uid: null });
-        setCourses([]);
-        setUserCourseProgress({});
-        setRecentActivities([]);
-        setProgress({ frontend: 0, backend: 0, databases: 0 }); // Reset progress if not logged in
-        setLoading(false);
+        if (isMounted) {
+          setUser({ name: 'Learner', uid: null });
+          setCourses([]);
+          setUserCourseProgress({});
+          setRecentActivities([]);
+          setProgress({ frontend: 0, backend: 0, databases: 0 });
+          setLoading(false);
+        }
         return;
       }
-      setUser({ name: currentUser.displayName || 'Learner', uid: currentUser.uid });
+      
+      if (isMounted) {
+        setUser({ name: currentUser.displayName || 'Learner', uid: currentUser.uid });
+      }
+      
       try {
-        // Parallel fetch of courses and user progress
+        // Fetch courses and user progress using the same pattern as CourseDetail.jsx
+        // This ensures consistency between the detailed progress tracking and dashboard display
         const apiUrl = import.meta.env.VITE_COURSES_API_URL;
         const db = getFirestore();
-        const progressQuery = query(
-          collection(db, 'userProgress'),
-          where('__name__', '>=', `${currentUser.uid}_`),
-          where('__name__', '<', `${currentUser.uid}_\uf8ff`)
-        );
+        
+        // Query userProgress collection for current user
+        // Use the same pattern as CourseDetail.jsx: fetch progress for each course individually
+        
         const tokenPromise = currentUser.getIdToken();
-        const [coursesRes, querySnapshot] = await Promise.all([
-          tokenPromise.then(token =>
-            axios.get(apiUrl, { headers: { Authorization: `Bearer ${token}` } })
-          ),
-          getDocs(progressQuery)
-        ]);
+        const coursesRes = await tokenPromise.then(token =>
+          axios.get(apiUrl, { headers: { Authorization: `Bearer ${token}` } })
+        );
+        
+        if (!isMounted) return; // Check again after async operation
+        
         const rawCourses = Array.isArray(coursesRes.data)
           ? coursesRes.data
           : coursesRes.data.Items || coursesRes.data.courses || [];
         setCourses(rawCourses);
 
-        // Process progress and recent activities
+        // Fetch user progress for each course using the same pattern as CourseDetail.jsx
         const progressMap = {};
         const activities = [];
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          if (data.courseId && Array.isArray(data.completedSections)) {
-            progressMap[data.courseId] = data;
-            // Determine course title
-            let courseTitle = data.courseTitle;
-            if (!courseTitle) {
-              const found = rawCourses.find(c => c.module_id === data.courseId || c.id === data.courseId);
-              courseTitle = found ? found.title : data.courseId;
+        
+        await Promise.all(
+          rawCourses.map(async (course) => {
+            if (!isMounted) return; // Check if still mounted
+            
+            const courseId = course.module_id || course.id;
+            if (!courseId) return;
+            
+            try {
+              // Use the same document ID pattern as CourseDetail.jsx
+              const docId = `${currentUser.uid}_${courseId}`;
+              const progressRef = doc(db, 'userProgress', docId);
+              const progressSnap = await getDoc(progressRef);
+              
+              if (!isMounted) return; // Check again after async operation
+              
+              if (progressSnap.exists()) {
+                const data = progressSnap.data();
+                progressMap[courseId] = data;
+                
+                // Find course title
+                const courseTitle = course.title || course.name || courseId;
+                
+                // Calculate completed sections count
+                const completedCount = data.completedSections ? 
+                  (Array.isArray(data.completedSections) ? data.completedSections.length : 0) : 0;
+                const currentSection = data.currentSectionIndex || 0;
+                
+                // Create activity entry
+                if (completedCount > 0) {
+                  const action = completedCount === 1
+                    ? `Completed 1 section in "${courseTitle}"`
+                    : `Completed ${completedCount} sections in "${courseTitle}"`;
+                  activities.push({ 
+                    id: docId, 
+                    action, 
+                    timestamp: 'Recently',
+                    courseId: courseId,
+                    completedCount,
+                    currentSection
+                  });
+                } else if (currentSection >= 0 || data.currentSectionIndex !== undefined) {
+                  activities.push({ 
+                    id: docId, 
+                    action: `Started the course "${courseTitle}" (Section ${currentSection + 1})`, 
+                    timestamp: 'Recently',
+                    courseId: courseId,
+                    completedCount,
+                    currentSection
+                  });
+                }
+              }
+            } catch (error) {
+              console.error(`❌ Dashboard: Error fetching progress for course ${courseId}:`, error);
             }
-            const count = data.completedSections.length;
-            const action =
-              count === 0
-                ? `Started the course "${courseTitle}"`
-                : count === 1
-                ? `Completed 1 section in "${courseTitle}"`
-                : `Completed ${count} sections in "${courseTitle}"`;
-            activities.push({ id: docSnap.id, action, timestamp: 'Recently' });
-          }
-        });
+          })
+        );
+        
+        if (!isMounted) return; // Final check before setting state
+        
         setUserCourseProgress(progressMap);
         setRecentActivities(activities);
 
-        // 3. Calculate per-category progress
-        const categoryTotals = { frontend: 0, backend: 0, databases: 0 };
-        const categoryCounts = { frontend: 0, backend: 0, databases: 0 };
+        // Calculate category-based progress
+        const categoryProgress = { frontend: 0, backend: 0, databases: 0 };
+        const categoryCourseCounts = { frontend: 0, backend: 0, databases: 0 };
+        const categoryCompletionTotals = { frontend: 0, backend: 0, databases: 0 };
+        
         rawCourses.forEach((course) => {
-          const category = mapCourseToCategory(course.module_id, course.title);
-          if (!category) return;
-          const progress = progressMap[course.module_id];
-          const totalSections = course.sections ? course.sections.length : 10;
-          const completed = progress ? progress.completedSections.length : 0;
-          const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
-          categoryTotals[category] += percent;
-          categoryCounts[category] += 1;
+          const category = mapCourseToCategory(course.module_id || course.id, course.title);
+          
+          if (!category || !categoryProgress.hasOwnProperty(category)) return;
+          
+          categoryCourseCounts[category]++;
+          
+          const courseId = course.module_id || course.id;
+          const userProgress = progressMap[courseId];
+          if (userProgress && userProgress.completedSections) {
+            // Calculate total sections: use toc length from sections + 1 for quiz (same as CourseDetail.jsx)
+            // Since we don't have toc here, use sections.length or a reasonable fallback
+            const baseSections = course.sections ? course.sections.length : 
+              (course.totalSections || 6); // Default to 6 sections per course
+            const totalSections = baseSections + 1; // +1 for quiz (same as CourseDetail.jsx)
+            
+            const completedSections = Array.isArray(userProgress.completedSections) ? 
+              userProgress.completedSections.length : 0;
+            
+            // Check if quiz is completed (same logic as CourseDetail.jsx)
+            const quizComplete = userProgress.quizSubmitted && 
+              userProgress.quizAnswers && 
+              Object.keys(userProgress.quizAnswers).length > 0;
+            
+            const totalCompleted = completedSections + (quizComplete ? 1 : 0);
+            
+            // Calculate percentage
+            if (totalSections > 0) {
+              const courseCompletionPercent = Math.min(100, (totalCompleted / totalSections) * 100);
+              categoryCompletionTotals[category] += courseCompletionPercent;
+            }
+          }
         });
-        const frontend = categoryCounts.frontend ? Math.round(categoryTotals.frontend / categoryCounts.frontend) : 0;
-        const backend = categoryCounts.backend ? Math.round(categoryTotals.backend / categoryCounts.backend) : 0;
-        const databases = categoryCounts.databases ? Math.round(categoryTotals.databases / categoryCounts.databases) : 0;
-        setProgress({ frontend, backend, databases });
+        
+        // Calculate average progress per category
+        const finalProgress = {};
+        Object.keys(categoryProgress).forEach(category => {
+          if (categoryCourseCounts[category] > 0) {
+            finalProgress[category] = Math.round(
+              categoryCompletionTotals[category] / categoryCourseCounts[category]
+            );
+          } else {
+            finalProgress[category] = 0;
+          }
+        });
+        
+        if (isMounted) {
+          setProgress(finalProgress);
+        }
+        
       } catch (err) {
-        setCourses([]);
-        setUserCourseProgress({});
-        setRecentActivities([]);
-        setProgress({ frontend: 0, backend: 0, databases: 0 }); // Reset progress on error
-        // Optionally log error or show a message
+        console.error('❌ Dashboard: Error fetching dashboard data:', err);
+        if (isMounted) {
+          setCourses([]);
+          setUserCourseProgress({});
+          setRecentActivities([]);
+          setProgress({ frontend: 0, backend: 0, databases: 0 });
+        }
       }
-      setLoading(false);
+      
+      if (isMounted) {
+        setLoading(false);
+      }
     };
+    
     fetchData();
-  }, []);
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array to run only once
 
   // Calculate overall progress (only average categories with at least one course)
   const categoryProgress = [progress.frontend, progress.backend, progress.databases];
@@ -518,20 +619,51 @@ function Dashboard() {
               </div>
             ) : null}
             {courses.map((course) => {
-              const progress = userCourseProgress[course.module_id];
-              if (!progress || !Array.isArray(progress.completedSections) || progress.completedSections.length === 0) return null;
-              const totalSections = course.sections ? course.sections.length : 10; // fallback if sections not present
-              const completed = progress.completedSections.length;
-              const percent = totalSections > 0 ? Math.round((completed / totalSections) * 100) : 0;
+              const courseId = course.module_id || course.id;
+              const progressData = userCourseProgress[courseId];
+              
+              // Only show courses that have been started
+              if (!progressData) return null;
+              
+              // Calculate total sections: base sections + 1 for quiz (same as CourseDetail.jsx)
+              const baseSections = course.sections ? course.sections.length : 
+                (course.totalSections || 6); // Default to 6 sections per course
+              const totalSections = baseSections + 1; // +1 for quiz
+              
+              const completedSections = progressData.completedSections ? 
+                (Array.isArray(progressData.completedSections) ? progressData.completedSections.length : 0) : 0;
+              const currentSection = progressData.currentSectionIndex || 0;
+              
+              // Check if quiz is completed (same logic as CourseDetail.jsx)
+              const quizComplete = progressData.quizSubmitted && 
+                progressData.quizAnswers && 
+                Object.keys(progressData.quizAnswers).length > 0;
+              
+              const totalCompleted = completedSections + (quizComplete ? 1 : 0);
+              
+              // Calculate progress percentage (same as CourseDetail.jsx)
+              const percent = totalSections > 0 ? 
+                Math.min(100, Math.round((totalCompleted / totalSections) * 100)) : 0;
+              
+              // Determine status
+              let statusText = '';
+              if (percent === 100) {
+                statusText = 'Course Completed! 🎉';
+              } else if (completedSections > 0) {
+                statusText = `${percent}% Complete (${completedSections}/${baseSections} sections${quizComplete ? ' + quiz' : ''}) • Currently on Section ${currentSection + 1}`;
+              } else {
+                statusText = `Started • Currently on Section ${currentSection + 1}`;
+              }
+              
               return (
                 <motion.div
-                  key={course.module_id}
+                  key={courseId}
                   className="progress-card"
                   variants={hoverVariants}
                   whileHover="hover"
                 >
                   <h3>{course.title || 'Untitled Course'}</h3>
-                  <p>{percent}% Complete</p>
+                  <p>{statusText}</p>
                   <div className="progress-bar">
                     <motion.div
                       className="progress-fill"
@@ -541,8 +673,9 @@ function Dashboard() {
                     ></motion.div>
                   </div>
                   <motion.div variants={hoverVariants} whileHover="hover">
-                    <Link to={`/courses/${course.module_id}`} className="progress-link">
-                      {percent > 0 ? 'Continue Course' : 'Start Course'}
+                    <Link to={`/courses/${courseId}`} className="progress-link">
+                      {percent === 100 ? 'Review Course' : 
+                       completedSections > 0 ? 'Continue Course' : 'Start Course'}
                     </Link>
                   </motion.div>
                 </motion.div>

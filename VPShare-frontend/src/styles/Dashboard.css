@@ -151,25 +151,29 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(90deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn.primary:hover {
-  background: linear-gradient(90deg, var(--cta-gradient-end) 0%, var(--cta-gradient-start) 100%);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 .action-btn.secondary {
-  background: linear-gradient(90deg, var(--secondary-gradient-start) 0%, var(--secondary-gradient-end) 100%);
-  box-shadow: 0 6px 18px rgba(107, 114, 128, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn.secondary:hover {
-  background: linear-gradient(90deg, var(--secondary-gradient-end) 0%, var(--secondary-gradient-start) 100%);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(107, 114, 128, 0.6);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 /* Progress Stats Grid */
@@ -210,24 +214,7 @@
   background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
 }
 
-/* Specific icon colors based on icon type - more maintainable approach */
-.stat-card:has(.stat-icon svg[data-testid="TrendingUpIcon"]) .stat-icon,
-.stat-card:has(.stat-icon svg[data-testid="AutoGraphIcon"]) .stat-icon {
-  background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
-}
-
-.stat-card:has(.stat-icon svg[data-testid="LibraryBooksIcon"]) .stat-icon {
-  background: linear-gradient(135deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
-}
-
-.stat-card:has(.stat-icon svg[data-testid="AssignmentTurnedInIcon"]) .stat-icon,
-.stat-card:has(.stat-icon svg[data-testid="CompletedIcon"]) .stat-icon {
-  background: linear-gradient(135deg, var(--cta-gradient-start) 0%, var(--cta-gradient-end) 100%);
-}
-
-.stat-card:has(.stat-icon svg[data-testid="EmojiEventsIcon"]) .stat-icon {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
-}
+/* All stat icons now use the same blue-green gradient for consistency */
 
 .stat-content h3 {
   font-size: 1.8rem;

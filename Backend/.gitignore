@@ -11,6 +11,8 @@ venv/
 # Logs
 *.log
 
+test_gemini.py
+
 # IDE settings
 .vscode/
 .idea/

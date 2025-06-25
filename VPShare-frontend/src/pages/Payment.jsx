@@ -55,9 +55,7 @@ function Payment() {
       amount: 1000,
       duration: '24 hours',
       features: ['24-hour full access', 'All courses and projects', 'Community support', 'Code playground access'],
-      badge: 'Quick Start',
       popular: false,
-      savings: null,
     },
     weekly: {
       name: 'Weekly Plan',
@@ -65,9 +63,7 @@ function Payment() {
       amount: 4900,
       duration: '7 days',
       features: ['7-day full access', 'All courses and projects', 'Community support', 'Weekly progress tracking', 'Assignment submissions'],
-      badge: 'Best for Beginners',
       popular: false,
-      savings: null,
     },
     monthly: {
       name: 'Monthly Plan',
@@ -75,9 +71,7 @@ function Payment() {
       amount: 9900,
       duration: '30 days',
       features: ['30-day full access', 'All courses and projects', 'Priority support', 'Monthly progress tracking', 'Certificate eligibility'],
-      badge: 'Most Popular',
       popular: true,
-      savings: 'Save 20%',
     },
     'six-month': {
       name: '6-Month Plan',
@@ -85,9 +79,7 @@ function Payment() {
       amount: 44900,
       duration: '6 months',
       features: ['6-month full access', 'All courses and projects', 'Priority support', 'Exclusive projects', 'Career guidance', 'Interview prep'],
-      badge: 'Best Value',
       popular: false,
-      savings: 'Save 35%',
     },
     yearly: {
       name: 'Yearly Plan',
@@ -95,19 +87,17 @@ function Payment() {
       amount: 79900,
       duration: '1 year',
       features: ['1-year full access', 'All courses and projects', 'Priority support', 'Early access to new courses'],
-      badge: 'Premium',
       popular: false,
-      savings: 'Save 50%',
     },
   };
 
   // Plan icon mapping for mobile UI (premium look)
   const planIcons = {
-    'one-day': <FlashOnIcon className="plan-icon" style={{ color: '#f59e42' }} />, // orange lightning
-    weekly: <CalendarTodayIcon className="plan-icon" style={{ color: '#10b981' }} />, // green calendar
-    monthly: <CreditCardIcon className="plan-icon" style={{ color: '#2563eb' }} />, // blue card
-    'six-month': <DiamondIcon className="plan-icon" style={{ color: '#a21caf' }} />, // purple diamond
-    yearly: <WorkspacePremiumIcon className="plan-icon" style={{ color: '#fbbf24' }} />, // gold premium
+    'one-day': <FlashOnIcon className="plan-icon" />, // orange lightning
+    weekly: <CalendarTodayIcon className="plan-icon" />, // green calendar
+    monthly: <CreditCardIcon className="plan-icon" />, // blue card
+    'six-month': <DiamondIcon className="plan-icon" />, // purple diamond
+    yearly: <WorkspacePremiumIcon className="plan-icon" />, // gold premium
   };
 
   useEffect(() => {
@@ -267,26 +257,18 @@ function Payment() {
               setError('');
             }}
           >
-            {plans[planKey].popular && (
-              <div className="popular-badge">
-                <StarIcon /> {plans[planKey].badge}
-              </div>
-            )}
-            {plans[planKey].savings && (
-              <div className="savings-badge">
-                <DiscountIcon /> {plans[planKey].savings}
-              </div>
-            )}
-            
             <div className="plan-header">
-              <span className="plan-icon">{planIcons[planKey]}</span>
+              <div className="plan-icon-wrapper">
+                {planIcons[planKey]}
+              </div>
               <div className="plan-info">
-                <h3>{plans[planKey].name}</h3>
+                <h3 className="plan-name">{plans[planKey].name}</h3>
                 <p className="plan-duration">
                   <AccessTimeIcon fontSize="small" />
                   {plans[planKey].duration}
                 </p>
               </div>
+              {selectedPlan === planKey && <VerifiedIcon className="selected-icon" />}
             </div>
             
             <div className="plan-pricing">
@@ -302,8 +284,6 @@ function Payment() {
                 </div>
               ))}
             </div>
-            
-            {selectedPlan === planKey && <VerifiedIcon className="selected-icon" />}
           </motion.div>
         ))}
       </div>      <div className="selected-plan-details">
@@ -315,7 +295,7 @@ function Payment() {
           {plans[selectedPlan].popular && (
             <div className="popular-indicator">
               <TrendingUpIcon />
-              Most Popular Choice
+              Popular Choice
             </div>
           )}
         </div>
@@ -326,13 +306,6 @@ function Payment() {
             <span className="total-price">₹{plans[selectedPlan].price}</span>
             <span className="duration-label">for {plans[selectedPlan].duration}</span>
           </div>
-          
-          {plans[selectedPlan].savings && (
-            <div className="savings-info">
-              <DiscountIcon />
-              <span>You save with this plan: {plans[selectedPlan].savings}</span>
-            </div>
-          )}
         </div>
         
         <div className="features-included">

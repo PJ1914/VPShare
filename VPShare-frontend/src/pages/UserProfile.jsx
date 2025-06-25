@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { auth, db, storage } from '../config/firebase';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditIcon from '@mui/icons-material/Edit';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
@@ -52,6 +53,9 @@ const cardVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
+
+// Helper to check if a string is a UUID
+const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -102,22 +106,66 @@ const getStreakCalendarData = (activityDates, dailyMinutes, days = 56) => {
   today.setHours(0, 0, 0, 0);
   const calendar = [];
   const activitySet = new Set(activityDates);
+  
+  // Calculate start date to align with Sunday
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - days + 1);
+  
+  // Adjust to start from Sunday
+  const startDayOfWeek = startDate.getDay();
+  const adjustedStartDate = new Date(startDate);
+  adjustedStartDate.setDate(startDate.getDate() - startDayOfWeek);
+  
+  // Calculate total cells needed (must be multiple of 7)
+  const totalDays = days + startDayOfWeek;
+  const totalWeeks = Math.ceil(totalDays / 7);
+  const totalCells = totalWeeks * 7;
 
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
+  // Generate month labels
+  const monthLabels = [];
+  const monthMap = new Map();
+  
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(adjustedStartDate);
+    d.setDate(adjustedStartDate.getDate() + i);
     const dateStr = d.toISOString().split('T')[0];
     const minutes = dailyMinutes[dateStr] || 0;
+    
+    // Only count activity if date is within our target range
+    const isInRange = d >= startDate && d <= today;
+    const isActive = isInRange && activitySet.has(dateStr);
+    
     let level = 0;
-    if (minutes >= 60) level = 4;
-    else if (minutes >= 30) level = 3;
-    else if (minutes >= 10) level = 2;
-    else if (minutes >= 1) level = 1;
+    if (isInRange && minutes > 0) {
+      if (minutes >= 60) level = 4;
+      else if (minutes >= 30) level = 3;
+      else if (minutes >= 10) level = 2;
+      else if (minutes >= 1) level = 1;
+    }
 
-    calendar.push({ date: dateStr, active: activitySet.has(dateStr), level, minutes });
+    // Track months for labels
+    const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+    const weekIndex = Math.floor(i / 7);
+    if (!monthMap.has(monthKey) && i < 7) {
+      monthMap.set(monthKey, weekIndex);
+      monthLabels.push({
+        month: d.toLocaleDateString('en-US', { month: 'short' }),
+        week: weekIndex
+      });
+    }
+
+    calendar.push({ 
+      date: dateStr, 
+      active: isActive, 
+      level, 
+      minutes,
+      isInRange,
+      dayOfWeek: d.getDay(),
+      weekOfYear: weekIndex
+    });
   }
 
-  return calendar;
+  return { calendar, monthLabels, totalWeeks };
 };
 
 const formatMinutes = (mins) => {
@@ -225,15 +273,17 @@ export default function UserProfile() {
     setError('');
     setSuccess('');
 
+    let isMounted = true; // Flag to prevent memory leaks
+
     try {
+      // Fetch user stats from userStats collection
       const statsDocRef = doc(db, 'userStats', user.uid);
       const statsDoc = await getDoc(statsDocRef);
       const statsData = statsDoc.exists() ? statsDoc.data() : {};
-      setStats({
-        courses: statsData.coursesCompleted || 0,
-        codeLines: statsData.codeLines || 0,
-      });
-
+      
+      if (!isMounted) return;
+      
+      // Fetch user profile data
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       const userData = userDoc.exists() ? userDoc.data() : {};
@@ -244,6 +294,9 @@ export default function UserProfile() {
         twitter: userData.socialLinks?.twitter || '',
       });
 
+      if (!isMounted) return;
+
+      // Fetch engagement data
       const engagementDoc = await getDoc(doc(db, 'userEngagement', user.uid));
       const engagementData = engagementDoc.exists() ? engagementDoc.data() : {};
       const totalMinutes = engagementData.totalMinutes || 0;
@@ -251,8 +304,99 @@ export default function UserProfile() {
       const courseProgress = engagementData.userProgress || engagementData.courseProgress || {};
       const dailyCourseReadMinutes = engagementData.dailyCourseReadMinutes || {};
 
+      if (!isMounted) return;
+
+      // Fetch courses to calculate actual completion
+      let coursesCompleted = 0;
+      try {
+        const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
+        if (!coursesApiUrl) {
+          console.error('VITE_COURSES_API_URL not configured');
+          throw new Error('Server configuration error');
+        }
+
+        let authToken;
+        try {
+          authToken = await user.getIdToken();
+        } catch (tokenError) {
+          console.error('Error getting auth token:', tokenError);
+          throw new Error('Authentication error');
+        }
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        };
+
+        const coursesRes = await axios.get(coursesApiUrl, { headers, timeout: 30000 });
+        
+        if (!isMounted) return;
+        
+        const courses = Array.isArray(coursesRes.data) ? 
+          coursesRes.data 
+          : coursesRes.data.Items || coursesRes.data.courses || [];
+
+        console.log('Fetched courses:', courses.length);
+
+        // Fetch user progress for each course using same pattern as Dashboard
+        await Promise.all(
+          courses.map(async (course) => {
+            if (!isMounted) return;
+            
+            const courseId = course.module_id || course.id;
+            if (!courseId) return;
+            
+            try {
+              const docId = `${user.uid}_${courseId}`;
+              const progressRef = doc(db, 'userProgress', docId);
+              const progressSnap = await getDoc(progressRef);
+              
+              if (!isMounted) return;
+              
+              if (progressSnap.exists()) {
+                const data = progressSnap.data();
+                
+                // Calculate if course is completed (same logic as Dashboard)
+                const baseSections = course.sections ? course.sections.length : 
+                  (course.totalSections || 6);
+                const totalSections = baseSections + 1; // +1 for quiz
+                
+                const completedSections = Array.isArray(data.completedSections) ? 
+                  data.completedSections.length : 0;
+                
+                const quizComplete = data.quizSubmitted && 
+                  data.quizAnswers && 
+                  Object.keys(data.quizAnswers).length > 0;
+                
+                const totalCompleted = completedSections + (quizComplete ? 1 : 0);
+                const courseCompletionPercent = totalSections > 0 ? 
+                  Math.min(100, (totalCompleted / totalSections) * 100) : 0;
+                
+                // Count as completed if 100%
+                if (courseCompletionPercent >= 100) {
+                  coursesCompleted++;
+                }
+              }
+            } catch (error) {
+              console.error(`Error fetching progress for course ${courseId}:`, error);
+            }
+          })
+        );
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+
+      if (!isMounted) return;
+
+      // Set stats with real data
+      setStats({
+        courses: coursesCompleted,
+        codeLines: statsData.codeLines || 0,
+      });
+
       setEngagement({ totalMinutes, dailyMinutes, courseProgress });
 
+      // Calculate activity dates
       const allDates = new Set([...Object.keys(dailyMinutes), ...Object.keys(dailyCourseReadMinutes)]);
       const activityDates = Array.from(allDates).filter(
         (date) => (dailyMinutes[date] || 0) > 0 || (dailyCourseReadMinutes[date] || 0) > 0
@@ -260,13 +404,32 @@ export default function UserProfile() {
       setActivityDates(activityDates);
       setStreakStats(calculateStreaks(activityDates));
     } catch (e) {
-      setError('Failed to fetch user data: ' + e.message);
-      console.error('Firestore fetch error:', e);
+      if (isMounted) {
+        setError('Failed to fetch user data: ' + e.message);
+        console.error('UserProfile: Firestore fetch error:', e);
+      }
     }
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   useEffect(() => {
-    fetchStats();
+    let cleanup = null;
+    
+    const loadStats = async () => {
+      cleanup = await fetchStats();
+    };
+    
+    loadStats();
+    
+    return () => {
+      if (cleanup && typeof cleanup === 'function') {
+        cleanup();
+      }
+    };
   }, [fetchStats]);
   const badgeList = useMemo(
     () => [
@@ -923,7 +1086,7 @@ export default function UserProfile() {
                 </select>
               </div>
             </div>
-              <div className="streak-info" data-streak={streakStats.currentStreak}>
+            <div className="streak-info" data-streak={streakStats.currentStreak}>
               <div className="streak-main">
                 <LocalFireDepartmentIcon className="streak-icon" />
                 <div className="streak-numbers">
@@ -939,31 +1102,51 @@ export default function UserProfile() {
               </div>
             </div>
             
-            <div className="streak-calendar">
-              {getStreakCalendarData(activityDates, engagement.dailyMinutes, selectedTimeRange).map((cell) => (
-                <Tooltip
-                  key={cell.date}
-                  title={`${new Date(cell.date).toLocaleDateString()}: ${cell.active ? `${cell.minutes} min activity` : 'No activity'}`}
-                  arrow
-                  placement="top"
-                >
-                  <motion.div 
-                    className={`calendar-cell ${cell.active ? 'active' : ''} level-${cell.level}`}
-                    whileHover={{ scale: 1.2, zIndex: 10 }}
-                    transition={{ duration: 0.1 }}
-                  />
-                </Tooltip>
-              ))}
-            </div>
-            
-            <div className="streak-calendar-legend">
-              <span>Less</span>
-              <div className="legend-cells">
-                {[0, 1, 2, 3, 4].map(level => (
-                  <span key={level} className={`calendar-cell level-${level}`} />
-                ))}
+            <div className="streak-calendar-section">
+              <div className="streak-calendar-header">
+                <h4>Activity Calendar</h4>
+                <span className="activity-summary">
+                  {activityDates.length} {activityDates.length === 1 ? 'day' : 'days'} of activity in the last {selectedTimeRange} days
+                </span>
               </div>
-              <span>More</span>
+              
+              <div className="calendar-container">
+                <div className="calendar-days-header">
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                    <span key={index} className="day-label">{day}</span>
+                  ))}
+                </div>
+                
+                <div className={`streak-calendar ${theme}`}>
+                  {(() => {
+                    const calendarData = getStreakCalendarData(activityDates, engagement.dailyMinutes, selectedTimeRange);
+                    return calendarData.calendar.map((cell, index) => (
+                      <Tooltip
+                        key={`${cell.date}-${index}`}
+                        title={cell.isInRange ? `${new Date(cell.date).toLocaleDateString()}: ${cell.active ? `${cell.minutes} min activity` : 'No activity'}` : ''}
+                        arrow
+                        placement="top"
+                      >
+                        <motion.div 
+                          className={`calendar-cell ${cell.active ? 'active' : ''} level-${cell.level} ${!cell.isInRange ? 'out-of-range' : ''}`}
+                          whileHover={cell.isInRange ? { scale: 1.3 } : {}}
+                          transition={{ duration: 0.1 }}
+                        />
+                      </Tooltip>
+                    ));
+                  })()}
+                </div>
+              </div>
+              
+              <div className="streak-calendar-legend">
+                <span>Less</span>
+                <div className="legend-cells">
+                  {[0, 1, 2, 3, 4].map(level => (
+                    <span key={level} className={`calendar-cell level-${level}`} />
+                  ))}
+                </div>
+                <span>More</span>
+              </div>
             </div>
           </motion.div>
           <motion.div className="profile-github-card" variants={cardVariants}>

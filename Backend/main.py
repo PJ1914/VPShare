@@ -46,6 +46,8 @@ async def chat_handler(request: Request, authorization: str = Header(None)):
     body = await request.json()
     message = body.get("message")
     chat_id = body.get("chat_id", "default")
+    style = body.get("style", "auto")  # Extract style from request
+    language = body.get("language", "en")  # Extract language from request
 
     if not message:
         raise HTTPException(status_code=400, detail="Message missing")
@@ -63,8 +65,8 @@ async def chat_handler(request: Request, authorization: str = Header(None)):
         # Save user message
         save_message(user_id, message, "user", chat_id)
 
-        # Gemini Response
-        reply = get_gemini_reply(prompt_parts)
+        # Gemini Response with style and language
+        reply = get_gemini_reply(prompt_parts, style=style, language=language)
 
         # Save assistant reply
         save_message(user_id, reply, "assistant", chat_id)

@@ -18,6 +18,20 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --shadow-light: 0 10px 25px rgba(0, 0, 0, 0.1);
   --shadow-dark: 0 10px 25px rgba(0, 0, 0, 0.3);
+  
+  /* GitHub-style streak calendar colors */
+  --streak-level-0: #ebedf0;
+  --streak-level-1: rgba(30, 64, 175, 0.3);
+  --streak-level-2: rgba(30, 64, 175, 0.5);
+  --streak-level-3: rgba(16, 185, 129, 0.7);
+  --streak-level-4: #10b981;
+  
+  /* Dark theme streak colors */
+  --streak-level-0-dark: #161b22;
+  --streak-level-1-dark: rgba(30, 64, 175, 0.4);
+  --streak-level-2-dark: rgba(30, 64, 175, 0.6);
+  --streak-level-3-dark: rgba(16, 185, 129, 0.8);
+  --streak-level-4-dark: #34d399;
 }
 
 *,
@@ -708,26 +722,30 @@ body.dark {
 .streak-calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: clamp(2px, 0.5vw, 3px);
-  padding: clamp(0.3rem, 1vw, 0.5rem);
-  background: #f3f4f6;
-  border-radius: 6px;
-}
-
-.streak-calendar.dark {
-  background: #2d3748;
+  gap: 2px;
+  /* Remove padding, background, border since container has them */
 }
 
 .calendar-cell {
-  width: clamp(10px, 2vw, 14px);
-  height: clamp(10px, 2vw, 14px);
+  width: 12px;
+  height: 12px;
   background: var(--streak-level-0);
-  border-radius: 3px;
-  transition: transform 0.2s ease;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
 }
 
-.calendar-cell:hover {
-  transform: scale(1.2);
+.calendar-cell.out-of-range {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.calendar-cell:hover:not(.out-of-range) {
+  transform: scale(1.3);
+  border-radius: 3px;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .calendar-cell.level-1 {
@@ -746,13 +764,52 @@ body.dark {
   background: var(--streak-level-4);
 }
 
+/* Dark theme colors */
+.profile-github-bg.dark .calendar-cell {
+  background: var(--streak-level-0-dark);
+}
+
+.profile-github-bg.dark .calendar-cell.level-1 {
+  background: var(--streak-level-1-dark);
+}
+
+.profile-github-bg.dark .calendar-cell.level-2 {
+  background: var(--streak-level-2-dark);
+}
+
+.profile-github-bg.dark .calendar-cell.level-3 {
+  background: var(--streak-level-3-dark);
+}
+
+.profile-github-bg.dark .calendar-cell.level-4 {
+  background: var(--streak-level-4-dark);
+}
+
 .streak-calendar-legend {
   display: flex;
   align-items: center;
-  gap: clamp(0.3rem, 1vw, 0.5rem);
-  font-size: clamp(0.75rem, 1.6vw, 0.85rem);
+  justify-content: flex-end;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0 1rem;
+}
+
+.legend-cells {
+  display: flex;
+  gap: 2px;
+  margin: 0 0.5rem;
+}
+
+.legend-cells .calendar-cell {
+  width: 10px;
+  height: 10px;
+}
+
+.legend-cells .calendar-cell:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .badges-grid {
@@ -904,34 +961,26 @@ body.dark {
     gap: clamp(0.3rem, 1vw, 0.5rem);
   }
 
+  .calendar-container {
+    padding: 0.75rem;
+  }
+  
   .calendar-cell {
-    width: clamp(8px, 1.8vw, 12px);
-    height: clamp(8px, 1.8vw, 12px);
+    width: 10px;
+    height: 10px;
   }
-
-  .streak-info {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-    gap: 1rem;
+  
+  .legend-cells .calendar-cell {
+    width: 8px;
+    height: 8px;
   }
-
-  .streak-main {
-    justify-content: center;
+  
+  .streak-calendar-header h4 {
+    font-size: 0.9rem;
   }
-
-  .streak-secondary {
-    align-items: center;
-    text-align: center;
-  }
-
-  .longest-streak {
-    justify-content: center;
-  }
-
-  .edit-toggle-btn {
-    padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(1.2rem, 2.5vw, 1.5rem);
-    font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  
+  .activity-summary {
+    font-size: 0.75rem;
   }
 }
 
@@ -1019,3 +1068,108 @@ body.dark {
     display: none;
   }
 }
+
+.streak-calendar-section {
+  margin-top: 1.5rem;
+}
+
+.streak-calendar-header {
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+}
+
+.streak-calendar-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-github-bg.dark .streak-calendar-header h4 {
+  color: #ffffff;
+}
+
+.activity-summary {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.profile-github-bg.dark .activity-summary {
+  color: #9ca3af;
+}
+
+.calendar-container {
+  background: var(--card-background-light);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+}
+
+.profile-github-bg.dark .calendar-container {
+  background: var(--card-background-dark);
+  border-color: var(--border-dark);
+}
+
+.calendar-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.5rem;
+  padding: 0 0 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.profile-github-bg.dark .calendar-days-header {
+  border-bottom-color: var(--border-dark);
+}
+
+.day-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 0.25rem 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-github-bg.dark .day-label {
+  color: #9ca3af;
+}
+
+/* Enhanced hover states for better GitHub feel */
+.calendar-cell.level-1:hover:not(.out-of-range) {
+  background: rgba(30, 64, 175, 0.6) !important;
+}
+
+.calendar-cell.level-2:hover:not(.out-of-range) {
+  background: rgba(30, 64, 175, 0.8) !important;
+}
+
+.calendar-cell.level-3:hover:not(.out-of-range) {
+  background: rgba(16, 185, 129, 0.9) !important;
+}
+
+.calendar-cell.level-4:hover:not(.out-of-range) {
+  background: #059669 !important;
+}
+
+.profile-github-bg.dark .calendar-cell.level-1:hover:not(.out-of-range) {
+  background: rgba(30, 64, 175, 0.7) !important;
+}
+
+.profile-github-bg.dark .calendar-cell.level-2:hover:not(.out-of-range) {
+  background: rgba(30, 64, 175, 0.9) !important;
+}
+
+.profile-github-bg.dark .calendar-cell.level-3:hover:not(.out-of-range) {
+  background: rgba(16, 185, 129, 1) !important;
+}
+
+.profile-github-bg.dark .calendar-cell.level-4:hover:not(.out-of-range) {
+  background: #22c55e !important;
+}
+
+/* Updated streak calendar styles are above */

@@ -65,9 +65,14 @@ const ChatAssistant = () => {
     }
   }, [isOpen]);
 
-  // Cleanup typing interval
+  // Cleanup typing interval and abort controller
   useEffect(() => {
-    return () => clearInterval(typingIntervalRef.current);
+    return () => {
+      clearInterval(typingIntervalRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   // Auth state listener
@@ -147,12 +152,19 @@ const ChatAssistant = () => {
 
   // Debounced send handler
   const handleSend = useCallback(debounce(async () => {
-    // Initialize abort controller for this request
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
     try {
       const messageText = input.trim();
       if (!messageText || !user || loading || isAwaitingBot) return;
+      
+      // Abort any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Initialize abort controller for this request
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+      
       setLoading(true);
       setIsAwaitingBot(true);
       setPendingBotText('');
@@ -202,7 +214,7 @@ const ChatAssistant = () => {
       setDisplayedBotText((prev) => {
         if (i >= pendingBotText.length) {
           clearInterval(typingIntervalRef.current);
-          if (!hasPersistedRef.current) {
+          if (!hasPersistedRef.current && user) { // Double-check user exists
             hasPersistedRef.current = true;
             addDoc(collection(db, 'userChats', user.uid, 'messages'), {
               from: 'bot',
@@ -211,7 +223,8 @@ const ChatAssistant = () => {
               tempId: pendingBotTempId
             }).catch((err) => {
               console.error('Firestore persist error:', err);
-              alert('Error saving response.');
+              // Don't show alert during typing animation, just log
+              console.warn('Failed to save AI response to chat history');
             }).finally(() => {
               setIsAwaitingBot(false);
               setPendingBotText('');
@@ -268,13 +281,17 @@ const ChatAssistant = () => {
 
   // Stop response handler
   const handleStop = () => {
-    abortControllerRef.current?.abort();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     clearInterval(typingIntervalRef.current);
     setIsAwaitingBot(false);
     setPendingBotText('');
     setDisplayedBotText('');
     setPendingBotTempId(null);
     setLoading(false);
+    // Reset hasPersistedRef to clean state
+    hasPersistedRef.current = false;
   };
 
   return (
