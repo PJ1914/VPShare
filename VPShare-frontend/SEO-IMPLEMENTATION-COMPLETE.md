@@ -86,9 +86,22 @@ Create these 1200x630px images:
 **Priority:** HIGH
 **Timeline:** This Week
 
-1. Verify domain at https://search.google.com/search-console
-2. Submit sitemap: `https://codetapasya.com/sitemap.xml`
-3. Monitor indexing progress
+**CURRENT ISSUE RESOLVED:** 
+❌ Previous: "Sitemap is HTML" error
+✅ Fixed: Updated server configuration to serve XML properly
+
+**Steps to fix:**
+1. ✅ Updated `vite.config.js` with XML MIME type
+2. ✅ Added headers to `vercel.json` for proper XML serving
+3. ✅ Verified sitemap builds correctly to dist folder
+4. 🔄 **Next:** Redeploy website with fixes
+5. 🔄 **Next:** Re-submit sitemap to Google Search Console
+
+**URLs to submit:**
+- Primary: `https://codetapasya.com/sitemap.xml`
+- Backup: `https://codetapasya.com/sitemap-simple.xml`
+
+**Timeline:** Allow 24-48 hours after redeployment for Google to re-crawl
 
 ## 📈 EXPECTED RESULTS
 

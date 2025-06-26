@@ -7,6 +7,18 @@ export default defineConfig({
     react(),
     // Sitemap will be generated at build time
   ],
+  
+  // Ensure XML files are served with correct MIME type
+  server: {
+    port: 3000,
+    mimeTypes: {
+      'application/xml': ['xml']
+    }
+  },
+  
+  // Make sure sitemap is included in build
+  publicDir: 'public',
+  
   build: {
     rollupOptions: {
       output: {
@@ -17,9 +29,8 @@ export default defineConfig({
           motion: ['framer-motion']
         }
       }
-    }
-  },
-  server: {
-    port: 3000
+    },
+    // Ensure public assets are copied
+    copyPublicDir: true
   }
 })
