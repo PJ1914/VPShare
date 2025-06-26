@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuth } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import FolderIcon from '@mui/icons-material/Folder';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -286,6 +287,30 @@ function Projects() {
       initial="hidden"
       animate="visible"
     >
+      <SEO 
+        title="My Projects - CodeTapasya"
+        description="Manage and showcase your coding projects on CodeTapasya. Create, edit, and share your programming projects with the community."
+        canonical="https://codetapasya.com/projects"
+        ogImage="https://codetapasya.com/og-projects.jpg"
+        keywords="coding projects, programming portfolio, project management, CodeTapasya projects, developer portfolio"
+        noIndex={true}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "My Projects",
+          "description": "Personal project management and portfolio page for CodeTapasya developers.",
+          "url": "https://codetapasya.com/projects",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Developers"
+          }
+        }}
+      />
       <div className="projects-header">
         <div className="projects-title-section">
           <FolderIcon className="projects-icon" />

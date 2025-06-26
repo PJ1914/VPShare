@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Typography, Container, Box, Paper } from '@mui/material';
+import SEO from '../components/SEO';
 import '../styles/PolicyPages.css';
 
 const sectionVariants = {
@@ -11,11 +12,53 @@ const sectionVariants = {
 function PrivacyPolicy() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Privacy Policy - CodeTapasya';
   }, []);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Privacy Policy",
+    "description": "CodeTapasya's Privacy Policy explaining how we collect, use, and protect your personal information on our online programming learning platform.",
+    "url": "https://codetapasya.com/privacy-policy",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "CodeTapasya",
+      "url": "https://codetapasya.com",
+      "description": "Learn programming online with interactive courses and hands-on projects",
+      "publisher": {
+        "@type": "Organization",
+        "name": "CodeTapasya",
+        "url": "https://codetapasya.com"
+      }
+    },
+    "mainEntity": {
+      "@type": "Article",
+      "headline": "Privacy Policy - CodeTapasya",
+      "description": "Comprehensive privacy policy outlining data collection, usage, and protection practices",
+      "author": {
+        "@type": "Organization",
+        "name": "CodeTapasya"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "CodeTapasya"
+      },
+      "datePublished": "2024-01-01",
+      "dateModified": new Date().toISOString().split('T')[0]
+    }
+  };
 
   return (
     <div className="policy-page">
+      <SEO
+        title="Privacy Policy - CodeTapasya | Data Protection & Security"
+        description="Read CodeTapasya's comprehensive Privacy Policy to understand how we collect, use, and protect your personal information on our online programming learning platform."
+        keywords="privacy policy, data protection, personal information, CodeTapasya, online learning, programming courses, data security, user privacy"
+        url="https://codetapasya.com/privacy-policy"
+        image="https://codetapasya.com/og-privacy.jpg"
+        type="article"
+        structuredData={structuredData}
+      />
       <Container maxWidth="lg">
         <motion.div
           initial="hidden"

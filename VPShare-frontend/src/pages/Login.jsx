@@ -4,6 +4,7 @@ import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { Box, Button, Typography, Paper, TextField, Fade, Alert, InputAdornment, IconButton } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEO from '../components/SEO';
 import GoogleIcon from '@mui/icons-material/Google'; // MUI icon for Google Auth
 import EmailIcon from '@mui/icons-material/Email'; // MUI icon for email field
 import LockIcon from '@mui/icons-material/Lock'; // MUI icon for password field
@@ -178,6 +179,26 @@ function Login() {
 
   return (
     <Box className="login-container">
+      <SEO 
+        title="Login - CodeTapasya | Sign In to Your Account"
+        description="Sign in to your CodeTapasya account to access premium programming courses, track your progress, and continue your coding journey."
+        canonical="https://codetapasya.com/login"
+        ogImage="https://codetapasya.com/og-login.jpg"
+        keywords="login, sign in, CodeTapasya login, programming courses access, student portal"
+        noIndex={true}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Login",
+          "description": "Sign in to your CodeTapasya account to access courses and track your learning progress.",
+          "url": "https://codetapasya.com/login",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          }
+        }}
+      />
       <motion.div
         initial="hidden"
         animate="visible"

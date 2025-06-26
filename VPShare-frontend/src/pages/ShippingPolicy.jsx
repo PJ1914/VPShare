@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Typography, Container, Box, Paper } from '@mui/material';
+import SEO from '../components/SEO';
 import '../styles/PolicyPages.css';
 
 const sectionVariants = {
@@ -16,6 +17,27 @@ function ShippingPolicy() {
 
   return (
     <div className="policy-page">
+      <SEO 
+        title="Shipping Policy - CodeTapasya"
+        description="CodeTapasya's shipping policy for physical products and merchandise. Learn about delivery terms and conditions for our educational materials."
+        canonical="https://codetapasya.com/shipping-policy"
+        ogImage="https://codetapasya.com/og-shipping.jpg"
+        keywords="shipping policy, delivery policy, CodeTapasya shipping, merchandise delivery, educational materials shipping"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Shipping Policy",
+          "description": "CodeTapasya's shipping and delivery policy for physical products and educational merchandise.",
+          "url": "https://codetapasya.com/shipping-policy",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          },
+          "dateModified": new Date().toISOString(),
+          "inLanguage": "en"
+        }}
+      />
       <Container maxWidth="lg">
         <motion.div
           initial="hidden"

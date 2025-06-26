@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Typography, Container, Box, Paper } from '@mui/material';
+import SEO from '../components/SEO';
 import '../styles/PolicyPages.css';
 
 const sectionVariants = {
@@ -16,6 +17,27 @@ function RefundPolicy() {
 
   return (
     <div className="policy-page">
+      <SEO 
+        title="Refund & Cancellation Policy - CodeTapasya"
+        description="Learn about CodeTapasya's refund and cancellation policy for subscription plans and premium content. Fair and transparent terms for all users."
+        canonical="https://codetapasya.com/refund-policy"
+        ogImage="https://codetapasya.com/og-refund.jpg"
+        keywords="refund policy, cancellation policy, CodeTapasya terms, subscription refund, money back guarantee"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Refund & Cancellation Policy",
+          "description": "CodeTapasya's comprehensive refund and cancellation policy for all subscription plans and services.",
+          "url": "https://codetapasya.com/refund-policy",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          },
+          "dateModified": new Date().toISOString(),
+          "inLanguage": "en"
+        }}
+      />
       <Container maxWidth="lg">
         <motion.div
           initial="hidden"

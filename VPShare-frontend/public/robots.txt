@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Important pages
+Allow: /courses
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /playground
+Allow: /login
+Allow: /privacy-policy
+Allow: /terms-conditions
+Allow: /refund-policy
+Allow: /shipping-policy
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /*.json$
+Disallow: /src/
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://codetapasya.com/sitemap.xml
