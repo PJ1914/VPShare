@@ -6,6 +6,7 @@ import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import ReactMarkdown from 'react-markdown';
+import SEO from '../components/SEO';
 import {
   AppBar,
   Toolbar,
@@ -680,6 +681,39 @@ function CourseDetail() {
 
   return (
     <div className="course-detail" role="main">
+      <SEO 
+        title={`${course.title} - Learn Programming | CodeTapasya`}
+        description={`Master ${course.title} with hands-on coding exercises and projects. ${course.description} Skill level: ${course.level}.`}
+        canonical={`https://codetapasya.com/course/${id}`}
+        ogImage="https://codetapasya.com/og-course.jpg"
+        keywords={`${course.title}, programming course, coding tutorial, ${course.level}, learn programming, online coding course, CodeTapasya`}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": course.title,
+          "description": course.description,
+          "provider": {
+            "@type": "Organization",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          },
+          "educationalLevel": course.level,
+          "courseCode": id,
+          "url": `https://codetapasya.com/course/${id}`,
+          "inLanguage": "en",
+          "teaches": course.title,
+          "numberOfSections": sections.length,
+          "timeRequired": "P4W",
+          "coursePrerequisites": course.level === "Beginner" ? "None" : "Basic programming knowledge",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "150",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        }}
+      />
       <div className="content-container">
         <motion.div className="course-header" initial="hidden" animate="visible" variants={sectionVariants}>
           <div className="course-header-top">

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
+import SEO from '../components/SEO';
 import {
   LibraryBooks as LibraryBooksIcon,
   Person as PersonIcon,
@@ -356,6 +357,30 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      <SEO 
+        title="Dashboard - CodeTapasya"
+        description="Your personal learning dashboard at CodeTapasya. Track your progress, access courses, view achievements, and continue your programming journey."
+        canonical="https://codetapasya.com/dashboard"
+        ogImage="https://codetapasya.com/og-dashboard.jpg"
+        keywords="dashboard, learning progress, CodeTapasya dashboard, programming courses, student portal"
+        noIndex={true}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Student Dashboard",
+          "description": "Personal learning dashboard for CodeTapasya students to track progress and access courses.",
+          "url": "https://codetapasya.com/dashboard",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "CodeTapasya",
+            "url": "https://codetapasya.com"
+          },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Students"
+          }
+        }}
+      />
       <main className="dashboard-main">
         {/* Welcome Section */}
         <motion.section

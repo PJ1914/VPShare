@@ -31,7 +31,7 @@ function Footer() {
         <div className="footer-section footer-contact">
           <h3 className="footer-heading">Contact Us</h3>
           <p>
-            <a href="mailto:support@vpshare.com" className="footer-link" aria-label="Email support">support@vpshare.com</a>
+            <a href="mailto:support@codetapasya.com" className="footer-link" aria-label="Email support">support@vpshare.com</a>
           </p>
         </div>
 

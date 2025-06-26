@@ -5,6 +5,7 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDoc, doc } from 'firebase/firestore';
+import SEO from '../components/SEO';
 import '../styles/Courses.css';
 
 // Configure axios-retry
@@ -218,8 +219,48 @@ function Courses() {
     }
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Programming Courses",
+    "description": "Comprehensive programming courses covering JavaScript, React, Python, Node.js, and more",
+    "url": "https://codetapasya.com/courses",
+    "numberOfItems": courses.length,
+    "itemListElement": courses.map((course, index) => ({
+      "@type": "Course",
+      "position": index + 1,
+      "name": course.title,
+      "description": course.description,
+      "url": `https://codetapasya.com${course.link}`,
+      "courseCode": course.id,
+      "educationalLevel": course.level,
+      "provider": {
+        "@type": "Organization",
+        "name": "CodeTapasya",
+        "url": "https://codetapasya.com"
+      },
+      "teaches": course.category,
+      "timeRequired": "P4W", // 4 weeks average
+      "offers": {
+        "@type": "Offer",
+        "category": "Educational",
+        "priceCurrency": "INR",
+        "price": "99"
+      }
+    }))
+  };
+
   return (
     <div className="courses-container">
+      <SEO
+        title="Programming Courses - Learn JavaScript, React, Python | CodeTapasya"
+        description="Explore our comprehensive programming courses. Learn JavaScript, React, Python, Node.js, and more with hands-on projects, interactive coding playground, and expert guidance."
+        keywords="programming courses, JavaScript course, React tutorial, Python programming, Node.js course, web development courses, online coding bootcamp, learn programming India"
+        url="https://codetapasya.com/courses"
+        image="https://codetapasya.com/og-courses.jpg"
+        structuredData={structuredData}
+      />
+      
       <main className="courses-main">
         <motion.section
           className="courses-hero"

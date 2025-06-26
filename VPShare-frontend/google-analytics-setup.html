@@ -1,0 +1,145 @@
+<!-- Google Analytics 4 Setup Instructions for CodeTapasya -->
+
+<!-- 
+STEP 1: Create Google Analytics 4 Property
+1. Go to https://analytics.google.com/
+2. Create a new GA4 property for CodeTapasya
+3. Get your Measurement ID (format: G-XXXXXXXXXX)
+
+STEP 2: Replace GA_MEASUREMENT_ID below with your actual ID
+
+STEP 3: Add this code to index.html before closing </head> tag
+-->
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'GA_MEASUREMENT_ID', {
+    // Enhanced ecommerce and events for CodeTapasya
+    send_page_view: true,
+    allow_google_signals: true,
+    allow_ad_personalization_signals: true,
+    
+    // Custom parameters for education site
+    custom_map: {
+      'custom_parameter_1': 'course_category',
+      'custom_parameter_2': 'user_subscription_type'
+    }
+  });
+
+  // Custom events for CodeTapasya
+  
+  // Track course enrollments
+  function trackCourseEnrollment(courseId, courseName, category) {
+    gtag('event', 'course_enrollment', {
+      course_id: courseId,
+      course_name: courseName,
+      course_category: category,
+      value: 1
+    });
+  }
+
+  // Track course completion
+  function trackCourseCompletion(courseId, courseName, category) {
+    gtag('event', 'course_completion', {
+      course_id: courseId,
+      course_name: courseName,
+      course_category: category,
+      value: 1
+    });
+  }
+
+  // Track subscription purchases
+  function trackSubscription(subscriptionType, value) {
+    gtag('event', 'purchase', {
+      transaction_id: Date.now().toString(),
+      value: value,
+      currency: 'INR',
+      items: [{
+        item_id: subscriptionType,
+        item_name: subscriptionType + ' Subscription',
+        item_category: 'Subscription',
+        quantity: 1,
+        price: value
+      }]
+    });
+  }
+
+  // Track code playground usage
+  function trackPlaygroundUsage(language) {
+    gtag('event', 'playground_usage', {
+      programming_language: language,
+      event_category: 'engagement'
+    });
+  }
+
+  // Track search queries
+  function trackSiteSearch(searchTerm, resultsCount) {
+    gtag('event', 'search', {
+      search_term: searchTerm,
+      results_count: resultsCount
+    });
+  }
+
+  // Make functions globally available
+  window.trackCourseEnrollment = trackCourseEnrollment;
+  window.trackCourseCompletion = trackCourseCompletion;
+  window.trackSubscription = trackSubscription;
+  window.trackPlaygroundUsage = trackPlaygroundUsage;
+  window.trackSiteSearch = trackSiteSearch;
+</script>
+
+<!--
+STEP 4: Usage Examples in React Components
+
+// In CourseDetail.jsx - track course access
+useEffect(() => {
+  if (window.gtag && course) {
+    window.gtag('event', 'page_view', {
+      page_title: course.title,
+      page_location: window.location.href,
+      course_id: id,
+      course_category: course.category
+    });
+  }
+}, [course, id]);
+
+// In Components - track interactions
+const handleEnrollClick = () => {
+  if (window.trackCourseEnrollment) {
+    window.trackCourseEnrollment(courseId, courseName, category);
+  }
+  // ... rest of enrollment logic
+};
+
+STEP 5: Verify Setup
+1. Install Google Analytics Debugger extension
+2. Check Real-time reports in GA4
+3. Verify custom events are firing
+4. Set up conversion goals in GA4
+-->
+
+<!-- 
+Additional Setup for CodeTapasya:
+
+1. Link to Google Search Console
+2. Set up conversion goals:
+   - Course completion
+   - Subscription purchase
+   - Account creation
+   - Newsletter signup
+
+3. Create custom audiences:
+   - Active learners
+   - Course completers
+   - Subscribers
+   - Free users
+
+4. Set up GA4 ecommerce for subscription tracking
+5. Configure data retention settings
+6. Set up custom reports for educational metrics
+-->

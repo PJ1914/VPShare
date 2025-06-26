@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Typography, Container, Box, Paper } from '@mui/material';
+import SEO from '../components/SEO';
 import '../styles/PolicyPages.css';
 
 const sectionVariants = {
@@ -14,8 +15,46 @@ function TermsConditions() {
     document.title = 'Terms & Conditions - CodeTapasya';
   }, []);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Terms and Conditions",
+    "description": "CodeTapasya's comprehensive Terms and Conditions governing the use of our online programming education platform.",
+    "url": "https://codetapasya.com/terms-conditions",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "CodeTapasya",
+      "url": "https://codetapasya.com"
+    },
+    "mainEntity": {
+      "@type": "Article",
+      "headline": "Terms and Conditions - CodeTapasya",
+      "description": "Legal terms governing the use of CodeTapasya's programming education platform",
+      "author": {
+        "@type": "Organization",
+        "name": "CodeTapasya"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "CodeTapasya"
+      },
+      "datePublished": "2024-01-01",
+      "dateModified": new Date().toISOString().split('T')[0]
+    }
+  };
+
   return (
     <div className="policy-page">
+      <SEO
+        title="Terms & Conditions - CodeTapasya | User Agreement & Platform Rules"
+        description="Read CodeTapasya's comprehensive Terms and Conditions outlining user responsibilities, platform usage guidelines, subscription terms, and legal agreements for our programming education platform."
+        keywords="terms and conditions, user agreement, platform rules, CodeTapasya legal, subscription terms, programming courses legal, online education terms"
+        url="https://codetapasya.com/terms-conditions"
+        image="https://codetapasya.com/og-terms.jpg"
+        type="article"
+        structuredData={structuredData}
+      />
+      
       <Container maxWidth="lg">
         <motion.div
           initial="hidden"

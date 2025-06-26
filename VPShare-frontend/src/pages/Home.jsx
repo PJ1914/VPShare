@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import '../styles/Home.css';
 import SubscriptionBanner from '../components/SubscriptionBanner';
 import HeroCarousel from '../components/HeroCarousel';
+import SEO from '../components/SEO';
 import CodeIcon from '@mui/icons-material/Code';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import SchoolIcon from '@mui/icons-material/School';
@@ -27,8 +28,91 @@ function Home() {
     window.scrollTo(0, 0);
   }, []);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "CodeTapasya",
+    "url": "https://codetapasya.com",
+    "logo": "https://codetapasya.com/logo.png",
+    "description": "Leading online programming education platform offering interactive courses, coding playground, and hands-on projects.",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "email": "support@codetapasya.com"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Programming Courses",
+      "itemListElement": [
+        {
+          "@type": "Course",
+          "name": "JavaScript Programming",
+          "description": "Learn JavaScript from basics to advanced concepts",
+          "provider": {
+            "@type": "Organization",
+            "name": "CodeTapasya"
+          }
+        },
+        {
+          "@type": "Course",
+          "name": "React Development",
+          "description": "Master React for modern web development",
+          "provider": {
+            "@type": "Organization",
+            "name": "CodeTapasya"
+          }
+        },
+        {
+          "@type": "Course",
+          "name": "Python Programming",
+          "description": "Learn Python for web development and data science",
+          "provider": {
+            "@type": "Organization",
+            "name": "CodeTapasya"
+          }
+        }
+      ]
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Free Plan",
+        "price": "0",
+        "priceCurrency": "INR",
+        "description": "Access to blogs, sample projects, and community"
+      },
+      {
+        "@type": "Offer",
+        "name": "Monthly Plan",
+        "price": "99",
+        "priceCurrency": "INR",
+        "description": "Full access to all courses and features"
+      },
+      {
+        "@type": "Offer",
+        "name": "Yearly Plan",
+        "price": "799",
+        "priceCurrency": "INR",
+        "description": "Annual subscription with additional benefits"
+      }
+    ]
+  };
+
   return (
     <>
+      <SEO
+        title="CodeTapasya - Learn Programming Online | Best Coding Courses in India"
+        description="Master programming with CodeTapasya's interactive courses. Learn JavaScript, React, Python, Node.js with hands-on projects, coding playground, and expert guidance. Start free today!"
+        keywords="programming courses, learn coding online, JavaScript course, React tutorial, Python programming, Node.js, web development bootcamp, coding playground, online programming India, best coding courses"
+        url="https://codetapasya.com"
+        image="https://codetapasya.com/og-home.jpg"
+        structuredData={structuredData}
+      />
+      
       <main className="home-main">
         {/* Hero Carousel Section */}
         <HeroCarousel />
