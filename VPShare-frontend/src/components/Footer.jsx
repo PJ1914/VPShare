@@ -35,6 +35,25 @@ function Footer() {
           </p>
         </div>
 
+        {/* Legal Links */}
+        <div className="footer-section footer-legal">
+          <h3 className="footer-heading">Legal</h3>
+          <ul>
+            <li>
+              <Link to="/privacy-policy" className="footer-link" aria-label="Read Privacy Policy">Privacy Policy</Link>
+            </li>
+            <li>
+              <Link to="/terms-conditions" className="footer-link" aria-label="Read Terms & Conditions">Terms & Conditions</Link>
+            </li>
+            <li>
+              <Link to="/refund-policy" className="footer-link" aria-label="Read Refund Policy">Refund Policy</Link>
+            </li>
+            <li>
+              <Link to="/shipping-policy" className="footer-link" aria-label="Read Shipping Policy">Shipping Policy</Link>
+            </li>
+          </ul>
+        </div>
+
         {/* Social Media */}
         <div className="footer-section footer-social">
           <h3 className="footer-heading">Follow Us</h3>

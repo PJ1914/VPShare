@@ -16,6 +16,10 @@ import Assignments from './pages/Assignments';
 import GitHubPage from './pages/GitHub';
 import Projects from './pages/Projects';
 import Quizzes from './pages/Quizzes';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
+import RefundPolicy from './pages/RefundPolicy';
+import ShippingPolicy from './pages/ShippingPolicy';
 
 function App() {
   return (
@@ -115,6 +119,12 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Public Policy Pages */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
       </Routes>
 
       <Footer />

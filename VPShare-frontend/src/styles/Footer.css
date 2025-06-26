@@ -89,12 +89,14 @@
 }
 
 /* Footer Links */
-.footer-links ul {
+.footer-links ul,
+.footer-legal ul {
   list-style: none;
   padding: 0;
 }
 
-.footer-links li {
+.footer-links li,
+.footer-legal li {
   margin-bottom: 0.75rem;
 }
 

@@ -399,6 +399,29 @@
   outline-offset: 2px;
 }
 
+/* Legal Notice for Signup */
+.legal-notice-signup {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  position: relative;
+  z-index: 25;
+}
+
+.legal-notice-signup a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.legal-notice-signup a:hover {
+  color: var(--primary-gradient-end);
+  text-decoration: underline;
+}
+
 /* Home Link */
 .home-link {
   margin-top: 1.5rem;

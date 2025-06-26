@@ -426,6 +426,28 @@ function Login() {
             </Typography>
           </motion.div>
 
+          {/* Legal notice for registration */}
+          {!isLogin && (
+            <motion.div
+              className="legal-notice-signup"
+              variants={formElementVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.75 }}
+            >
+              <Typography variant="caption" sx={{ color: 'text.secondary', textAlign: 'center', display: 'block' }}>
+                By signing up, you agree to our{' '}
+                <Link to="/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#10b981' }}>
+                  Terms & Conditions
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#10b981' }}>
+                  Privacy Policy
+                </Link>
+              </Typography>
+            </motion.div>
+          )}
+
           {/* Link to Home */}
           <motion.div
             className="home-link"

@@ -493,6 +493,33 @@
   border: 1px solid rgba(16, 185, 129, 0.05);
 }
 
+.legal-notice {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-notice p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+}
+
+.legal-notice a {
+  color: #34d399;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.legal-notice a:hover {
+  color: #10b981;
+  text-decoration: underline;
+}
+
 /* Pay button */
 .pay-button {
   background: linear-gradient(135deg, var(--cta-gradient-start), var(--cta-gradient-end));

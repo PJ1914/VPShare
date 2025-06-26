@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
 import { motion } from 'framer-motion';
@@ -326,6 +326,14 @@ function Payment() {
         <div className="security-info">
           <SecurityIcon />
           <span>Secure payment powered by Razorpay</span>
+        </div>
+        
+        <div className="legal-notice">
+          <p>By proceeding with payment, you agree to our 
+            <Link to="/terms-conditions" target="_blank" rel="noopener noreferrer"> Terms & Conditions</Link>, 
+            <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer"> Privacy Policy</Link>, and 
+            <Link to="/refund-policy" target="_blank" rel="noopener noreferrer"> Refund Policy</Link>.
+          </p>
         </div>
       </div>      <motion.button
         className="pay-button"
