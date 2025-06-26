@@ -27,7 +27,10 @@ function RefundPolicy() {
               Refund & Cancellation Policy
             </Typography>
             <Typography variant="subtitle1" color="textSecondary">
-              Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              Effective Date: June 27, 2025
+            </Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              Policy Version: v1.0
             </Typography>
           </Box>
 
@@ -92,7 +95,7 @@ function RefundPolicy() {
                 4.1 Technical Issues
               </Typography>
               <ul className="policy-list">
-                <li>Unable to access purchased content due to platform errors</li>
+                <li>Inability to access purchased content due to verified platform-side technical issues not caused by the user's internet or device</li>
                 <li>Significant functionality problems preventing course completion</li>
                 <li>Payment processing errors resulting in duplicate charges</li>
               </ul>
@@ -129,6 +132,7 @@ function RefundPolicy() {
                 <li><strong>Free Content:</strong> Issues with free features or content</li>
                 <li><strong>Third-party Issues:</strong> Problems caused by user's internet, device, or browser</li>
                 <li><strong>Completed Courses:</strong> Courses that have been fully completed with certificates issued</li>
+                <li>We reserve the right to deny refund requests that do not meet the eligibility criteria or where abuse of the refund system is suspected.</li>
               </ul>
 
               <Typography variant="h5" gutterBottom className="section-title">
@@ -206,7 +210,7 @@ function RefundPolicy() {
                 If you are not satisfied with our refund decision:
               </Typography>
               <ul className="policy-list">
-                <li>Contact our escalation team at <strong>escalation@codetapasya.com</strong></li>
+                <li>Contact our escalation team at <strong>support@codetapasya.com</strong></li>
                 <li>Provide additional evidence or documentation</li>
                 <li>Request a second review of your case</li>
                 <li>We will respond within 5-7 business days</li>
@@ -231,11 +235,17 @@ function RefundPolicy() {
                 For refund requests or questions about this policy:
               </Typography>
               <ul className="policy-list">
-                <li><strong>Email:</strong> refunds@codetapasya.com</li>
                 <li><strong>Support:</strong> support@codetapasya.com</li>
-                <li><strong>Phone:</strong> Available through support ticket system</li>
+                <li><strong>Phone Support:</strong> Currently not available. Please raise a ticket through our support system or email us.</li>
                 <li><strong>Response Time:</strong> 24-48 hours for initial response</li>
               </ul>
+
+              <Typography variant="h5" gutterBottom className="section-title">
+                13. Legal Jurisdiction
+              </Typography>
+              <Typography paragraph>
+                This Refund & Cancellation Policy shall be governed by the laws of India. Any disputes relating to refunds shall be subject to the exclusive jurisdiction of the courts in Hyderabad, Telangana, India. By using our services, you agree to comply with this jurisdiction clause.
+              </Typography>
 
               <Box mt={4} p={3} className="policy-highlight">
                 <Typography variant="body2">
