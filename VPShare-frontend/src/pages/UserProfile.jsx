@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc, getFirestore, collection, query, where, getDocs
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import EditIcon from '@mui/icons-material/Edit';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SchoolIcon from '@mui/icons-material/School';
@@ -13,8 +14,6 @@ import CodeIcon from '@mui/icons-material/Code';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -35,6 +34,7 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import DiamondIcon from '@mui/icons-material/Diamond';
 import Tooltip from '@mui/material/Tooltip';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
@@ -239,7 +239,6 @@ export default function UserProfile() {
   const [activityDates, setActivityDates] = useState([]);
   const [streakStats, setStreakStats] = useState({ currentStreak: 0, longestStreak: 0 });
   const [engagement, setEngagement] = useState({ totalMinutes: 0, dailyMinutes: {}, courseProgress: {} });
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [showFileInput, setShowFileInput] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profileVisibility, setProfileVisibility] = useState('public');
@@ -247,11 +246,9 @@ export default function UserProfile() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState(56); // days
   const navigate = useNavigate();
-
-  useEffect(() => {
-    document.body.className = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  
+  // Get subscription context
+  const { hasSubscription, plan, expiresAt, loading: subscriptionLoading } = useSubscription();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -666,7 +663,7 @@ export default function UserProfile() {
   );
 
   return (
-    <motion.div className={`profile-github-bg ${theme}`} variants={containerVariants} initial="hidden" animate="visible">
+    <motion.div className="profile-github-bg" variants={containerVariants} initial="hidden" animate="visible">
       <div className="profile-github-container">        <aside className="profile-github-sidebar">
           <div className="profile-header">
             <div className="profile-github-avatar-wrap">
@@ -965,25 +962,13 @@ export default function UserProfile() {
                 </motion.div>
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </motion.button>
-              
-              <motion.button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="action-button theme-button"
-                aria-label="Toggle theme"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.95 }}
-              >
-                {theme === 'light' ? <Brightness4Icon fontSize="small" /> : <Brightness7Icon fontSize="small" />}
-                {theme === 'light' ? 'Dark' : 'Light'}
-              </motion.button>
             </div>
           </div>
         </aside>        <main className="profile-github-main">
           <div className="main-header">
             <h1 className="profile-title">
               <WorkspacePremiumIcon className="title-icon" />
-              Dashboard Overview
+              Profile Overview
             </h1>
             <div className="streak-status">
               <span 
@@ -1026,6 +1011,100 @@ export default function UserProfile() {
               icon={<TimerIcon />}
               color="time"
             />
+          </motion.div>
+
+          {/* Subscription Status Card */}
+          <motion.div className="subscription-status-card" variants={cardVariants}>
+            <div className="subscription-header">
+              <div className="subscription-info">
+                <WorkspacePremiumIcon className={`subscription-icon ${hasSubscription ? 'premium' : 'free'}`} />
+                <div className="subscription-details">
+                  <h3 className="subscription-title">
+                    {subscriptionLoading ? 'Loading...' : (hasSubscription ? 'Premium Member' : 'Free Plan')}
+                  </h3>
+                  {!subscriptionLoading && (
+                    <div className="subscription-meta">
+                      {hasSubscription ? (
+                        <>
+                          <Chip 
+                            icon={<DiamondIcon />}
+                            label={plan ? plan.toUpperCase() : 'PREMIUM'}
+                            color="primary"
+                            size="small"
+                            className="subscription-chip premium"
+                          />
+                          {expiresAt && (
+                            <span className="subscription-expiry">
+                              Expires: {expiresAt.toLocaleDateString()}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <Chip 
+                            label="FREE"
+                            variant="outlined"
+                            size="small"
+                            className="subscription-chip free"
+                          />
+                          <span className="subscription-benefits">
+                            Limited to first 2 modules per course
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {!hasSubscription && !subscriptionLoading && (
+                <motion.button
+                  className="upgrade-btn"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/payment/monthly')}
+                >
+                  <StarIcon className="upgrade-icon" />
+                  Upgrade
+                </motion.button>
+              )}
+            </div>
+            <div className="subscription-features">
+              {hasSubscription ? (
+                <div className="premium-features">
+                  <div className="feature-item active">
+                    <CheckCircleIcon className="feature-icon" />
+                    <span>Unlimited access to all courses</span>
+                  </div>
+                  <div className="feature-item active">
+                    <CheckCircleIcon className="feature-icon" />
+                    <span>Premium support</span>
+                  </div>
+                  <div className="feature-item active">
+                    <CheckCircleIcon className="feature-icon" />
+                    <span>No ads</span>
+                  </div>
+                  <div className="feature-item active">
+                    <CheckCircleIcon className="feature-icon" />
+                    <span>Certificate eligible</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="free-features">
+                  <div className="feature-item limited">
+                    <CancelIcon className="feature-icon" />
+                    <span>Limited course access (2 modules per course)</span>
+                  </div>
+                  <div className="feature-item limited">
+                    <CancelIcon className="feature-icon" />
+                    <span>Community support only</span>
+                  </div>
+                  <div className="feature-item limited">
+                    <CancelIcon className="feature-icon" />
+                    <span>Ads supported</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </motion.div>          {nextBadge && (
             <motion.div className="profile-progress-section" variants={cardVariants}>
               <div className="progress-header">
@@ -1117,7 +1196,7 @@ export default function UserProfile() {
                   ))}
                 </div>
                 
-                <div className={`streak-calendar ${theme}`}>
+                <div className="streak-calendar">
                   {(() => {
                     const calendarData = getStreakCalendarData(activityDates, engagement.dailyMinutes, selectedTimeRange);
                     return calendarData.calendar.map((cell, index) => (

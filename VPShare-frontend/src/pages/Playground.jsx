@@ -18,7 +18,7 @@ function Playground() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        Coding Playground
+        Coding Playground - Write, Run & Execute Code
       </motion.h2>
       <ErrorBoundary>
         <PlaygroundEditor />

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import TwitterIcon from '@mui/icons-material/Twitter';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import '../styles/Footer.css';
 
 function Footer() {
@@ -31,7 +31,7 @@ function Footer() {
         <div className="footer-section footer-contact">
           <h3 className="footer-heading">Contact Us</h3>
           <p>
-            <a href="mailto:support@codetapasya.com" className="footer-link" aria-label="Email support">support@vpshare.com</a>
+            <a href="mailto:support@codetapasya.com" className="footer-link" aria-label="Email support">support@codetapasya.com</a>
           </p>
         </div>
 
@@ -58,13 +58,13 @@ function Footer() {
         <div className="footer-section footer-social">
           <h3 className="footer-heading">Follow Us</h3>
           <div className="social-links">
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on Twitter">
-              <TwitterIcon className="social-icon" />
+            <a href="https://github.com/CodeTapasya" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on GitHub">
+              <GitHubIcon className="social-icon" />
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on LinkedIn">
+            <a href="https://www.linkedin.com/company/code-tapasya/" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on LinkedIn">
               <LinkedInIcon className="social-icon" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on Instagram">
+            <a href="https://www.instagram.com/code_tapasya?igsh=MW1uYTg4amQzZ2F5Yw==" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Follow on Instagram">
               <InstagramIcon className="social-icon" />
             </a>
           </div>

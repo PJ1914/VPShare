@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
@@ -16,6 +17,8 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import FolderIcon from '@mui/icons-material/Folder';
 import QuizIcon from '@mui/icons-material/Quiz';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import LockIcon from '@mui/icons-material/Lock';
 import Logo from '../assets/CT Logo.png';
 import '../styles/Navbar.css';
 
@@ -44,6 +47,9 @@ function Navbar() {
   const sidebarRef = useRef(null);
   const hamburgerRef = useRef(null);
   const profileButtonRef = useRef(null);
+  
+  // Get subscription status
+  const { hasSubscription, plan, loading: subscriptionLoading } = useSubscription();
 
   // Enhanced scroll detection for floating navbar effect
   useEffect(() => {
@@ -338,6 +344,38 @@ function Navbar() {
                 </Link>
               </li>
             </ul>
+            
+            {/* Subscription Status Section */}
+            <div className="profile-sidebar-separator"></div>
+            <div className="subscription-status">
+              <div className="subscription-label">
+                {subscriptionLoading ? (
+                  <>
+                    <div className="status-icon loading">⏳</div>
+                    <span>Loading...</span>
+                  </>
+                ) : hasSubscription ? (
+                  <>
+                    <WorkspacePremiumIcon className="status-icon premium" />
+                    <span className="status-text premium">Premium Active</span>
+                    {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
+                  </>
+                ) : (
+                  <>
+                    <LockIcon className="status-icon free" />
+                    <span className="status-text free">Free Plan</span>
+                    <Link 
+                      to="/payment/monthly" 
+                      className="upgrade-link"
+                      onClick={() => setIsSidebarOpen(false)}
+                    >
+                      Upgrade
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+            
             <div className="profile-sidebar-separator"></div>
             <button className="profile-sidebar-link logout" onClick={() => { handleLogout(); setIsSidebarOpen(false); }}>
               <LogoutIcon className="sidebar-icon" /> Logout

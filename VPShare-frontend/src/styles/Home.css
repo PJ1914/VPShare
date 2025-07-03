@@ -95,6 +95,29 @@
   box-shadow: 0 8px 25px rgba(107, 114, 128, 0.6);
 }
 
+/* Call to Action Section */
+.cta {
+  text-align: center;
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
+  color: white;
+  border-radius: 16px;
+  margin: 2rem 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cta h2 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+.cta p {
+  font-size: 1.3rem;
+  color: #e5e7eb;
+  margin-bottom: 2.5rem;
+}
+
 /* Vision Section */
 .vision {
   text-align: center;
@@ -405,27 +428,205 @@
   margin-top: 2.5rem;
 }
 
-/* Call to Action Section */
-.cta {
-  text-align: center;
-  padding: 5rem 0;
-  background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
-  color: white;
+/* Dynamic Pricing Components */
+.pricing-loading {
+  padding: 3rem 0;
+  color: #6b7280;
+}
+
+.subscription-status-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.current-plan-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 2px solid #10b981;
   border-radius: 16px;
-  margin: 2rem 0;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+  transition: all 0.3s ease;
 }
 
-.cta h2 {
-  font-size: 2.8rem;
-  font-weight: 800;
+.current-plan-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.25);
+}
+
+.plan-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.plan-header h3 {
+  font-size: 2.2rem;
+  color: #1f2937;
+  margin: 0;
+  font-weight: 700;
+}
+
+.premium-badge {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.plan-details {
+  text-align: left;
+}
+
+.expiry-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  color: #4b5563;
   margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #10b981;
 }
 
-.cta p {
-  font-size: 1.3rem;
-  color: #e5e7eb;
-  margin-bottom: 2.5rem;
+.plan-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plan-benefits li {
+  font-size: 1.1rem;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.plan-benefits li::before {
+  content: '✓';
+  color: #10b981;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.upgrade-section {
+  margin-top: 2rem;
+}
+
+.upgrade-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.8rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.upgrade-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.upgrade-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.25);
+}
+
+.upgrade-content h4 {
+  font-size: 1.6rem;
+  color: #92400e;
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.upgrade-content p {
+  font-size: 1.1rem;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.urgency-text {
+  color: #dc2626 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.upgrade-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 0.75rem 2rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4) !important;
+}
+
+.upgrade-button:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5) !important;
+}
+
+.see-all-plans {
+  margin-top: 2rem;
+}
+
+/* Standard pricing uses existing .pricing styles */
+
+.pricing-card.featured {
+  position: relative;
+  border: 2px solid #10b981;
+  transform: scale(1.05);
+}
+
+.featured-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.savings {
+  color: #059669 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin: -0.5rem 0 1rem 0 !important;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  display: inline-block;
 }
 
 /* Enhanced Responsive Design with additional breakpoints */
@@ -581,6 +782,64 @@
 
   .pricing-card li {
     font-size: 1.1rem;
+  }
+
+  /* Responsive Styles for Dynamic Pricing */
+  .current-plan-card {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-header h3 {
+    font-size: 1.8rem;
+  }
+
+  .premium-badge {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .expiry-info {
+    font-size: 1rem;
+    padding: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+  }
+
+  .plan-benefits li {
+    font-size: 1rem;
+  }
+
+  .upgrade-section h3 {
+    font-size: 1.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .upgrade-card {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .upgrade-content h4 {
+    font-size: 1.4rem;
+  }
+
+  .upgrade-content p {
+    font-size: 1rem;
+  }
+
+  .pricing-card.featured {
+    transform: none;
+  }
+
+  .featured-badge {
+    position: static;
+    transform: none;
+    margin-bottom: 1rem;
+    display: inline-block;
   }
 }
 

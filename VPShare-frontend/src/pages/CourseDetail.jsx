@@ -7,6 +7,9 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import ReactMarkdown from 'react-markdown';
 import SEO from '../components/SEO';
+import SubscriptionPrompt from '../components/SubscriptionPrompt';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { canAccessModule, getCourseAccess } from '../utils/subscriptionUtils';
 import {
   AppBar,
   Toolbar,
@@ -57,6 +60,7 @@ import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import TimerIcon from '@mui/icons-material/Timer';
 import SpeedIcon from '@mui/icons-material/Speed';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import LockIcon from '@mui/icons-material/Lock';
 
 import '../styles/CourseDetail.css';
 import CourseCompletionModal from '../components/CourseCompletionModal';
@@ -115,6 +119,8 @@ function CourseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasSubscription, loading: subscriptionLoading, refreshSubscription } = useSubscription();
+  
   const [course, setCourse] = useState(null);
   const [sections, setSections] = useState([]);
   const [toc, setToc] = useState([]);
@@ -132,11 +138,41 @@ function CourseDetail() {
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [contentHeight, setContentHeight] = useState('auto');
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [courseAccess, setCourseAccess] = useState(null);
   const sidebarRef = useRef(null);
   const contentAreaRef = useRef(null);
   const isDraggingSidebar = useRef(false);
   const isDraggingContent = useRef(false);
   const [userId, setUserId] = useState(null);
+
+  // Refresh subscription when component mounts or user returns from payment
+  useEffect(() => {
+    // Check if user is returning from payment page
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromPayment = urlParams.get('from') === 'payment' || 
+                       sessionStorage.getItem('returnFromPayment') === 'true';
+    
+    if (fromPayment) {
+      // Clear the flag
+      sessionStorage.removeItem('returnFromPayment');
+      // Force refresh subscription status
+      refreshSubscription();
+    }
+  }, [refreshSubscription]);
+
+  // Calculate course access when subscription or course changes
+  useEffect(() => {
+    if (course && !subscriptionLoading) {
+      const access = getCourseAccess(course, hasSubscription);
+      setCourseAccess(access);
+    }
+  }, [course, hasSubscription, subscriptionLoading]);
+
+  // Check if current section is accessible
+  const canAccessCurrentSection = () => {
+    if (subscriptionLoading || !courseAccess) return true; // Loading state
+    return canAccessModule(currentSectionIndex, hasSubscription);
+  };
 
   // Set initial section index from navigation state (continueSection)
   useEffect(() => {
@@ -545,8 +581,14 @@ function CourseDetail() {
   const handleNext = async () => {
     // Save progress on current section before moving
     await markSectionComplete(currentSectionIndex);
-    setCurrentSectionIndex((prev) => Math.min(prev + 1, sections.length - 1));
+    const nextIndex = Math.min(currentSectionIndex + 1, sections.length - 1);
+    
+    // Check if next section is accessible
+    if (canAccessModule(nextIndex, hasSubscription)) {
+      setCurrentSectionIndex(nextIndex);
+    }
   };
+  
   const handlePrevious = async () => {
     // Save progress on current section before going back
     await markSectionComplete(currentSectionIndex);
@@ -556,9 +598,13 @@ function CourseDetail() {
   const handleTocClick = async (index) => {
     // Save progress on current section before navigating
     await markSectionComplete(currentSectionIndex);
-    setCurrentSectionIndex(index);
-    setIsSidebarOpen(false);
-    contentAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Only navigate if the module is accessible
+    if (canAccessModule(index, hasSubscription)) {
+      setCurrentSectionIndex(index);
+      setIsSidebarOpen(false);
+      contentAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const handleRunCode = (sectionIndex) => {
@@ -829,20 +875,34 @@ function CourseDetail() {
                     variants={tocItemVariants}
                   >
                     <ListItem
-                      onClick={() => handleTocClick(item.index)}
+                      onClick={() => {
+                        // Only allow navigation to accessible modules
+                        if (canAccessModule(item.index, hasSubscription)) {
+                          handleTocClick(item.index);
+                        }
+                      }}
                       selected={currentSectionIndex === item.index}
-                      className="sidebar-item"
+                      className={`sidebar-item ${!canAccessModule(item.index, hasSubscription) ? 'locked-module' : ''}`}
                       aria-current={currentSectionIndex === item.index ? 'true' : 'false'}
                       button={undefined}
+                      style={{
+                        opacity: canAccessModule(item.index, hasSubscription) ? 1 : 0.6,
+                        cursor: canAccessModule(item.index, hasSubscription) ? 'pointer' : 'default'
+                      }}
                     >
                       <ListItemIcon>
-                        {completedSections.has(item.index) ? (
+                        {!canAccessModule(item.index, hasSubscription) ? (
+                          <LockIcon aria-label="Module locked - subscription required" sx={{ color: '#ff9800' }} />
+                        ) : completedSections.has(item.index) ? (
                           <CheckCircleIcon aria-label="Section completed" />
                         ) : (
                           <FiberManualRecordIcon aria-label="Section not completed" />
                         )}
                       </ListItemIcon>
-                      <ListItemText primary={item.title} />
+                      <ListItemText 
+                        primary={item.title} 
+                        secondary={!canAccessModule(item.index, hasSubscription) ? 'Subscription Required' : null}
+                      />
                     </ListItem>
                   </motion.div>
                 ))}
@@ -878,95 +938,107 @@ function CourseDetail() {
                 animate="visible"
                 variants={sectionVariants}
               >
-                <div className="section-header">
-                  <ReactMarkdown>{currentSection.heading || ''}</ReactMarkdown>
-                  {completedSections.has(currentSectionIndex) && (
-                    <CheckCircleIcon className="section-completed" aria-label="Section completed" />
-                  )}
-                </div>
-                {/* If googleDocId is present, embed Google Doc, else render markdown */}
-                {currentSection.googleDocId ? (
-                  <div className="google-doc-embed" style={{ margin: '24px 0' }}>
-                    <iframe
-                      src={`https://docs.google.com/document/d/${currentSection.googleDocId}/preview`}
-                      width="100%"
-                      height="700"
-                      style={{ border: '1px solid #eee', borderRadius: 8 }}
-                      allowFullScreen
-                      title="Google Doc"
-                    />
-                    <div style={{ textAlign: 'right', marginTop: 8 }}>
-                      <a
-                        href={`https://docs.google.com/document/d/${currentSection.googleDocId}/edit`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="open-doc-link"
-                        style={{ fontSize: 14, color: '#1976d2', textDecoration: 'underline' }}
-                      >
-                        Open in Google Docs ↗
-                      </a>
+                {/* Check if user can access current section */}
+                {canAccessCurrentSection() ? (
+                  <>
+                    <div className="section-header">
+                      <ReactMarkdown>{currentSection.heading || ''}</ReactMarkdown>
+                      {completedSections.has(currentSectionIndex) && (
+                        <CheckCircleIcon className="section-completed" aria-label="Section completed" />
+                      )}
                     </div>
-                  </div>
-                ) : (
-                  <ReactMarkdown
-                    components={{
-                      code({node, inline, className, children, ...props}) {
-                        return !inline ? (
-                          <div className="code-block-wrapper">
-                            <button
-                              className="copy-code-btn"
-                              type="button"
-                              onClick={() => navigator.clipboard.writeText(children)}
-                            >
-                              Copy
-                            </button>
-                            <pre><code className={className} {...props}>{children}</code></pre>
-                          </div>
-                        ) : (
-                          <code className={className} {...props}>{children}</code>
-                        );
-                      }
-                    }}
-                  >
-                    {currentSection.content || ''}
-                  </ReactMarkdown>
-                )}
-                {currentSection.content && currentSection.content.includes('<code>') && (
-                  <Tooltip title="Execute the code snippet">
-                    <span style={{ display: 'inline-block' }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleRunCode(currentSectionIndex)}
-                        className="run-code-button"
-                        aria-label={`Run code for section ${sections[currentSectionIndex].heading || 'current section'}`}
-                        startIcon={<PlayArrowIcon />}
+                    {/* If googleDocId is present, embed Google Doc, else render markdown */}
+                    {currentSection.googleDocId ? (
+                      <div className="google-doc-embed" style={{ margin: '24px 0' }}>
+                        <iframe
+                          src={`https://docs.google.com/document/d/${currentSection.googleDocId}/preview`}
+                          width="100%"
+                          height="700"
+                          style={{ border: '1px solid #eee', borderRadius: 8 }}
+                          allowFullScreen
+                          title="Google Doc"
+                        />
+                        <div style={{ textAlign: 'right', marginTop: 8 }}>
+                          <a
+                            href={`https://docs.google.com/document/d/${currentSection.googleDocId}/edit`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="open-doc-link"
+                            style={{ fontSize: 14, color: '#1976d2', textDecoration: 'underline' }}
+                          >
+                            Open in Google Docs ↗
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <ReactMarkdown
+                        components={{
+                          code({node, inline, className, children, ...props}) {
+                            return !inline ? (
+                              <div className="code-block-wrapper">
+                                <button
+                                  className="copy-code-btn"
+                                  type="button"
+                                  onClick={() => navigator.clipboard.writeText(children)}
+                                >
+                                  Copy
+                                </button>
+                                <pre><code className={className} {...props}>{children}</code></pre>
+                              </div>
+                            ) : (
+                              <code className={className} {...props}>{children}</code>
+                            );
+                          }
+                        }}
                       >
-                        Run Code
-                      </Button>
-                    </span>
-                  </Tooltip>
-                )}
-                {currentSection.content.includes('<code>') && codeOutputs[currentSectionIndex] && (
-                  <div className="code-output">
-                    <Tooltip title="Hide code output">
-                      <span style={{ display: 'inline-block' }}>
-                        <Button
-                          variant="text"
-                          color="primary"
-                          onClick={() => setCodeOutputs(prev => ({ ...prev, [currentSectionIndex]: null }))}
-                          className="collapse-button"
-                          aria-label={codeOutputs[currentSectionIndex].isError ? 'Hide error output' : 'Hide code output'}
-                          startIcon={codeOutputs[currentSectionIndex].isError ? <ErrorIcon /> : <CodeIcon />}
-                        >
-                          {codeOutputs[currentSectionIndex].isError ? 'Hide Error' : 'Hide Output'}
-                        </Button>
-                      </span>
-                    </Tooltip>
-                    <pre className={`output-content ${codeOutputs[currentSectionIndex].isError ? 'error' : ''}`}>
-                      <code>{codeOutputs[currentSectionIndex].output}</code>
-                    </pre>
-                  </div>
+                        {currentSection.content || ''}
+                      </ReactMarkdown>
+                    )}
+                    {currentSection.content && currentSection.content.includes('<code>') && (
+                      <Tooltip title="Execute the code snippet">
+                        <span style={{ display: 'inline-block' }}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleRunCode(currentSectionIndex)}
+                            className="run-code-button"
+                            aria-label={`Run code for section ${sections[currentSectionIndex].heading || 'current section'}`}
+                            startIcon={<PlayArrowIcon />}
+                          >
+                            Run Code
+                          </Button>
+                        </span>
+                      </Tooltip>
+                    )}
+                    {currentSection.content.includes('<code>') && codeOutputs[currentSectionIndex] && (
+                      <div className="code-output">
+                        <Tooltip title="Hide code output">
+                          <span style={{ display: 'inline-block' }}>
+                            <Button
+                              variant="text"
+                              color="primary"
+                              onClick={() => setCodeOutputs(prev => ({ ...prev, [currentSectionIndex]: null }))}
+                              className="collapse-button"
+                              aria-label={codeOutputs[currentSectionIndex].isError ? 'Hide error output' : 'Hide code output'}
+                              startIcon={codeOutputs[currentSectionIndex].isError ? <ErrorIcon /> : <CodeIcon />}
+                            >
+                              {codeOutputs[currentSectionIndex].isError ? 'Hide Error' : 'Hide Output'}
+                            </Button>
+                          </span>
+                        </Tooltip>
+                        <pre className={`output-content ${codeOutputs[currentSectionIndex].isError ? 'error' : ''}`}>
+                          <code>{codeOutputs[currentSectionIndex].output}</code>
+                        </pre>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Show subscription prompt for locked content */
+                  <SubscriptionPrompt 
+                    courseName={course.title}
+                    currentModule={currentSectionIndex + 1}
+                    totalModules={sections.length}
+                  />
                 )}
                 <div className="navigation-buttons">
                   <Tooltip title="Go to previous section">
@@ -987,12 +1059,18 @@ function CourseDetail() {
                       variant="contained"
                       color="primary"
                       onClick={handleNext}
-                      disabled={currentSectionIndex === sections.length - 1}
+                      disabled={
+                        currentSectionIndex === sections.length - 1 || 
+                        !canAccessModule(currentSectionIndex + 1, hasSubscription)
+                      }
                       className="nav-button next-button"
                       aria-label="Go to next section"
                       endIcon={<NavigateNextIcon />}
                     >
-                      Next
+                      {!canAccessModule(currentSectionIndex + 1, hasSubscription) && currentSectionIndex < sections.length - 1 
+                        ? 'Subscribe to Continue' 
+                        : 'Next'
+                      }
                     </Button>
                   </Tooltip>
                 </div>

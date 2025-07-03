@@ -23,11 +23,40 @@ import JavascriptIcon from '@mui/icons-material/Javascript';
 import CodeSharpIcon from '@mui/icons-material/CodeSharp'; 
 import DescriptionIcon from '@mui/icons-material/Description'; 
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import TerminalIcon from '@mui/icons-material/Terminal';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import FolderIcon from '@mui/icons-material/Folder';
 import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, updateDoc, getDoc, increment, onSnapshot, serverTimestamp, deleteField } from 'firebase/firestore';
 import LogoCT from '../assets/CT Logo.png';
+
+// Piston API language mapping
+const pistonLanguages = {
+  'javascript': { language: 'javascript', version: '18.15.0', extension: '.js' },
+  'python': { language: 'python', version: '3.10.0', extension: '.py' },
+  'java': { language: 'java', version: '15.0.2', extension: '.java' },
+  'typescript': { language: 'typescript', version: '5.0.3', extension: '.ts' },
+  'cpp': { language: 'cpp', version: '10.2.0', extension: '.cpp' },
+  'c': { language: 'c', version: '10.2.0', extension: '.c' },
+  'csharp': { language: 'csharp', version: '6.12.0', extension: '.cs' },
+  'go': { language: 'go', version: '1.16.2', extension: '.go' },
+  'rust': { language: 'rust', version: '1.68.2', extension: '.rs' },
+  'php': { language: 'php', version: '8.2.3', extension: '.php' },
+  'ruby': { language: 'ruby', version: '3.0.1', extension: '.rb' },
+  'swift': { language: 'swift', version: '5.3.3', extension: '.swift' },
+  'kotlin': { language: 'kotlin', version: '1.8.20', extension: '.kt' },
+  'scala': { language: 'scala', version: '3.2.2', extension: '.scala' },
+  'perl': { language: 'perl', version: '5.36.0', extension: '.pl' },
+  'lua': { language: 'lua', version: '5.4.4', extension: '.lua' },
+  'dart': { language: 'dart', version: '2.19.6', extension: '.dart' },
+  'r': { language: 'r', version: '4.1.1', extension: '.r' },
+  'bash': { language: 'bash', version: '5.2.0', extension: '.sh' },
+  'powershell': { language: 'powershell', version: '7.1.4', extension: '.ps1' }
+};
 
 // Language mode mapping based on file extension
 const extensionToMode = {
@@ -39,6 +68,22 @@ const extensionToMode = {
   '.ts': 'typescript',
   '.json': 'json',
   '.md': 'markdown',
+  '.cpp': 'cpp',
+  '.c': 'c',
+  '.cs': 'csharp',
+  '.go': 'go',
+  '.rs': 'rust',
+  '.php': 'php',
+  '.rb': 'ruby',
+  '.swift': 'swift',
+  '.kt': 'kotlin',
+  '.scala': 'scala',
+  '.pl': 'perl',
+  '.lua': 'lua',
+  '.dart': 'dart',
+  '.r': 'r',
+  '.sh': 'bash',
+  '.ps1': 'powershell',
 };
 
 // File extension to icon mapping using MUI icons
@@ -51,6 +96,22 @@ const extensionToIcon = {
   '.ts': <CodeSharpIcon className="text-blue-600" />,
   '.json': <DescriptionIcon className="text-green-400" />,
   '.md': <DescriptionIcon className="text-gray-400" />,
+  '.cpp': <CodeSharpIcon className="text-blue-700" />,
+  '.c': <CodeSharpIcon className="text-gray-600" />,
+  '.cs': <CodeSharpIcon className="text-purple-500" />,
+  '.go': <CodeSharpIcon className="text-cyan-500" />,
+  '.rs': <CodeSharpIcon className="text-orange-600" />,
+  '.php': <CodeSharpIcon className="text-purple-600" />,
+  '.rb': <CodeSharpIcon className="text-red-600" />,
+  '.swift': <CodeSharpIcon className="text-orange-500" />,
+  '.kt': <CodeSharpIcon className="text-purple-400" />,
+  '.scala': <CodeSharpIcon className="text-red-700" />,
+  '.pl': <CodeSharpIcon className="text-blue-400" />,
+  '.lua': <CodeSharpIcon className="text-blue-300" />,
+  '.dart': <CodeSharpIcon className="text-blue-400" />,
+  '.r': <CodeSharpIcon className="text-blue-600" />,
+  '.sh': <CodeSharpIcon className="text-green-600" />,
+  '.ps1': <CodeSharpIcon className="text-blue-800" />,
 };
 
 // Predefined snippets for each language mode
@@ -64,20 +125,88 @@ const snippets = {
     { label: 'Center Div', code: '.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n}' },
   ],
   javascript: [
-    { label: 'Console Log', code: 'console.log("Hello, World!");' },
+    { label: 'Hello World', code: 'console.log("Hello, World!");' },
     { label: 'Event Listener', code: 'document.getElementById("myButton").addEventListener("click", () => {\n  alert("Button clicked!");\n});' },
+    { label: 'Async Function', code: 'async function fetchData() {\n  try {\n    const response = await fetch("https://api.example.com/data");\n    const data = await response.json();\n    console.log(data);\n  } catch (error) {\n    console.error("Error:", error);\n  }\n}\n\nfetchData();' },
   ],
   python: [
     { label: 'Hello World', code: '# Welcome to Python\nprint("Hello, World!")' },
     { label: 'Simple Loop', code: 'for i in range(5):\n    print(f"Count: {i}")' },
+    { label: 'List Comprehension', code: 'numbers = [1, 2, 3, 4, 5]\nsquares = [x**2 for x in numbers]\nprint(squares)' },
+    { label: 'Function', code: 'def greet(name):\n    return f"Hello, {name}!"\n\nprint(greet("World"))' },
   ],
   java: [
     { label: 'Main Class', code: 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}' },
     { label: 'Simple Loop', code: 'for (int i = 0; i < 5; i++) {\n    System.out.println("Count: " + i);\n}' },
+    { label: 'Method', code: 'public static String greet(String name) {\n    return "Hello, " + name + "!";\n}\n\nSystem.out.println(greet("World"));' },
   ],
   typescript: [
     { label: 'Interface', code: 'interface User {\n  name: string;\n  age: number;\n}\n\nconst user: User = { name: "Alice", age: 25 };\nconsole.log(user);' },
     { label: 'Function', code: 'function greet(name: string): string {\n  return `Hello, ${name}!`;\n}\n\nconsole.log(greet("World"));' },
+  ],
+  cpp: [
+    { label: 'Hello World', code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}' },
+    { label: 'Loop', code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    for(int i = 0; i < 5; i++) {\n        cout << "Count: " << i << endl;\n    }\n    return 0;\n}' },
+  ],
+  c: [
+    { label: 'Hello World', code: '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}' },
+    { label: 'Loop', code: '#include <stdio.h>\n\nint main() {\n    for(int i = 0; i < 5; i++) {\n        printf("Count: %d\\n", i);\n    }\n    return 0;\n}' },
+  ],
+  csharp: [
+    { label: 'Hello World', code: 'using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n    }\n}' },
+    { label: 'Loop', code: 'using System;\n\nclass Program {\n    static void Main() {\n        for(int i = 0; i < 5; i++) {\n            Console.WriteLine($"Count: {i}");\n        }\n    }\n}' },
+  ],
+  go: [
+    { label: 'Hello World', code: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, World!")\n}' },
+    { label: 'Loop', code: 'package main\n\nimport "fmt"\n\nfunc main() {\n    for i := 0; i < 5; i++ {\n        fmt.Printf("Count: %d\\n", i)\n    }\n}' },
+  ],
+  rust: [
+    { label: 'Hello World', code: 'fn main() {\n    println!("Hello, World!");\n}' },
+    { label: 'Loop', code: 'fn main() {\n    for i in 0..5 {\n        println!("Count: {}", i);\n    }\n}' },
+  ],
+  php: [
+    { label: 'Hello World', code: '<?php\necho "Hello, World!";\n?>' },
+    { label: 'Loop', code: '<?php\nfor($i = 0; $i < 5; $i++) {\n    echo "Count: " . $i . "\\n";\n}\n?>' },
+  ],
+  ruby: [
+    { label: 'Hello World', code: 'puts "Hello, World!"' },
+    { label: 'Loop', code: '5.times do |i|\n  puts "Count: #{i}"\nend' },
+  ],
+  swift: [
+    { label: 'Hello World', code: 'print("Hello, World!")' },
+    { label: 'Loop', code: 'for i in 0..<5 {\n    print("Count: \\(i)")\n}' },
+  ],
+  kotlin: [
+    { label: 'Hello World', code: 'fun main() {\n    println("Hello, World!")\n}' },
+    { label: 'Loop', code: 'fun main() {\n    for(i in 0..4) {\n        println("Count: $i")\n    }\n}' },
+  ],
+  scala: [
+    { label: 'Hello World', code: 'object Main extends App {\n  println("Hello, World!")\n}' },
+    { label: 'Loop', code: 'object Main extends App {\n  for(i <- 0 to 4) {\n    println(s"Count: $i")\n  }\n}' },
+  ],
+  perl: [
+    { label: 'Hello World', code: 'print "Hello, World!\\n";' },
+    { label: 'Loop', code: 'for my $i (0..4) {\n    print "Count: $i\\n";\n}' },
+  ],
+  lua: [
+    { label: 'Hello World', code: 'print("Hello, World!")' },
+    { label: 'Loop', code: 'for i = 0, 4 do\n    print("Count: " .. i)\nend' },
+  ],
+  dart: [
+    { label: 'Hello World', code: 'void main() {\n  print("Hello, World!");\n}' },
+    { label: 'Loop', code: 'void main() {\n  for(int i = 0; i < 5; i++) {\n    print("Count: $i");\n  }\n}' },
+  ],
+  r: [
+    { label: 'Hello World', code: 'print("Hello, World!")' },
+    { label: 'Loop', code: 'for(i in 0:4) {\n  print(paste("Count:", i))\n}' },
+  ],
+  bash: [
+    { label: 'Hello World', code: '#!/bin/bash\necho "Hello, World!"' },
+    { label: 'Loop', code: '#!/bin/bash\nfor i in {0..4}; do\n    echo "Count: $i"\ndone' },
+  ],
+  powershell: [
+    { label: 'Hello World', code: 'Write-Host "Hello, World!"' },
+    { label: 'Loop', code: 'for($i = 0; $i -lt 5; $i++) {\n    Write-Host "Count: $i"\n}' },
   ],
   json: [
     { label: 'Basic JSON', code: '{\n  "name": "Example",\n  "version": "1.0.0"\n}' },
@@ -111,7 +240,7 @@ const debounce = (func, wait) => {
 
 function PlaygroundEditor() {
   const db = getFirestore();
-  // State management
+  // Essential state management
   const [files, setFiles] = useState(() => {
     const savedFiles = localStorage.getItem('playground_files');
     return savedFiles ? JSON.parse(savedFiles) : [
@@ -123,9 +252,6 @@ function PlaygroundEditor() {
   const [previewError, setPreviewError] = useState(null);
   const [theme, setTheme] = useState('dark');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [outputVisible, setOutputVisible] = useState(true);
-  const [autoSave, setAutoSave] = useState(true);
-  const [autoCompile, setAutoCompile] = useState(true);
   const [newFileName, setNewFileName] = useState('');
   const [snippetType, setSnippetType] = useState('');
   const [editorHeight, setEditorHeight] = useState(400);
@@ -136,24 +262,28 @@ function PlaygroundEditor() {
   const [isMobile, setIsMobile] = useState(false);
   const [fileExplorerOpen, setFileExplorerOpen] = useState(true);
   const [fileSearch, setFileSearch] = useState('');
+  
+  // Authentication and GitHub
   const [githubUser, setGithubUser] = useState(null);
   const [githubToken, setGithubToken] = useState(null);
   const [githubRepos, setGithubRepos] = useState([]);
-  const [selectedRepo, setSelectedRepo] = useState(null);
-  const [repoFiles, setRepoFiles] = useState([]);
-  const [repoBranches, setRepoBranches] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState('main');
-  const [commitHistory, setCommitHistory] = useState([]);
-  const [newRepoName, setNewRepoName] = useState('');
-  const [newFilePath, setNewFilePath] = useState('');
-  const [newFolderPath, setNewFolderPath] = useState('');
+  const [repoName, setRepoName] = useState('');
+  const [githubError, setGithubError] = useState(null);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
-  const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
-  const [isLoadingCommits, setIsLoadingCommits] = useState(false);
-  const [repoName, setRepoName] = useState(''); // Add missing repoName state for GitHub integration input
-  const [githubError, setGithubError] = useState(null); // Add missing githubError state for GitHub integration errors
   const [activeUsersCount, setActiveUsersCount] = useState(1);
+  
+  // Unified Output Panel (VS Code-like)
+  const [outputPanelVisible, setOutputPanelVisible] = useState(true);
+  const [activeOutputTab, setActiveOutputTab] = useState('preview'); // 'preview', 'terminal', 'problems'
+  const [autoSave, setAutoSave] = useState(true);
+  const [autoCompile, setAutoCompile] = useState(true);
+  
+  // Code execution states
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionOutput, setExecutionOutput] = useState('');
+  const [executionError, setExecutionError] = useState('');
+  const [stdin, setStdin] = useState('');
+  const [consoleLines, setConsoleLines] = useState([]);
 
   const isDraggingHeight = useRef(false);
   const isDraggingWidth = useRef(false);
@@ -161,30 +291,31 @@ function PlaygroundEditor() {
   const dragIndex = useRef(null);
   const octokitRef = useRef(null);
 
-  // Listen for Firebase Auth user and extract GitHub token
+  // Listen for Firebase Auth user and enable GitHub integration for all auth types
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setGithubUser(user);
-      // Extract GitHub access token from providerData or reload user
+      
       if (user) {
-        user.getIdTokenResult(true).then((idTokenResult) => {
-          // Firebase stores GitHub access token in user.stsTokenManager or user.reloadUserInfo
-          // But the most reliable way is to check user.providerData
-          const githubProvider = user.providerData.find(p => p.providerId === 'github.com');
-          if (githubProvider && user.reloadUserInfo && user.reloadUserInfo.providerUserInfo) {
-            const githubInfo = user.reloadUserInfo.providerUserInfo.find(p => p.providerId === 'github.com');
-            if (githubInfo && githubInfo.screenName) {
-              // Try to get token from user.reloadUserInfo or custom claims
-              // But Firebase does not expose the GitHub access token by default for security
-              // If you use signInWithPopup, you can get the credential from the result
-              // Here, you may need to store the token in Firestore or in localStorage after login
-              // For now, try to get it from sessionStorage (if you stored it after login)
-              const token = sessionStorage.getItem('githubAccessToken');
-              if (token) setGithubToken(token);
-            }
+        // Check if user has GitHub provider
+        const githubProvider = user.providerData.find(p => p.providerId === 'github.com');
+        
+        if (githubProvider) {
+          // User signed in with GitHub, try to get token from session storage
+          const token = sessionStorage.getItem('githubAccessToken');
+          if (token) {
+            setGithubToken(token);
           }
-        });
+        } else {
+          // User signed in with Google or email/password
+          // For GitHub integration, we'll use a personal access token approach
+          // Check if user has stored a GitHub token
+          const storedToken = localStorage.getItem(`github_token_${user.uid}`);
+          if (storedToken) {
+            setGithubToken(storedToken);
+          }
+        }
       } else {
         setGithubToken(null);
       }
@@ -406,47 +537,6 @@ function PlaygroundEditor() {
     dragIndex.current = null;
   };
 
-  // Update preview for HTML/CSS/JS
-  const updatePreview = useCallback(() => {
-    if (isMobile) return;
-    const htmlFile = files.find(file => file.name.endsWith('.html'));
-    const cssFile = files.find(file => file.name.endsWith('.css'));
-    const jsFile = files.find(file => file.name.endsWith('.js'));
-
-    if (!htmlFile) return;
-    try {
-      const newSrcDoc = `
-        <html>
-          <head>
-            <style>${cssFile?.content || ''}</style>
-          </head>
-          <body>
-            ${htmlFile.content}
-            <script>
-              try {
-                ${jsFile?.content || ''}
-              } catch (e) {
-                console.error(e);
-                window.parent.postMessage({ type: 'error', message: e.message }, '*');
-              }
-            </script>
-          </body>
-        </html>
-      `;
-      setSrcDoc(newSrcDoc);
-      setPreviewError(null);
-    } catch (e) {
-      setPreviewError(e.message);
-    }
-  }, [files, isMobile]);
-
-  useEffect(() => {
-    if (autoCompile && !isMobile) {
-      const timeout = setTimeout(updatePreview, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [files, autoCompile, updatePreview, isMobile]);
-
   // Handle errors from iframe
   useEffect(() => {
     const handleError = (event) => {
@@ -522,6 +612,73 @@ function PlaygroundEditor() {
     file.name.toLowerCase().includes(fileSearch.toLowerCase())
   );
 
+  // Add console line utility (defined early to avoid reference errors)
+  const addConsoleOutput = useCallback((content, type = 'info') => {
+    const timestamp = new Date().toLocaleTimeString();
+    setConsoleLines(prev => [...prev, {
+      id: Date.now() + Math.random(),
+      content,
+      type,
+      timestamp
+    }]);
+  }, []);
+
+  // Clear console
+  const clearConsole = useCallback(() => {
+    setConsoleLines([]);
+    setExecutionOutput('');
+    setExecutionError('');
+  }, []);
+
+  // Update preview for HTML/CSS/JS with console logging
+  const updatePreview = useCallback(() => {
+    if (isMobile) return;
+    const htmlFile = files.find(file => file.name.endsWith('.html'));
+    const cssFile = files.find(file => file.name.endsWith('.css'));
+    const jsFile = files.find(file => file.name.endsWith('.js'));
+
+    if (!htmlFile) {
+      addConsoleOutput('No HTML file found for preview', 'warn');
+      return;
+    }
+    
+    try {
+      const newSrcDoc = `
+        <html>
+          <head>
+            <style>${cssFile?.content || ''}</style>
+          </head>
+          <body>
+            ${htmlFile.content}
+            <script>
+              try {
+                ${jsFile?.content || ''}
+              } catch (e) {
+                console.error(e);
+                window.parent.postMessage({ type: 'error', message: e.message }, '*');
+              }
+            </script>
+          </body>
+        </html>
+      `;
+      setSrcDoc(newSrcDoc);
+      setPreviewError(null);
+      addConsoleOutput('Preview updated successfully', 'success');
+      setActiveOutputTab('preview');
+      setOutputPanelVisible(true);
+    } catch (e) {
+      setPreviewError(e.message);
+      addConsoleOutput(`Preview error: ${e.message}`, 'error');
+    }
+  }, [files, isMobile, addConsoleOutput]);
+
+  useEffect(() => {
+    if (autoCompile && !isMobile) {
+      const timeout = setTimeout(updatePreview, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [files, autoCompile, updatePreview, isMobile]);
+
   // --- GITHUB ADVANCED LOGIC ---
   // Fetch user repos
   const fetchGithubRepos = useCallback(async () => {
@@ -543,76 +700,6 @@ function PlaygroundEditor() {
   }, [githubToken, fetchGithubRepos]);
 
   // GitHub integration UI and logic
-  const githubIntegrationUI = () => {
-    if (!githubToken) {
-      return (
-        <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
-          Please sign in with GitHub from the Login page to enable GitHub features.
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <motion.button
-          className="sidebar-button neumorphic w-full mb-2"
-          onClick={fetchGithubRepos}
-          disabled={isLoadingRepos}
-          variants={buttonHoverVariants}
-          whileHover="hover"
-        >
-          {isLoadingRepos ? 'Loading Repositories...' : 'Fetch Repositories'}
-        </motion.button>
-        {githubRepos.length > 0 ? (
-          <select
-            className="w-full px-4 py-2 mb-2 bg-transparent border border-gray-500 rounded-md text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all"
-            value={repoName}
-            onChange={e => setRepoName(e.target.value)}
-          >
-            <option value="">Select a repository</option>
-            {githubRepos.map(repo => (
-              <option key={repo.full_name} value={repo.full_name}>
-                {/* Folder icon as prefix */}
-                📁 {repo.full_name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <p className="text-gray-400 text-sm mb-2">No repositories found.</p>
-        )}
-        <input
-          id="repo-name"
-          type="text"
-          placeholder="Repository name"
-          value={repoName}
-          onChange={(e) => setRepoName(e.target.value)}
-          className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2"
-        />
-        <motion.button
-          className="sidebar-button neumorphic w-full mb-2"
-          onClick={saveToGithub}
-          disabled={!repoName}
-          variants={buttonHoverVariants}
-          whileHover="hover"
-        >
-          Save to GitHub
-        </motion.button>
-        <motion.button
-          className="sidebar-button neumorphic w-full"
-          onClick={loadFromGithub}
-          disabled={!repoName}
-          variants={buttonHoverVariants}
-          whileHover="hover"
-        >
-          Load from GitHub
-        </motion.button>
-        {githubError && (
-          <p className="text-red-400 text-sm mt-2">{githubError}</p>
-        )}
-      </>
-    );
-  };
-
   // Helper: update Firestore with coding activity
   const updateCodingActivity = useCallback(async () => {
     if (!githubUser) return;
@@ -700,6 +787,93 @@ function PlaygroundEditor() {
       </motion.div>
     );
   }
+
+  // Execute code using Piston API with enhanced logging
+  const executeCode = async () => {
+    const currentFile = files.find(file => file.name === activeFile);
+    if (!currentFile) return;
+
+    const fileExtension = currentFile.name.substring(currentFile.name.lastIndexOf('.'));
+    const language = Object.keys(pistonLanguages).find(lang => 
+      pistonLanguages[lang].extension === fileExtension
+    );
+
+    if (!language) {
+      addConsoleOutput(`Language not supported for file extension: ${fileExtension}`, 'error');
+      setActiveOutputTab('terminal');
+      setOutputPanelVisible(true);
+      return;
+    }
+
+    setIsExecuting(true);
+    setExecutionOutput('');
+    setExecutionError('');
+    setActiveOutputTab('terminal');
+    setOutputPanelVisible(true);
+    
+    addConsoleOutput(`Executing ${currentFile.name}...`, 'info');
+
+    try {
+      const pistonConfig = pistonLanguages[language];
+      const payload = {
+        language: pistonConfig.language,
+        version: pistonConfig.version,
+        files: [
+          {
+            name: currentFile.name,
+            content: currentFile.content
+          }
+        ],
+        stdin: stdin
+      };
+
+      const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.run) {
+        if (result.run.stdout) {
+          setExecutionOutput(result.run.stdout);
+          addConsoleOutput(result.run.stdout, 'success');
+        }
+        if (result.run.stderr) {
+          setExecutionError(result.run.stderr);
+          addConsoleOutput(result.run.stderr, 'error');
+        }
+        if (!result.run.stdout && !result.run.stderr) {
+          addConsoleOutput('Program executed successfully with no output', 'info');
+        }
+      } else {
+        addConsoleOutput('No execution result received', 'error');
+      }
+    } catch (error) {
+      const errorMsg = `Execution failed: ${error.message}`;
+      setExecutionError(errorMsg);
+      addConsoleOutput(errorMsg, 'error');
+    } finally {
+      setIsExecuting(false);
+      addConsoleOutput('Execution completed', 'info');
+    }
+  };
+
+  // Check if current file can be executed
+  const canExecuteCurrentFile = () => {
+    const currentFile = files.find(file => file.name === activeFile);
+    if (!currentFile) return false;
+    
+    const fileExtension = currentFile.name.substring(currentFile.name.lastIndexOf('.'));
+    return Object.values(pistonLanguages).some(lang => lang.extension === fileExtension);
+  };
 
   return (
     <div className={`playground-container ${theme}`}>
@@ -875,13 +1049,36 @@ function PlaygroundEditor() {
           initial="hidden"
           animate={sidebarOpen ? "visible" : "hidden"}
         >
-          <label htmlFor="repo-name" className="text-sm font-semibold block mb-2 flex items-center gap-2">
+          <label className="text-sm font-semibold mb-2 flex items-center gap-2">
             <GitHubIcon style={{ fontSize: 20, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
             GitHub Integration
           </label>
-          {!githubToken ? (
+          
+          {!githubUser ? (
             <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
-              Please sign in with GitHub from the Login page to enable GitHub features.
+              Please sign in to enable GitHub features.
+            </div>
+          ) : !githubToken ? (
+            <div className="github-setup">
+              <p className="text-gray-400 text-xs mb-2">
+                Connect your GitHub account to save and load projects
+              </p>
+              <input
+                type="password"
+                placeholder="GitHub Personal Access Token"
+                className="w-full px-3 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2 text-sm"
+                onBlur={(e) => {
+                  if (e.target.value) {
+                    setGithubToken(e.target.value);
+                    localStorage.setItem(`github_token_${githubUser.uid}`, e.target.value);
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500 mb-2">
+                <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                  Generate token here
+                </a> with 'repo' scope
+              </p>
             </div>
           ) : (
             <>
@@ -894,31 +1091,34 @@ function PlaygroundEditor() {
               >
                 {isLoadingRepos ? 'Loading Repositories...' : 'Fetch Repositories'}
               </motion.button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <FolderOpenIcon style={{ fontSize: 22, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
-                <select
-                  className="w-full repo-select"
-                  value={repoName}
-                  onChange={e => setRepoName(e.target.value)}
-                  style={{ minWidth: 0 }}
-                >
-                  <option value="">Select a repository</option>
-                  {githubRepos.map(repo => (
-                    <option key={repo.full_name} value={repo.full_name}>
-                      {/* Folder icon as prefix */}
-                      📁 {repo.full_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              
+              {githubRepos.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <FolderOpenIcon style={{ fontSize: 18, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
+                  <select
+                    className="w-full repo-select text-sm"
+                    value={repoName}
+                    onChange={e => setRepoName(e.target.value)}
+                    style={{ minWidth: 0 }}
+                  >
+                    <option value="">Select a repository</option>
+                    {githubRepos.map(repo => (
+                      <option key={repo.full_name} value={repo.full_name}>
+                        {repo.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               <input
-                id="repo-name"
                 type="text"
-                placeholder="Repository name"
+                placeholder="Repository name (e.g., username/repo)"
                 value={repoName}
                 onChange={(e) => setRepoName(e.target.value)}
-                className="w-full px-4 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2"
+                className="w-full px-3 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2 text-sm"
               />
+              
               <motion.button
                 className="sidebar-button neumorphic w-full mb-2"
                 onClick={saveToGithub}
@@ -928,8 +1128,9 @@ function PlaygroundEditor() {
               >
                 <SaveIcon fontSize="small" className="mr-2" /> Save to GitHub
               </motion.button>
+              
               <motion.button
-                className="sidebar-button neumorphic w-full"
+                className="sidebar-button neumorphic w-full mb-2"
                 onClick={loadFromGithub}
                 disabled={!repoName}
                 variants={buttonHoverVariants}
@@ -937,10 +1138,25 @@ function PlaygroundEditor() {
               >
                 <RefreshIcon fontSize="small" className="mr-2" /> Load from GitHub
               </motion.button>
-              {githubError && (
-                <p className="text-red-400 text-sm mt-2">{githubError}</p>
-              )}
+              
+              <motion.button
+                className="sidebar-button danger w-full text-xs"
+                onClick={() => {
+                  setGithubToken(null);
+                  localStorage.removeItem(`github_token_${githubUser.uid}`);
+                  setGithubRepos([]);
+                  setRepoName('');
+                }}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+              >
+                Disconnect GitHub
+              </motion.button>
             </>
+          )}
+          
+          {githubError && (
+            <p className="text-red-400 text-xs mt-2">{githubError}</p>
           )}
         </motion.div>
 
@@ -961,6 +1177,183 @@ function PlaygroundEditor() {
             <DeleteIcon fontSize="small" className="mr-2" />
             Clear All Files
           </motion.button>
+        </motion.div>
+
+        {/* Quick File Creation */}
+        <motion.div
+          className="quick-files-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <label className="text-sm font-semibold block mb-3">Quick Create</label>
+          <div className="quick-file-grid">
+            {Object.entries(pistonLanguages).map(([lang, config]) => (
+              <button
+                key={lang}
+                className="quick-file-btn"
+                onClick={() => {
+                  const fileName = `main${config.extension}`;
+                  const mode = extensionToMode[config.extension] || lang;
+                  const snippet = snippets[mode]?.[0]?.code || `// ${lang} code here`;
+                  const newFile = { name: fileName, content: snippet, mode };
+                  setFiles(prevFiles => [...prevFiles, newFile]);
+                  setActiveFile(fileName);
+                }}
+                title={`Create ${lang} file`}
+              >
+                {extensionToIcon[config.extension] || <CodeIcon />}
+                <span>{lang}</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* HTML/CSS/JS Playground */}
+        <motion.div
+          className="frameworks-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <label className="text-sm font-semibold block mb-3">Web Playground</label>
+          <button
+            className="framework-btn web-playground-btn"
+            onClick={() => {
+              const htmlFile = { name: 'index.html', content: snippets.html[0].code, mode: 'html' };
+              const cssFile = { name: 'style.css', content: snippets.css[0].code, mode: 'css' };
+              const jsFile = { name: 'script.js', content: snippets.javascript[0].code, mode: 'javascript' };
+              setFiles([htmlFile, cssFile, jsFile]);
+              setActiveFile('index.html');
+            }}
+            title="Create HTML/CSS/JS playground"
+          >
+            <div className="framework-icon-group">
+              <HtmlIcon className="text-orange-500" />
+              <CssIcon className="text-blue-400" />
+              <JavascriptIcon className="text-yellow-400" />
+            </div>
+            <span>Web Playground</span>
+          </button>
+        </motion.div>
+
+        {/* Frameworks Section */}
+        <motion.div
+          className="frameworks-section"
+          variants={sidebarContentVariants}
+          initial="hidden"
+          animate={sidebarOpen ? "visible" : "hidden"}
+        >
+          <label className="text-sm font-semibold block mb-3">Frameworks</label>
+          <div className="framework-grid">
+            <button
+              className="framework-btn"
+              onClick={() => {
+                const reactApp = {
+                  name: 'App.jsx',
+                  content: `import React, { useState } from 'react';
+import './App.css';
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>React Playground</h1>
+        <p>Count: {count}</p>
+        <button onClick={() => setCount(count + 1)}>
+          Increment
+        </button>
+        <button onClick={() => setCount(count - 1)}>
+          Decrement
+        </button>
+      </header>
+    </div>
+  );
+}
+
+export default App;`,
+                  mode: 'javascript'
+                };
+                const reactCSS = {
+                  name: 'App.css',
+                  content: `.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+button {
+  background-color: #61dafb;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #282c34;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #21b9e0;
+}`,
+                  mode: 'css'
+                };
+                const packageJson = {
+                  name: 'package.json',
+                  content: `{
+  "name": "react-playground",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}`,
+                  mode: 'json'
+                };
+                setFiles([reactApp, reactCSS, packageJson]);
+                setActiveFile('App.jsx');
+              }}
+              title="Create ReactJS project"
+            >
+              <div className="framework-icon">
+                <AccountTreeIcon style={{ fontSize: 24, color: '#61dafb' }} />
+              </div>
+              <span>React App</span>
+            </button>
+          </div>
         </motion.div>
       </motion.div>
       {sidebarOpen && (
@@ -1043,9 +1436,60 @@ function PlaygroundEditor() {
                 variants={buttonHoverVariants}
                 whileHover="hover"
               >
-                <PlayArrowIcon fontSize="inherit" /> Run
+                <PlayArrowIcon fontSize="inherit" /> Run HTML
               </motion.button>
             )}
+            {canExecuteCurrentFile() && (
+              <motion.button
+                className="execute-button floating-action-btn"
+                onClick={executeCode}
+                disabled={isExecuting}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="execute-icon-wrapper">
+                  {isExecuting ? (
+                    <div className="execute-spinner" />
+                  ) : (
+                    <RocketLaunchIcon fontSize="inherit" />
+                  )}
+                </div>
+                <span className="execute-text">
+                  {isExecuting ? 'Executing...' : 'Run Code'}
+                </span>
+              </motion.button>
+            )}
+            {files.some(file => file.name.endsWith('.html')) && (
+              <motion.button
+                className="console-toggle floating-action-btn"
+                onClick={updatePreview}
+                variants={buttonHoverVariants}
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="console-icon-wrapper">
+                  <RefreshIcon fontSize="inherit" />
+                </div>
+                <span className="console-text">
+                  Update Preview
+                </span>
+              </motion.button>
+            )}
+            <motion.button
+              className="console-toggle floating-action-btn"
+              onClick={() => setOutputPanelVisible(!outputPanelVisible)}
+              variants={buttonHoverVariants}
+              whileHover="hover"
+              whileTap={{ scale: 0.95 }}
+            >
+              <div className="console-icon-wrapper">
+                <TerminalIcon fontSize="inherit" />
+              </div>
+              <span className="console-text">
+                {outputPanelVisible ? 'Hide Panel' : 'Show Panel'}
+              </span>
+            </motion.button>
             <motion.div
               className="font-size-select"
               initial={{ opacity: 0 }}
@@ -1078,15 +1522,6 @@ function PlaygroundEditor() {
                 {theme === 'dark' ? <LightModeIcon fontSize="inherit" /> : <DarkModeIcon fontSize="inherit" />}
               </span>
             </motion.label>
-            <motion.button
-              className="toggle-output-button"
-              onClick={() => setOutputVisible(!outputVisible)}
-              variants={buttonHoverVariants}
-              whileHover="hover"
-            >
-              {outputVisible ? <VisibilityOffIcon fontSize="inherit" /> : <VisibilityIcon fontSize="inherit" />}
-              {outputVisible ? 'Hide Output' : 'Show Output'}
-            </motion.button>
           </div>
         </motion.div>
 
@@ -1114,8 +1549,20 @@ function PlaygroundEditor() {
                     className="rename-input"
                   />
                 ) : (
-                  <span onClick={() => setActiveFile(file.name)} onDoubleClick={() => startRenaming(file.name)}>
-                    {file.name}
+                  <span 
+                    onClick={() => setActiveFile(file.name)} 
+                    onDoubleClick={() => startRenaming(file.name)}
+                    className="tab-content"
+                  >
+                    <span className="tab-icon">
+                      {extensionToIcon[file.name.substring(file.name.lastIndexOf('.'))] || <DescriptionIcon />}
+                    </span>
+                    <span className="tab-name">{file.name}</span>
+                    {canExecuteCurrentFile() && activeFile === file.name && (
+                      <span className="executable-indicator" title="Executable file">
+                        <FlashOnIcon fontSize="small" style={{ color: '#fbbf24' }} />
+                      </span>
+                    )}
                   </span>
                 )}
                 <motion.button
@@ -1193,77 +1640,176 @@ function PlaygroundEditor() {
           transition={{ duration: 0.2 }}
         />
 
-        {/* Output Pane */}
-        <motion.div
-          className="output-container"
-          initial={{ height: 'auto' }}
-          animate={{ height: outputVisible ? 'auto' : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="output-pane">
-            <div className="output-header">
-              <motion.h4
-                className="output-title"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                Output
-              </motion.h4>
-              <div className="output-actions">
-                {autoSave && (
-                  <motion.span
-                    className="auto-save"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    Auto-saved ✅
-                  </motion.span>
+        {/* VS Code-like Unified Output Panel */}
+        <AnimatePresence>
+          {outputPanelVisible && (
+            <motion.div
+              className="unified-output-panel"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Output Panel Tabs */}
+              <div className="output-panel-tabs">
+                <button
+                  className={`output-tab ${activeOutputTab === 'preview' ? 'active' : ''}`}
+                  onClick={() => setActiveOutputTab('preview')}
+                >
+                  <VisibilityIcon fontSize="small" />
+                  Preview
+                </button>
+                <button
+                  className={`output-tab ${activeOutputTab === 'terminal' ? 'active' : ''}`}
+                  onClick={() => setActiveOutputTab('terminal')}
+                >
+                  <TerminalIcon fontSize="small" />
+                  Terminal
+                  {consoleLines.length > 0 && (
+                    <span className="console-badge">{consoleLines.length}</span>
+                  )}
+                </button>
+                <button
+                  className={`output-tab ${activeOutputTab === 'problems' ? 'active' : ''}`}
+                  onClick={() => setActiveOutputTab('problems')}
+                >
+                  <CodeIcon fontSize="small" />
+                  Problems
+                  {(executionError || previewError) && (
+                    <span className="error-badge">!</span>
+                  )}
+                </button>
+              </div>
+
+              {/* Output Panel Content */}
+              <div className="output-tab-content">
+                {activeOutputTab === 'preview' && (
+                  <div className="output-content-area">
+                    {files.some(file => file.name.endsWith('.html')) ? (
+                      previewError ? (
+                        <div className="console-line">
+                          <div className="console-line-type error">ERROR</div>
+                          <div className="console-line-content">{previewError}</div>
+                        </div>
+                      ) : (
+                        <iframe
+                          srcDoc={srcDoc}
+                          title="Preview"
+                          sandbox="allow-scripts"
+                          className="preview-iframe"
+                        />
+                      )
+                    ) : (
+                      <div className="console-line">
+                        <div className="console-line-type info">INFO</div>
+                        <div className="console-line-content">
+                          No HTML file open for preview. Create an HTML file or use the Web Playground template.
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {files.some(file => file.name.endsWith('.html')) && autoCompile && (
-                  <motion.button
-                    className="refresh-button"
-                    onClick={updatePreview}
-                    variants={buttonHoverVariants}
-                    whileHover="hover"
-                  >
-                    <RefreshIcon fontSize="inherit" /> Refresh
-                  </motion.button>
+
+                {activeOutputTab === 'terminal' && (
+                  <div className="console-output-area">
+                    <div className="output-content-area">
+                      {consoleLines.length === 0 ? (
+                        <div className="console-line">
+                          <div className="console-line-type info">INFO</div>
+                          <div className="console-line-content">
+                            Welcome to the integrated terminal. Execute code to see output here.
+                          </div>
+                        </div>
+                      ) : (
+                        consoleLines.map(line => (
+                          <div key={line.id} className="console-line">
+                            <div className={`console-line-type ${line.type}`}>
+                              {line.type.toUpperCase()}
+                            </div>
+                            <div className="console-line-content">{line.content}</div>
+                            <div className="console-timestamp">{line.timestamp}</div>
+                          </div>
+                        ))
+                      )}
+                      {isExecuting && (
+                        <div className="console-line">
+                          <div className="console-line-type info">INFO</div>
+                          <div className="console-line-content">
+                            <div className="executing-spinner" style={{ display: 'inline-block', marginRight: '8px' }} />
+                            Executing code...
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {canExecuteCurrentFile() && (
+                      <div className="stdin-input-area">
+                        <label htmlFor="stdin-input">Standard Input (stdin):</label>
+                        <textarea
+                          id="stdin-input"
+                          value={stdin}
+                          onChange={(e) => setStdin(e.target.value)}
+                          placeholder="Enter input for your program here..."
+                          className="stdin-textarea"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeOutputTab === 'problems' && (
+                  <div className="output-content-area">
+                    {!executionError && !previewError ? (
+                      <div className="console-line">
+                        <div className="console-line-type success">SUCCESS</div>
+                        <div className="console-line-content">No problems detected.</div>
+                      </div>
+                    ) : (
+                      <>
+                        {executionError && (
+                          <div className="console-line">
+                            <div className="console-line-type error">ERROR</div>
+                            <div className="console-line-content">{executionError}</div>
+                          </div>
+                        )}
+                        {previewError && (
+                          <div className="console-line">
+                            <div className="console-line-type error">PREVIEW</div>
+                            <div className="console-line-content">{previewError}</div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-            {files.some(file => file.name.endsWith('.html')) ? (
-              previewError ? (
-                <motion.div
-                  className="output-error"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+
+              {/* Output Panel Actions */}
+              <div className="output-panel-actions">
+                <button
+                  className="output-action-btn"
+                  onClick={clearConsole}
+                  title="Clear output"
                 >
-                  <p>Error: {previewError}</p>
-                </motion.div>
-              ) : (
-                <iframe
-                  srcDoc={srcDoc}
-                  title="Output"
-                  sandbox="allow-scripts"
-                  frameBorder="0"
-                  className="output-iframe"
-                />
-              )
-            ) : (
-              <motion.div
-                className="output-mock"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <p>No HTML file open for preview.</p>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
+                  Clear
+                </button>
+                {autoSave && (
+                  <span className="auto-save-indicator">
+                    ✅ Auto-saved
+                  </span>
+                )}
+                <div style={{ flex: 1 }} />
+                <button
+                  className="output-action-btn"
+                  onClick={() => setOutputPanelVisible(false)}
+                  title="Hide panel"
+                >
+                  <CloseIcon fontSize="small" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

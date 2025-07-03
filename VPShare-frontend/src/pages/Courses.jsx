@@ -6,6 +6,8 @@ import axiosRetry from 'axios-retry';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, getDoc, doc } from 'firebase/firestore';
 import SEO from '../components/SEO';
+import SubscriptionBanner from '../components/SubscriptionBanner';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import '../styles/Courses.css';
 
 // Configure axios-retry
@@ -62,6 +64,7 @@ const mapModuleIdToCategory = (moduleId, title = '') => {
 
 function Courses() {
   const location = useLocation();
+  const { hasSubscription, loading: subscriptionLoading } = useSubscription();
   const [filter, setFilter] = useState(() => {
     // Use filter from navigation state if present, else default to 'All'
     return location.state && location.state.filter ? location.state.filter : 'All';
@@ -283,6 +286,9 @@ function Courses() {
           </motion.div>
         </motion.section>
 
+        {/* Show subscription banner for non-subscribers */}
+        <SubscriptionBanner />
+
         <motion.section
           className="filter-bar"
           initial="hidden"
@@ -359,6 +365,11 @@ function Courses() {
                   >                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
                       {course.category}
                     </span>
+                    {!hasSubscription && (
+                      <span className="subscription-indicator">
+                        Limited Access
+                      </span>
+                    )}
                     <h3 id={`course-title-${course.id}`}>{course.title}</h3>
                     <p className="course-description">{course.description}</p>
                     <p className="course-level">Level: {course.level}</p>

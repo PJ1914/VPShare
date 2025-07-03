@@ -214,6 +214,24 @@
   color: var(--success-color);
 }
 
+/* Locked module styles */
+.sidebar-item.locked-module {
+  background-color: #f8f9fa !important;
+  border-left: 3px solid #ff9800;
+}
+
+.sidebar-item.locked-module:hover {
+  background-color: #f1f3f4 !important;
+  transform: none;
+  cursor: default;
+}
+
+.sidebar-item.locked-module .MuiListItemText-secondary {
+  color: #ff9800;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .sidebar-resize-handle {
   width: 5px;
   background-color: var(--border-color);
@@ -626,7 +644,7 @@
   margin: 24px 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   background: #f8fafc;
   border: 1px solid var(--border-color);
 }

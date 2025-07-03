@@ -4,6 +4,7 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { HelmetProvider } from 'react-helmet-async';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import './styles/index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -13,7 +14,9 @@ root.render(
     <HelmetProvider>
       <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
         <BrowserRouter>
-          <App />
+          <SubscriptionProvider>
+            <App />
+          </SubscriptionProvider>
         </BrowserRouter>
       </GoogleOAuthProvider>
     </HelmetProvider>

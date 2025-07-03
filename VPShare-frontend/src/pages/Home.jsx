@@ -5,11 +5,15 @@ import '../styles/Home.css';
 import SubscriptionBanner from '../components/SubscriptionBanner';
 import HeroCarousel from '../components/HeroCarousel';
 import SEO from '../components/SEO';
+import { useSubscription } from '../contexts/SubscriptionContext';
 import CodeIcon from '@mui/icons-material/Code';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import SchoolIcon from '@mui/icons-material/School';
 import WebIcon from '@mui/icons-material/Web';
 import StorageIcon from '@mui/icons-material/Storage';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 // Animation variants for sections
 const sectionVariants = {
@@ -23,10 +27,53 @@ const hoverVariants = {
 };
 
 function Home() {
+  // Get subscription context
+  const { hasSubscription, plan, expiresAt, loading: subscriptionLoading } = useSubscription();
+
   // Reset scroll position to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Define plan hierarchy for upgrade suggestions
+  const planHierarchy = {
+    'one-day': { level: 1, name: 'One-Day Plan', nextPlan: 'weekly' },
+    'weekly': { level: 2, name: 'Weekly Plan', nextPlan: 'monthly' },
+    'monthly': { level: 3, name: 'Monthly Plan', nextPlan: 'six-month' },
+    'six-month': { level: 4, name: '6-Month Plan', nextPlan: 'yearly' },
+    'yearly': { level: 5, name: 'Yearly Plan', nextPlan: null }
+  };
+
+  // Calculate days until expiry
+  const getDaysUntilExpiry = () => {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffTime = expiry - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Get upgrade recommendation
+  const getUpgradeRecommendation = () => {
+    if (!hasSubscription || !plan) return null;
+    
+    const currentPlan = planHierarchy[plan];
+    if (!currentPlan || !currentPlan.nextPlan) return null;
+    
+    const daysLeft = getDaysUntilExpiry();
+    const nextPlan = currentPlan.nextPlan;
+    
+    return {
+      currentPlan: currentPlan.name,
+      nextPlan: planHierarchy[nextPlan]?.name,
+      nextPlanKey: nextPlan,
+      daysLeft,
+      isExpiringSoon: daysLeft !== null && daysLeft <= 7
+    };
+  };
+
+  const upgradeInfo = getUpgradeRecommendation();
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -218,7 +265,7 @@ function Home() {
           </div>
         </motion.section>
 
-        {/* Pricing Section */}
+        {/* Dynamic Pricing Section */}
         <motion.section
           className="pricing"
           id="pricing"
@@ -227,21 +274,221 @@ function Home() {
           viewport={{ once: true, amount: 0.3 }}
           variants={sectionVariants}
         >
-          <h2>Pricing Plans</h2>
-          <p>Choose a plan that fits your learning journey. Start for free or unlock premium content.</p>
-          <div className="pricing-container">
-            <motion.div
-              className="pricing-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
-              <h3>Free Plan</h3>
-              <p className="price"><span className="rupee">₹</span><span className="price-amount">0</span> / forever</p>
-              <ul>
-                <li>Access to blogs</li>
-                <li>View sample projects</li>
-                <li>Community access</li>
-              </ul>              <motion.div
+          {subscriptionLoading ? (
+            <div className="pricing-loading">
+              <h2>Loading subscription status...</h2>
+            </div>
+          ) : hasSubscription && plan ? (
+            // User has active subscription - show current plan and upgrade options
+            <div className="subscription-status-section">
+              <h2>Your Current Plan</h2>
+              <motion.div
+                className="current-plan-card"
+                variants={hoverVariants}
+                whileHover="hover"
+              >
+                <div className="plan-header">
+                  <WorkspacePremiumIcon fontSize="large" color="primary" />
+                  <h3>{planHierarchy[plan]?.name || plan}</h3>
+                  <span className="premium-badge">Premium Active</span>
+                </div>
+                <div className="plan-details">
+                  <p className="expiry-info">
+                    <AccessTimeIcon fontSize="small" />
+                    {getDaysUntilExpiry() !== null && getDaysUntilExpiry() > 0 ? (
+                      <>
+                        Expires in {getDaysUntilExpiry()} {getDaysUntilExpiry() === 1 ? 'day' : 'days'} 
+                        ({expiresAt ? new Date(expiresAt).toLocaleDateString() : 'Unknown'})
+                      </>
+                    ) : (
+                      'Plan has expired'
+                    )}
+                  </p>
+                  <ul className="plan-benefits">
+                    <li>Full access to all courses</li>
+                    <li>All projects and assignments</li>
+                    <li>Priority support</li>
+                    <li>Coding playground access</li>
+                  </ul>
+                </div>
+              </motion.div>
+
+              {upgradeInfo && (
+                <div className="upgrade-section">
+                  <h3>
+                    <TrendingUpIcon fontSize="medium" color="success" />
+                    Upgrade Recommendation
+                  </h3>
+                  <motion.div
+                    className="upgrade-card"
+                    variants={hoverVariants}
+                    whileHover="hover"
+                  >
+                    <div className="upgrade-content">
+                      <h4>Upgrade to {upgradeInfo.nextPlan}</h4>
+                      <p>
+                        {upgradeInfo.isExpiringSoon 
+                          ? `Your plan expires soon! Upgrade to ${upgradeInfo.nextPlan} for longer access and better value.`
+                          : `Get more value with our ${upgradeInfo.nextPlan} - enjoy longer access and save money!`
+                        }
+                      </p>
+                      {upgradeInfo.isExpiringSoon && (
+                        <p className="urgency-text">⚠️ Expiring in {upgradeInfo.daysLeft} {upgradeInfo.daysLeft === 1 ? 'day' : 'days'}!</p>
+                      )}
+                    </div>
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.currentTarget.querySelector('a').click();
+                        }
+                      }}
+                    >
+                      <Link to={`/payment/${upgradeInfo.nextPlanKey}`} className="cta-button upgrade-button">
+                        Upgrade Now
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // User has no subscription - show standard pricing
+            <div className="standard-pricing">
+              <h2>Pricing Plans</h2>
+              <p>Choose a plan that fits your learning journey. Start for free or unlock premium content.</p>
+              <div className="pricing-container">
+                <motion.div
+                  className="pricing-card"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                >
+                  <h3>Free Plan</h3>
+                  <p className="price"><span className="rupee">₹</span><span className="price-amount">0</span> / forever</p>
+                  <ul>
+                    <li>Access to blogs</li>
+                    <li>View sample projects</li>
+                    <li>Community access</li>
+                  </ul>
+                  <motion.div
+                    role="button"
+                    tabIndex={0}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('a').click();
+                      }
+                    }}
+                  >
+                    <Link to="/courses" className="cta-button secondary">
+                      Explore Free
+                    </Link>
+                  </motion.div>
+                </motion.div>
+                <motion.div
+                  className="pricing-card featured"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                >
+                  <div className="featured-badge">Most Popular</div>
+                  <h3>Monthly Plan</h3>
+                  <p className="price"><span className="rupee">₹</span><span className="price-amount">99</span> / month</p>
+                  <ul>
+                    <li>30-day full access</li>
+                    <li>All courses and projects</li>
+                    <li>Priority support</li>
+                    <li>Monthly progress tracking</li>
+                  </ul>
+                  <motion.div
+                    role="button"
+                    tabIndex={0}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('a').click();
+                      }
+                    }}
+                  >
+                    <Link to="/payment/monthly" className="cta-button">
+                      Subscribe Now
+                    </Link>
+                  </motion.div>
+                </motion.div>
+                <motion.div
+                  className="pricing-card"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                >
+                  <h3>Yearly Plan</h3>
+                  <p className="price"><span className="rupee">₹</span><span className="price-amount">799</span> / year</p>
+                  <p className="savings">Save ₹389!</p>
+                  <ul>
+                    <li>1-year full access</li>
+                    <li>All courses and projects</li>
+                    <li>Priority support</li>
+                    <li>Early access to new courses</li>
+                  </ul>
+                  <motion.div
+                    role="button"
+                    tabIndex={0}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('a').click();
+                      }
+                    }}
+                  >
+                    <Link to="/payment/yearly" className="cta-button">
+                      Subscribe Now
+                    </Link>
+                  </motion.div>
+                </motion.div>
+              </div>
+              <motion.div
+                className="see-all-subscriptions"
+                variants={hoverVariants}
+                whileHover="hover"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.currentTarget.querySelector('a').click();
+                  }
+                }}
+              >
+                <Link to="/payment" className="cta-button">
+                  See All Subscriptions
+                </Link>
+              </motion.div>
+            </div>
+          )}
+        </motion.section>
+
+        {/* Call to Action */}
+        <motion.section
+          className="cta"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={sectionVariants}
+        >
+          {hasSubscription && plan ? (
+            // User has subscription - show different message
+            <>
+              <h2>Continue Your Learning Journey!</h2>
+              <p>You're all set with your {planHierarchy[plan]?.name || plan}. Keep exploring and building amazing projects!</p>
+              <motion.div
                 role="button"
                 tabIndex={0}
                 variants={hoverVariants}
@@ -253,24 +500,17 @@ function Home() {
                   }
                 }}
               >
-                <Link to="/courses" className="cta-button secondary">
-                  Explore Free
+                <Link to="/courses" className="cta-button">
+                  Explore Courses
                 </Link>
               </motion.div>
-            </motion.div>
-            <motion.div
-              className="pricing-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
-              <h3>Monthly Plan</h3>
-              <p className="price"><span className="rupee">₹</span><span className="price-amount">99</span> / month</p>
-              <ul>
-                <li>30-day full access</li>
-                <li>All courses and projects</li>
-                <li>Priority support</li>
-                <li>Monthly progress tracking</li>
-              </ul>              <motion.div
+            </>
+          ) : (
+            // User has no subscription - show join message
+            <>
+              <h2>Ready to Start Your Journey?</h2>
+              <p>Join thousands of learners mastering web development with CodeTapasya.</p>
+              <motion.div
                 role="button"
                 tabIndex={0}
                 variants={hoverVariants}
@@ -283,83 +523,11 @@ function Home() {
                 }}
               >
                 <Link to="/payment/monthly" className="cta-button">
-                  Subscribe Now
+                  Join Now
                 </Link>
               </motion.div>
-            </motion.div>
-            <motion.div
-              className="pricing-card"
-              variants={hoverVariants}
-              whileHover="hover"
-            >
-              <h3>Yearly Plan</h3>
-              <p className="price"><span className="rupee">₹</span><span className="price-amount">799</span> / year</p>
-              <ul>
-                <li>1-year full access</li>
-                <li>All courses and projects</li>
-                <li>Priority support</li>
-                <li>Early access to new courses</li>
-              </ul>              <motion.div
-                role="button"
-                tabIndex={0}
-                variants={hoverVariants}
-                whileHover="hover"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/payment/yearly" className="cta-button">
-                  Subscribe Now
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>          <motion.div
-            className="see-all-subscriptions"
-            variants={hoverVariants}
-            whileHover="hover"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.currentTarget.querySelector('a').click();
-              }
-            }}
-          >
-            <Link to="/payment/monthly" className="cta-button">
-              See All Subscriptions
-            </Link>
-          </motion.div>
-        </motion.section>
-
-        {/* Call to Action */}
-        <motion.section
-          className="cta"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          <h2>Ready to Start Your Journey?</h2>
-          <p>Join thousands of learners mastering web development with CodeTapasya.</p>          <motion.div
-            role="button"
-            tabIndex={0}
-            variants={hoverVariants}
-            whileHover="hover"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                e.currentTarget.querySelector('a').click();
-              }
-            }}
-          >
-            <Link to="/payment/monthly" className="cta-button">
-              Join Now
-            </Link>
-          </motion.div>
+            </>
+          )}
         </motion.section>
       </main>
       <SubscriptionBanner />

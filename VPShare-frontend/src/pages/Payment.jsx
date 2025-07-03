@@ -146,6 +146,10 @@ function Payment() {
       setRazorpayLoaded(false);
     };
     document.body.appendChild(script);
+    
+    // Note: You may see "x-rtb-fingerprint-id" console warnings from Razorpay SDK
+    // This is internal to Razorpay's tracking system and can be safely ignored
+    
     return () => {
       if (script.parentNode) script.parentNode.removeChild(script);
     };
@@ -157,18 +161,38 @@ function Payment() {
     const planDetails = plans[selectedPlan] || plans.monthly;
     setLoading(true);
     setError('');
+    
     try {
+      // Create order payload
+      const orderPayload = { plan: selectedPlan, amount: planDetails.amount };
+      
+      // Only log in development environment
+      if (import.meta.env.DEV) {
+        console.log('Sending order payload to AWS Lambda:', orderPayload);
+      }
+      
       const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/create-order`,
-        { plan: selectedPlan, amount: planDetails.amount },
-        { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` } }
+        orderPayload,
+        { 
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
+          timeout: 10000 // 10 second timeout
+        }
       );
+      
+      // Only log in development environment (remove sensitive data in production)
+      if (import.meta.env.DEV) {
+        console.log('AWS Lambda response received successfully');
+      }
+      
       const { order_id, amount, currency, key_id } = orderResponse.data || {};
       if (!order_id || !amount || !currency || !key_id) {
-        setError('Failed to create order: Missing required order details');
+        console.error('Missing order details in response');
+        setError('Failed to create order: Missing required order details from payment gateway');
         setLoading(false);
         return;
       }
+      
       const options = {
         key: key_id,
         amount,
@@ -176,10 +200,12 @@ function Payment() {
         order_id,
         name: 'CodeTapasya',
         description: `Subscription for ${planDetails.name}`,
-        image: '/Logo Of CT.png',
+        // Remove image to avoid mixed content issues
+        // image: `${window.location.origin}/Logo Of CT.png`,
         handler: async function (response) {
           try {
-            await axios.post(
+            // 1. Verify payment first
+            const verifyResponse = await axios.post(
               `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
               {
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -190,12 +216,108 @@ function Payment() {
                 email: userData.email,
                 duration: planDetails.duration,
               },
-              { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` } }
+              { 
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
+                timeout: 15000 // 15 second timeout for payment verification
+              }
             );
-            alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
-            navigate('/dashboard');
+
+            // 2. Update Firestore with subscription data
+            try {
+              const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+              const db = getFirestore();
+              const auth = await import('firebase/auth');
+              const user = auth.getAuth().currentUser;
+              
+              if (user) {
+                // Calculate expiry date based on plan
+                const expiryDate = new Date();
+                switch (selectedPlan) {
+                  case 'one-day':
+                    expiryDate.setDate(expiryDate.getDate() + 1);
+                    break;
+                  case 'weekly':
+                    expiryDate.setDate(expiryDate.getDate() + 7);
+                    break;
+                  case 'monthly':
+                    expiryDate.setMonth(expiryDate.getMonth() + 1);
+                    break;
+                  case 'six-month':
+                    expiryDate.setMonth(expiryDate.getMonth() + 6);
+                    break;
+                  case 'yearly':
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    break;
+                  default:
+                    expiryDate.setMonth(expiryDate.getMonth() + 1);
+                }
+                
+                const userDocRef = doc(db, 'users', user.uid);
+                await setDoc(userDocRef, {
+                  subscription: {
+                    plan: selectedPlan,
+                    status: 'active',
+                    startDate: serverTimestamp(),
+                    expiresAt: expiryDate,
+                    paymentId: response.razorpay_payment_id,
+                    orderId: response.razorpay_order_id,
+                    amount: planDetails.amount
+                  },
+                  lastUpdated: serverTimestamp()
+                }, { merge: true });
+                
+                if (import.meta.env.DEV) {
+                  console.log('Firestore subscription updated successfully');
+                }
+              }
+            } catch (firestoreError) {
+              console.error('Firestore update error:', firestoreError);
+              // Don't fail the entire flow - payment was successful
+            }
+
+            // 3. Send confirmation email after successful payment verification
+            try {
+              await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/send-email`,
+                {
+                  email: userData.email,
+                  plan: selectedPlan,
+                  amount: planDetails.amount,
+                  duration: planDetails.duration,
+                },
+                { 
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
+                  timeout: 10000 // 10 second timeout for email
+                }
+              );
+              if (import.meta.env.DEV) {
+                console.log('Confirmation email sent successfully');
+              }
+            } catch (emailErr) {
+              console.error('Email sending failed:', emailErr.response?.data?.error || 'Email service unavailable');
+              // Don't fail the entire flow if email fails - payment was successful
+            }
+
+            alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}. A confirmation email has been sent to ${userData.email}. Your subscription is now active!`);
+            
+            // Set flag for CourseDetail to refresh subscription
+            sessionStorage.setItem('returnFromPayment', 'true');
+            
+            // Force refresh subscription context before navigation
+            if (window.location.pathname.includes('/payment')) {
+              // Add a small delay to ensure Firestore update is processed
+              setTimeout(() => {
+                navigate('/dashboard?from=payment');
+                // Force full page reload to refresh subscription status
+                window.location.reload();
+              }, 1000);
+            } else {
+              navigate('/dashboard?from=payment');
+            }
           } catch (err) {
-            setError(`Payment verification failed: ${err.response?.data?.error || err.message}`);
+            console.error('Payment verification error:', err);
+            const errorMsg = err.response?.data?.error || err.message || 'Payment verification failed';
+            setError(`Payment verification failed: ${errorMsg}`);
           } finally {
             setLoading(false);
           }
@@ -210,7 +332,10 @@ function Payment() {
         modal: {
           ondismiss: function () {
             setLoading(false);
-            alert('Payment cancelled.');
+            // User dismissing the modal is normal behavior, not an error condition
+            if (import.meta.env.DEV) {
+              console.log('Payment modal dismissed by user');
+            }
           },
         },
         method: {
@@ -218,23 +343,105 @@ function Payment() {
           upi: true,
           netbanking: true,
           wallet: true,
-          emi: false,
-          paylater: false,
         },
+        remember_customer: false,
       };
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-      razorpay.on('payment.failed', function (response) {
-        setError(`Payment failed: ${response.error?.description || 'Unknown error'}`);
+      
+      try {
+        const razorpay = new window.Razorpay(options);
+        
+        razorpay.on('payment.failed', function (response) {
+          console.error('Payment failed - please try again');
+          const errorMsg = response.error?.description || response.error?.reason || 'Payment failed';
+          setError(`Payment failed: ${errorMsg}. Please try again or contact support.`);
+          setLoading(false);
+        });
+        
+        // Add error handling for Razorpay modal issues
+        razorpay.on('modal.ondismiss', function() {
+          if (import.meta.env.DEV) {
+            console.log('Payment modal was dismissed');
+          }
+          setLoading(false);
+        });
+        
+        razorpay.open();
+      } catch (razorpayError) {
+        console.error('Razorpay initialization error:', razorpayError);
+        setError('Failed to initialize payment gateway. This might be due to network issues. Please try again or contact support.');
         setLoading(false);
-      });
-    } catch (err) {
-      let errorMessage = err.message || 'Unknown error';
-      if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
       }
-      setError(`Failed to create order: ${errorMessage}`);
+      
+    } catch (err) {
+      console.error('Order creation error:', err);
+      let errorMessage = 'Failed to create order. Please try again.';
+      
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. Please check your internet connection and try again.';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Payment gateway error (500). This could be due to Razorpay configuration issues on the server. Please try again or contact support.';
+        if (import.meta.env.DEV) {
+          console.error('500 Error Details:', {
+            url: err.config?.url,
+            status: err.response?.status,
+            message: 'Server configuration or Razorpay API issue'
+          });
+        }
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+        navigate('/login');
+        return;
+      } else if (err.response?.status === 400) {
+        errorMessage = 'Invalid payment request. Please refresh the page and try again.';
+        if (import.meta.env.DEV) {
+          console.error('400 Error - Bad Request:', err.response?.status);
+        }
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message?.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      
+      setError(errorMessage);
       setLoading(false);
+    }
+  };
+
+  // Test payment function for debugging (development only)
+  const testRazorpayConnection = () => {
+    if (!import.meta.env.DEV) {
+      console.warn('Test function only available in development mode');
+      return;
+    }
+    
+    if (!window.Razorpay) {
+      setError('Razorpay SDK not loaded. Please refresh the page.');
+      return;
+    }
+    
+    // Test with minimal options
+    const testOptions = {
+      key: 'rzp_test_9999999999', // dummy test key
+      amount: 100, // ₹1
+      currency: 'INR',
+      name: 'Test Payment',
+      description: 'Connection Test',
+      handler: function(response) {
+        console.log('Test payment successful');
+      },
+      modal: {
+        ondismiss: function() {
+          console.log('Test modal dismissed');
+        }
+      }
+    };
+    
+    try {
+      const razorpay = new window.Razorpay(testOptions);
+      console.log('Razorpay initialized successfully');
+    } catch (error) {
+      console.error('Razorpay initialization failed');
+      setError('Payment gateway initialization failed. Please try refreshing the page.');
     }
   };
 
@@ -242,7 +449,47 @@ function Payment() {
     <motion.div className="payment-page" initial="hidden" animate="visible" variants={sectionVariants} style={{ paddingBottom: window.innerWidth <= 600 ? '6.5rem' : undefined }}>
       <h1 className="payment-title">Unlock Your Coding Potential</h1>
       <p className="payment-subtitle">Choose a CodeTapasya plan to start learning today!</p>
-      {error && <div className="error-message">{error}</div>}      <div className="plans-container">
+      {error && (
+        <div className="error-message">
+          {error}
+          <div style={{ marginTop: '10px' }}>
+            <button 
+              onClick={() => setError('')} 
+              style={{ 
+                marginRight: '10px',
+                padding: '5px 10px', 
+                backgroundColor: '#ff4444', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer' 
+              }}
+            >
+              Dismiss
+            </button>
+            {error.includes('Server error') || error.includes('gateway') ? (
+              <button 
+                onClick={() => {
+                  setError('');
+                  // Retry after a short delay
+                  setTimeout(() => handlePayment(), 1000);
+                }}
+                style={{ 
+                  padding: '5px 10px', 
+                  backgroundColor: '#10b981', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '4px', 
+                  cursor: 'pointer' 
+                }}
+                disabled={loading}
+              >
+                Retry Payment
+              </button>
+            ) : null}
+          </div>
+        </div>
+      )}      <div className="plans-container">
         {Object.keys(plans).map((planKey) => (
           <motion.div
             key={planKey}
@@ -334,6 +581,11 @@ function Payment() {
             <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer"> Privacy Policy</Link>, and 
             <Link to="/refund-policy" target="_blank" rel="noopener noreferrer"> Refund Policy</Link>.
           </p>
+          {error && (error.includes('gateway') || error.includes('500')) && (
+            <p style={{ color: '#ff6b6b', fontSize: '0.9rem', marginTop: '10px' }}>
+              Having trouble with payment? This might be a temporary server issue. Please contact support at support@codetapasya.com or try again later.
+            </p>
+          )}
         </div>
       </div>      <motion.button
         className="pay-button"
@@ -354,7 +606,9 @@ function Payment() {
         {loading ? (
           <span className="loading-spinner">
             <AccessTimeIcon />
-            Processing Payment...
+            {loading === 'creating-order' ? 'Creating Order...' : 
+             loading === 'processing-payment' ? 'Processing Payment...' : 
+             'Processing Payment...'}
           </span>
         ) : (
           <span className="pay-button-content">
