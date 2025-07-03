@@ -467,7 +467,7 @@ function Home() {
                   }
                 }}
               >
-                <Link to="/payment" className="cta-button">
+                <Link to="/payment/one-day" className="cta-button">
                   See All Subscriptions
                 </Link>
               </motion.div>

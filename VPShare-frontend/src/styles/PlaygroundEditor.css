@@ -989,7 +989,11 @@
   border-top: 2px solid var(--primary-gradient-start);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  display: inline-block;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive Design */
@@ -1340,7 +1344,6 @@
 .floating-action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
-  background: linear-gradient(135deg, #2563eb, #059669);
 }
 
 .floating-action-btn:disabled {
@@ -1524,20 +1527,27 @@
   background: rgba(30, 64, 175, 0.1);
 }
 
+.input-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  margin-left: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
 .output-tab-content {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.output-content-area {
-  flex: 1;
-  overflow: auto;
-  padding: 12px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.4;
 }
 
 .preview-iframe {
@@ -1679,6 +1689,471 @@
 
 .playground-container.light .stdin-textarea {
   background: var(--light-bg-secondary);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+/* GitHub Integration Panel Styles */
+.github-integration-panel {
+  padding: 1rem;
+}
+
+.github-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.github-panel-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.github-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.github-token-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.github-token-field {
+  padding: 0.75rem;
+  border: 1px solid var(--dark-border);
+  border-radius: 6px;
+  background: var(--dark-bg-secondary);
+  color: var(--dark-text);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.github-token-field:focus {
+  outline: none;
+  border-color: var(--primary-gradient-start);
+}
+
+.github-help-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.github-help-text a {
+  color: var(--primary-gradient-start);
+  text-decoration: none;
+}
+
+.github-help-text a:hover {
+  text-decoration: underline;
+}
+
+.github-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.github-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.github-action-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--dark-border);
+  border-radius: 6px;
+  background: var(--dark-bg-secondary);
+  color: var(--dark-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.github-action-btn:hover:not(:disabled) {
+  background: var(--primary-gradient-start);
+  border-color: var(--primary-gradient-start);
+}
+
+.github-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.github-save-btn:hover:not(:disabled) {
+  background: var(--cta-gradient-start);
+  border-color: var(--cta-gradient-start);
+}
+
+.github-load-btn:hover:not(:disabled) {
+  background: var(--primary-gradient-end);
+  border-color: var(--primary-gradient-end);
+}
+
+.github-disconnect-btn:hover:not(:disabled) {
+  background: var(--error-color);
+  border-color: var(--error-color);
+}
+
+.github-repo-select,
+.github-repo-input {
+  padding: 0.5rem;
+  border: 1px solid var(--dark-border);
+  border-radius: 6px;
+  background: var(--dark-bg-secondary);
+  color: var(--dark-text);
+  font-size: 0.9rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.github-repo-select:focus,
+.github-repo-input:focus {
+  outline: none;
+  border-color: var(--primary-gradient-start);
+}
+
+/* Terminal Actions Styles */
+.terminal-header {
+  border-bottom: 1px solid var(--dark-border);
+  background: var(--dark-bg-secondary);
+}
+
+.terminal-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.terminal-content {
+  flex: 1;
+  max-height: 250px;
+  overflow-y: auto;
+  min-height: 150px;
+}
+
+.console-output-area {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  max-height: 400px;
+}
+
+.stdin-input-area {
+  border-top: 1px solid var(--dark-border);
+  padding: 0.75rem;
+  background: var(--dark-bg-secondary);
+  flex-shrink: 0;
+}
+
+.stdin-input-area label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--dark-text);
+}
+
+.stdin-textarea {
+  width: 100%;
+  min-height: 60px;
+  max-height: 120px;
+  padding: 0.5rem;
+  border: 1px solid var(--dark-border);
+  border-radius: 4px;
+  background: var(--dark-bg);
+  color: var(--dark-text);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.stdin-textarea:focus {
+  outline: none;
+  border-color: var(--primary-gradient-start);
+}
+
+.terminal-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--dark-bg-secondary);
+}
+
+.terminal-action-btn {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--dark-border);
+  border-radius: 4px;
+  background: var(--dark-bg);
+  color: var(--dark-text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.terminal-action-btn:hover {
+  background: var(--primary-gradient-start);
+  border-color: var(--primary-gradient-start);
+}
+
+/* Light theme overrides for GitHub integration */
+.playground-container.light .github-token-field,
+.playground-container.light .github-action-btn,
+.playground-container.light .github-repo-select,
+.playground-container.light .github-repo-input {
+  background: var(--light-bg);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .github-panel-header {
+  border-bottom-color: var(--light-border);
+}
+
+.playground-container.light .terminal-header,
+.playground-container.light .terminal-actions,
+.playground-container.light .stdin-input-area {
+  background: var(--light-bg);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .terminal-action-btn {
+  background: var(--light-bg-secondary);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .stdin-textarea {
+  background: var(--light-bg-secondary);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .stdin-input-area label {
+  color: var(--light-text);
+}
+
+/* Light theme overrides for Input panel */
+.playground-container.light .input-panel-header {
+  border-bottom-color: var(--light-border);
+}
+
+.playground-container.light .stdin-label {
+  color: var(--light-text);
+}
+
+.playground-container.light .stdin-textarea-main {
+  background: var(--light-bg-secondary);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .input-action-btn {
+  background: var(--light-bg);
+  color: var(--light-text);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .input-preview {
+  background: var(--light-bg);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .line-content {
+  color: var(--light-text);
+}
+
+/* Input Tab Specific Styles */
+.input-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.input-header h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-gradient-start);
+}
+
+.input-description {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.input-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.input-editor {
+  flex: 1;
+  min-height: 200px;
+}
+
+.stdin-input {
+  width: 100%;
+  min-height: 200px;
+  background: var(--dark-bg-secondary);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--dark-text);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.stdin-input:focus {
+  outline: none;
+  border-color: var(--primary-gradient-start);
+  box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
+}
+
+.input-preview {
+  background: var(--dark-bg);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.input-preview h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-gradient-start);
+}
+
+.preview-content {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.preview-line {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  padding: 2px 0;
+}
+
+.line-number {
+  color: var(--text-secondary);
+  min-width: 2rem;
+  text-align: right;
+  font-weight: 500;
+}
+
+.line-content {
+  color: var(--dark-text);
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.input-examples {
+  margin-top: 0.5rem;
+}
+
+.input-examples h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.example-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.example-btn {
+  padding: 6px 12px;
+  background: var(--dark-bg-secondary);
+  border: 1px solid var(--dark-border);
+  border-radius: 6px;
+  color: var(--dark-text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.example-btn:hover {
+  background: var(--primary-gradient-start);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Light theme overrides for Input tab */
+.playground-container.light .input-header {
+  border-bottom-color: var(--light-border);
+}
+
+.playground-container.light .input-description {
+  color: var(--text-secondary);
+}
+
+.playground-container.light .stdin-input {
+  background: var(--light-bg-secondary);
   border-color: var(--light-border);
   color: var(--light-text);
+}
+
+.playground-container.light .stdin-input:focus {
+  border-color: var(--primary-gradient-start);
+}
+
+.playground-container.light .input-preview {
+  background: var(--light-bg);
+  border-color: var(--light-border);
+}
+
+.playground-container.light .line-content {
+  color: var(--light-text);
+}
+
+.playground-container.light .example-btn {
+  background: var(--light-bg);
+  border-color: var(--light-border);
+  color: var(--light-text);
+}
+
+.playground-container.light .example-btn:hover {
+  background: var(--primary-gradient-start);
+  color: white;
+}
+
+.input-badge {
+  background: var(--cta-gradient-start);
+  color: white;
+  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  font-size: 8px;
+  display: inline-block;
+  margin-left: 4px;
 }

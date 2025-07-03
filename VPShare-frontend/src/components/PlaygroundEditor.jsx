@@ -28,6 +28,7 @@ import TerminalIcon from '@mui/icons-material/Terminal';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FolderIcon from '@mui/icons-material/Folder';
+import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { Switch, TextField } from '@mui/material';
 import '../styles/PlaygroundEditor.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -274,7 +275,7 @@ function PlaygroundEditor() {
   
   // Unified Output Panel (VS Code-like)
   const [outputPanelVisible, setOutputPanelVisible] = useState(true);
-  const [activeOutputTab, setActiveOutputTab] = useState('preview'); // 'preview', 'terminal', 'problems'
+  const [activeOutputTab, setActiveOutputTab] = useState('preview'); // 'preview', 'terminal', 'problems', 'github', 'input'
   const [autoSave, setAutoSave] = useState(true);
   const [autoCompile, setAutoCompile] = useState(true);
   
@@ -290,6 +291,7 @@ function PlaygroundEditor() {
   const editorRef = useRef(null);
   const dragIndex = useRef(null);
   const octokitRef = useRef(null);
+  const terminalRef = useRef(null);
 
   // Listen for Firebase Auth user and enable GitHub integration for all auth types
   useEffect(() => {
@@ -875,6 +877,27 @@ function PlaygroundEditor() {
     return Object.values(pistonLanguages).some(lang => lang.extension === fileExtension);
   };
 
+  // Scroll to bottom of terminal
+  const scrollToBottom = useCallback(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, []);
+
+  // Scroll to top of terminal
+  const scrollToTop = useCallback(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = 0;
+    }
+  }, []);
+
+  // Auto-scroll terminal when new output arrives
+  useEffect(() => {
+    if (activeOutputTab === 'terminal' && consoleLines.length > 0) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [consoleLines, activeOutputTab, scrollToBottom]);
+
   return (
     <div className={`playground-container ${theme}`}>
       {/* Sidebar */}
@@ -1040,124 +1063,6 @@ function PlaygroundEditor() {
             <CodeIcon fontSize="small" className="mr-2" />
             Insert Snippet
           </motion.button>
-        </motion.div>
-
-        {/* GitHub Integration Section */}
-        <motion.div
-          className="sidebar-section"
-          variants={sidebarContentVariants}
-          initial="hidden"
-          animate={sidebarOpen ? "visible" : "hidden"}
-        >
-          <label className="text-sm font-semibold mb-2 flex items-center gap-2">
-            <GitHubIcon style={{ fontSize: 20, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
-            GitHub Integration
-          </label>
-          
-          {!githubUser ? (
-            <div className="text-gray-400 text-sm p-2 rounded-md bg-gray-800/40">
-              Please sign in to enable GitHub features.
-            </div>
-          ) : !githubToken ? (
-            <div className="github-setup">
-              <p className="text-gray-400 text-xs mb-2">
-                Connect your GitHub account to save and load projects
-              </p>
-              <input
-                type="password"
-                placeholder="GitHub Personal Access Token"
-                className="w-full px-3 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2 text-sm"
-                onBlur={(e) => {
-                  if (e.target.value) {
-                    setGithubToken(e.target.value);
-                    localStorage.setItem(`github_token_${githubUser.uid}`, e.target.value);
-                  }
-                }}
-              />
-              <p className="text-xs text-gray-500 mb-2">
-                <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-                  Generate token here
-                </a> with 'repo' scope
-              </p>
-            </div>
-          ) : (
-            <>
-              <motion.button
-                className="sidebar-button neumorphic w-full mb-2"
-                onClick={fetchGithubRepos}
-                disabled={isLoadingRepos}
-                variants={buttonHoverVariants}
-                whileHover="hover"
-              >
-                {isLoadingRepos ? 'Loading Repositories...' : 'Fetch Repositories'}
-              </motion.button>
-              
-              {githubRepos.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <FolderOpenIcon style={{ fontSize: 18, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
-                  <select
-                    className="w-full repo-select text-sm"
-                    value={repoName}
-                    onChange={e => setRepoName(e.target.value)}
-                    style={{ minWidth: 0 }}
-                  >
-                    <option value="">Select a repository</option>
-                    {githubRepos.map(repo => (
-                      <option key={repo.full_name} value={repo.full_name}>
-                        {repo.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              <input
-                type="text"
-                placeholder="Repository name (e.g., username/repo)"
-                value={repoName}
-                onChange={(e) => setRepoName(e.target.value)}
-                className="w-full px-3 py-2 bg-transparent border border-gray-500 rounded-md text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition-all mb-2 text-sm"
-              />
-              
-              <motion.button
-                className="sidebar-button neumorphic w-full mb-2"
-                onClick={saveToGithub}
-                disabled={!repoName}
-                variants={buttonHoverVariants}
-                whileHover="hover"
-              >
-                <SaveIcon fontSize="small" className="mr-2" /> Save to GitHub
-              </motion.button>
-              
-              <motion.button
-                className="sidebar-button neumorphic w-full mb-2"
-                onClick={loadFromGithub}
-                disabled={!repoName}
-                variants={buttonHoverVariants}
-                whileHover="hover"
-              >
-                <RefreshIcon fontSize="small" className="mr-2" /> Load from GitHub
-              </motion.button>
-              
-              <motion.button
-                className="sidebar-button danger w-full text-xs"
-                onClick={() => {
-                  setGithubToken(null);
-                  localStorage.removeItem(`github_token_${githubUser.uid}`);
-                  setGithubRepos([]);
-                  setRepoName('');
-                }}
-                variants={buttonHoverVariants}
-                whileHover="hover"
-              >
-                Disconnect GitHub
-              </motion.button>
-            </>
-          )}
-          
-          {githubError && (
-            <p className="text-red-400 text-xs mt-2">{githubError}</p>
-          )}
         </motion.div>
 
         {/* Clear All Files */}
@@ -1679,6 +1584,26 @@ button:hover {
                     <span className="error-badge">!</span>
                   )}
                 </button>
+                <button
+                  className={`output-tab ${activeOutputTab === 'input' ? 'active' : ''}`}
+                  onClick={() => setActiveOutputTab('input')}
+                >
+                  <KeyboardIcon fontSize="small" />
+                  Input
+                  {stdin && (
+                    <span className="input-indicator">●</span>
+                  )}
+                </button>
+                <button
+                  className={`output-tab ${activeOutputTab === 'github' ? 'active' : ''}`}
+                  onClick={() => setActiveOutputTab('github')}
+                >
+                  <GitHubIcon fontSize="small" />
+                  GitHub
+                  {githubError && (
+                    <span className="error-badge">!</span>
+                  )}
+                </button>
               </div>
 
               {/* Output Panel Content */}
@@ -1712,48 +1637,65 @@ button:hover {
 
                 {activeOutputTab === 'terminal' && (
                   <div className="console-output-area">
-                    <div className="output-content-area">
-                      {consoleLines.length === 0 ? (
-                        <div className="console-line">
-                          <div className="console-line-type info">INFO</div>
-                          <div className="console-line-content">
-                            Welcome to the integrated terminal. Execute code to see output here.
-                          </div>
-                        </div>
-                      ) : (
-                        consoleLines.map(line => (
-                          <div key={line.id} className="console-line">
-                            <div className={`console-line-type ${line.type}`}>
-                              {line.type.toUpperCase()}
-                            </div>
-                            <div className="console-line-content">{line.content}</div>
-                            <div className="console-timestamp">{line.timestamp}</div>
-                          </div>
-                        ))
-                      )}
-                      {isExecuting && (
-                        <div className="console-line">
-                          <div className="console-line-type info">INFO</div>
-                          <div className="console-line-content">
-                            <div className="executing-spinner" style={{ display: 'inline-block', marginRight: '8px' }} />
-                            Executing code...
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {canExecuteCurrentFile() && (
-                      <div className="stdin-input-area">
-                        <label htmlFor="stdin-input">Standard Input (stdin):</label>
-                        <textarea
-                          id="stdin-input"
-                          value={stdin}
-                          onChange={(e) => setStdin(e.target.value)}
-                          placeholder="Enter input for your program here..."
-                          className="stdin-textarea"
-                        />
+                    {/* Terminal Header with Actions */}
+                    <div className="terminal-header">
+                      <div className="terminal-actions">
+                        <button
+                          className="terminal-action-btn"
+                          onClick={scrollToTop}
+                          title="Scroll to top"
+                        >
+                          ↑ Top
+                        </button>
+                        <button
+                          className="terminal-action-btn"
+                          onClick={scrollToBottom}
+                          title="Scroll to bottom"
+                        >
+                          ↓ Bottom
+                        </button>
+                        <button
+                          className="terminal-action-btn"
+                          onClick={clearConsole}
+                          title="Clear terminal"
+                        >
+                          Clear
+                        </button>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Terminal Content - Scrollable */}
+                    <div className="terminal-content-wrapper">
+                      <div className="output-content-area terminal-content" ref={terminalRef}>
+                        {consoleLines.length === 0 ? (
+                          <div className="console-line">
+                            <div className="console-line-type info">INFO</div>
+                            <div className="console-line-content">
+                              Welcome to the integrated terminal. Execute code to see output here.
+                            </div>
+                          </div>
+                        ) : (
+                          consoleLines.map(line => (
+                            <div key={line.id} className="console-line">
+                              <div className={`console-line-type ${line.type}`}>
+                                {line.type.toUpperCase()}
+                              </div>
+                              <div className="console-line-content">{line.content}</div>
+                              <div className="console-timestamp">{line.timestamp}</div>
+                            </div>
+                          ))
+                        )}
+                        {isExecuting && (
+                          <div className="console-line">
+                            <div className="console-line-type info">INFO</div>
+                            <div className="console-line-content">
+                              <div className="executing-spinner" style={{ display: 'inline-block', marginRight: '8px' }} />
+                              Executing code...
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1782,17 +1724,270 @@ button:hover {
                     )}
                   </div>
                 )}
+
+                {activeOutputTab === 'input' && (
+                <div className="input-panel">
+                  <div className="input-header">
+                    <h4>Standard Input (stdin)</h4>
+                    <span className="input-description">
+                      Provide input for your program. Each line will be sent as separate input.
+                    </span>
+                  </div>
+                  <div className="input-content">
+                    <div className="input-editor">
+                      <textarea
+                        value={stdin}
+                        onChange={(e) => setStdin(e.target.value)}
+                        placeholder="Enter input data for your program (one value per line)..."
+                        className="stdin-input"
+                        rows="10"
+                      />
+                    </div>
+                    {stdin && (
+                      <div className="input-preview">
+                        <h5>Input Preview:</h5>
+                        <div className="preview-content">
+                          {stdin.split('\n').map((line, index) => (
+                            <div key={index} className="preview-line">
+                              <span className="line-number">{index + 1}:</span>
+                              <span className="line-content">{line || '<empty>'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="input-examples">
+                      <h5>Common Input Examples:</h5>
+                      <div className="example-buttons">
+                        <button 
+                          className="example-btn"
+                          onClick={() => setStdin('5\n10\n15')}
+                        >
+                          Numbers
+                        </button>
+                        <button 
+                          className="example-btn"
+                          onClick={() => setStdin('Hello\nWorld\nTest')}
+                        >
+                          Strings
+                        </button>
+                        <button 
+                          className="example-btn"
+                          onClick={() => setStdin('1 2 3\n4 5 6\n7 8 9')}
+                        >
+                          Matrix
+                        </button>
+                        <button 
+                          className="example-btn"
+                          onClick={() => setStdin('')}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeOutputTab === 'github' && (
+                  <div className="output-content-area github-integration-panel">
+                    <div className="github-panel-header">
+                      <GitHubIcon style={{ fontSize: 20, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
+                      <h3>GitHub Integration</h3>
+                    </div>
+                    
+                    {!githubUser ? (
+                      <div className="github-message">
+                        <div className="console-line">
+                          <div className="console-line-type info">INFO</div>
+                          <div className="console-line-content">Please sign in to enable GitHub features.</div>
+                        </div>
+                      </div>
+                    ) : !githubToken ? (
+                      <div className="github-setup">
+                        <div className="console-line">
+                          <div className="console-line-type info">INFO</div>
+                          <div className="console-line-content">Connect your GitHub account to save and load projects</div>
+                        </div>
+                        <div className="github-token-input">
+                          <input
+                            type="password"
+                            placeholder="GitHub Personal Access Token"
+                            className="github-token-field"
+                            onBlur={(e) => {
+                              if (e.target.value) {
+                                setGithubToken(e.target.value);
+                                localStorage.setItem(`github_token_${githubUser.uid}`, e.target.value);
+                              }
+                            }}
+                          />
+                          <p className="github-help-text">
+                            <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">
+                              Generate token here
+                            </a> with 'repo' scope
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="github-actions">
+                        <div className="github-actions-row">
+                          <button
+                            className="github-action-btn"
+                            onClick={fetchGithubRepos}
+                            disabled={isLoadingRepos}
+                          >
+                            {isLoadingRepos ? 'Loading...' : 'Fetch Repositories'}
+                          </button>
+                          
+                          {githubRepos.length > 0 && (
+                            <select
+                              className="github-repo-select"
+                              value={repoName}
+                              onChange={e => setRepoName(e.target.value)}
+                            >
+                              <option value="">Select a repository</option>
+                              {githubRepos.map(repo => (
+                                <option key={repo.full_name} value={repo.full_name}>
+                                  {repo.full_name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+                        
+                        <div className="github-actions-row">
+                          <input
+                            type="text"
+                            placeholder="Repository name (e.g., username/repo)"
+                            value={repoName}
+                            onChange={(e) => setRepoName(e.target.value)}
+                            className="github-repo-input"
+                          />
+                        </div>
+                        
+                        <div className="github-actions-row">
+                          <button
+                            className="github-action-btn github-save-btn"
+                            onClick={saveToGithub}
+                            disabled={!repoName}
+                          >
+                            <SaveIcon fontSize="small" /> Save to GitHub
+                          </button>
+                          
+                          <button
+                            className="github-action-btn github-load-btn"
+                            onClick={loadFromGithub}
+                            disabled={!repoName}
+                          >
+                            <RefreshIcon fontSize="small" /> Load from GitHub
+                          </button>
+                        </div>
+                        
+                        <div className="github-actions-row">
+                          <button
+                            className="github-action-btn github-disconnect-btn"
+                            onClick={() => {
+                              setGithubToken(null);
+                              localStorage.removeItem(`github_token_${githubUser.uid}`);
+                              setGithubRepos([]);
+                              setRepoName('');
+                            }}
+                          >
+                            Disconnect GitHub
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {githubError && (
+                      <div className="console-line">
+                        <div className="console-line-type error">ERROR</div>
+                        <div className="console-line-content">{githubError}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeOutputTab === 'input' && (
+                  <div className="output-content-area input-panel">
+                    <div className="input-panel-header">
+                      <CodeIcon style={{ fontSize: 20, color: theme === 'dark' ? '#fff' : '#1e40af' }} />
+                      <h3>Standard Input</h3>
+                    </div>
+                    
+                    <div className="input-panel-content">
+                      <div className="console-line">
+                        <div className="console-line-type info">INFO</div>
+                        <div className="console-line-content">
+                          Provide input for your program. This will be passed as stdin when executing code.
+                        </div>
+                      </div>
+                      
+                      <div className="stdin-input-container">
+                        <label htmlFor="stdin-input-main" className="stdin-label">
+                          Program Input:
+                        </label>
+                        <textarea
+                          id="stdin-input-main"
+                          value={stdin}
+                          onChange={(e) => setStdin(e.target.value)}
+                          placeholder="Enter input for your program here...
+Example:
+5
+Hello World
+3.14"
+                          className="stdin-textarea-main"
+                          rows={8}
+                        />
+                        
+                        <div className="input-actions">
+                          <button
+                            className="input-action-btn clear-input-btn"
+                            onClick={() => setStdin('')}
+                            disabled={!stdin}
+                          >
+                            Clear Input
+                          </button>
+                          <button
+                            className="input-action-btn sample-input-btn"
+                            onClick={() => {
+                              const currentFile = files.find(file => file.name === activeFile);
+                              if (currentFile?.name.endsWith('.py')) {
+                                setStdin('5\nHello Python\n3.14\n');
+                              } else if (currentFile?.name.endsWith('.java')) {
+                                setStdin('10\nJava Programming\n2.718\n');
+                              } else if (currentFile?.name.endsWith('.cpp') || currentFile?.name.endsWith('.c')) {
+                                setStdin('7\nC++ Coding\n1.414\n');
+                              } else {
+                                setStdin('42\nSample Input\n9.99\n');
+                              }
+                            }}
+                          >
+                            Add Sample Input
+                          </button>
+                        </div>
+                        
+                        {stdin && (
+                          <div className="input-preview">
+                            <label className="input-preview-label">Input Preview:</label>
+                            <div className="input-preview-content">
+                              {stdin.split('\n').map((line, index) => (
+                                <div key={index} className="input-line">
+                                  <span className="line-number">{index + 1}:</span>
+                                  <span className="line-content">{line || '(empty line)'}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Output Panel Actions */}
               <div className="output-panel-actions">
-                <button
-                  className="output-action-btn"
-                  onClick={clearConsole}
-                  title="Clear output"
-                >
-                  Clear
-                </button>
                 {autoSave && (
                   <span className="auto-save-indicator">
                     ✅ Auto-saved
