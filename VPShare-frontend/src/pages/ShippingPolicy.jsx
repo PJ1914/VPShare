@@ -48,8 +48,11 @@ function ShippingPolicy() {
             <Typography variant="h3" component="h1" gutterBottom>
               Shipping Policy
             </Typography>
+            <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+              Effective Date: June 27, 2025
+            </Typography>
             <Typography variant="subtitle1" color="textSecondary">
-              Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              Version: 1.0
             </Typography>
           </Box>
 
@@ -227,15 +230,21 @@ function ShippingPolicy() {
                 For shipping-related queries (when applicable):
               </Typography>
               <ul className="policy-list">
-                <li><strong>Email:</strong> shipping@codetapasya.com</li>
                 <li><strong>Support:</strong> support@codetapasya.com</li>
                 <li><strong>Track Orders:</strong> Available through account dashboard</li>
                 <li><strong>Customer Service:</strong> Available during business hours</li>
               </ul>
 
-              <Box mt={4} p={3} className="policy-highlight">
-                <Typography variant="body2">
-                  <strong>Current Status:</strong> CodeTapasya currently offers only digital services with instant delivery. This shipping policy will be activated when we introduce physical products. All registered users will be notified when physical merchandise becomes available.
+              <Typography variant="h5" gutterBottom className="section-title">
+                11. Governing Law and Jurisdiction
+              </Typography>
+              <Typography paragraph>
+                This Shipping Policy shall be governed by and interpreted in accordance with the laws of India. Any disputes relating to shipping or delivery shall be subject to the exclusive jurisdiction of the courts located in Hyderabad, Telangana, India.
+              </Typography>
+
+              <Box mt={4} p={3} style={{ backgroundColor: '#fff3cd', borderRadius: '8px', border: '1px solid #ffc107' }}>
+                <Typography variant="body2" style={{ fontWeight: 'bold' }}>
+                  🔔 <strong>Important Notice:</strong> As of June 2025, CodeTapasya offers only digital services with no physical product shipping. This Shipping Policy is published in anticipation of future product offerings. Users will be notified when physical merchandise becomes available.
                 </Typography>
               </Box>
 

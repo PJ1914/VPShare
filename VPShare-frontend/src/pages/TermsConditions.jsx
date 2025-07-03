@@ -87,7 +87,7 @@ function TermsConditions() {
                 <li><strong>GitHub Integration:</strong> Portfolio building and assignment submission through GitHub connectivity</li>
                 <li><strong>Assessment System:</strong> Interactive quizzes, coding challenges, and progress tracking</li>
                 <li><strong>Community Features:</strong> Discussion forums, peer collaboration, and mentorship programs</li>
-                <li><strong>AI Assistant:</strong> CodeTapasya AI for instant coding help and learning guidance</li>
+                <li><strong>CodeTapasya AI:</strong> AI Assistant for instant coding help and learning guidance</li>
                 <li><strong>Premium Services:</strong> Advanced features, priority support, and exclusive content</li>
               </ul>
               <Typography paragraph>
@@ -213,6 +213,9 @@ function TermsConditions() {
               <Typography paragraph>
                 <strong>Subscription Management:</strong> Users can upgrade, downgrade, or cancel subscriptions through account settings. Changes take effect at the next billing cycle unless otherwise specified.
               </Typography>
+              <ul className="policy-list">
+                <li><strong>Refunds:</strong> Refunds are not provided for partial use or mid-term cancellations, except as required by law</li>
+              </ul>
 
               <Typography variant="h5" gutterBottom className="section-title">
                 6. Community Guidelines and Learning Environment
@@ -288,7 +291,7 @@ function TermsConditions() {
               </ul>
 
               <Typography paragraph>
-                <strong>Planned Updates and Features:</strong> CodeTapasya continuously evolves with new courses, features, and improvements. The upcoming 'scode' collaborative coding platform will provide real-time collaboration with AI assistance.
+                <strong>Planned Updates and Features:</strong> CodeTapasya continuously evolves with new courses, features, and improvements. The upcoming <em>Scode</em> collaborative coding platform will provide real-time collaboration with AI assistance.
               </Typography>
 
               <Typography variant="h5" gutterBottom className="section-title">
@@ -365,7 +368,7 @@ function TermsConditions() {
                 11. Privacy and Data Protection
               </Typography>
               <Typography paragraph>
-                Your privacy is paramount to us. CodeTapasya adheres to strict data protection standards and Indian privacy laws. Our comprehensive Privacy Policy details how we collect, use, store, and protect your personal information.
+                Your privacy is paramount to us. CodeTapasya adheres to strict data protection standards and Indian privacy laws. Our comprehensive Privacy Policy details how we collect, use, store, and protect your personal information. For complete information, refer to our Privacy Policy.
               </Typography>
               
               <Typography paragraph>
@@ -389,7 +392,7 @@ function TermsConditions() {
                 <strong>Jurisdiction and Applicable Law:</strong>
               </Typography>
               <Typography paragraph>
-                These Terms are governed by the laws of India. Any disputes arising from or relating to these Terms or your use of CodeTapasya shall be subject to the exclusive jurisdiction of courts in Bangalore, Karnataka, India.
+                These Terms are governed by the laws of India. Any disputes arising from or relating to these Terms or your use of CodeTapasya shall be subject to the exclusive jurisdiction of courts in Hyderabad, Telangana, India.
               </Typography>
 
               <Typography paragraph>
@@ -413,16 +416,18 @@ function TermsConditions() {
                 For all matters related to these Terms, please contact us through the following channels:
               </Typography>
               <ul className="policy-list">
-                <li><strong>Legal Inquiries:</strong> legal@codetapasya.com</li>
-                <li><strong>General Support:</strong> support@codetapasya.com</li>
-                <li><strong>Business Partnerships:</strong> partnerships@codetapasya.com</li>
-                <li><strong>Technical Issues:</strong> tech@codetapasya.com</li>
-                <li><strong>Billing and Payments:</strong> billing@codetapasya.com</li>
-                <li><strong>Mailing Address:</strong> CodeTapasya Developers, India</li>
+                <li><strong>Grievance Officer:</strong> Pranay Jumbarthi</li>
+                <li><strong>Email:</strong> support@codetapasya.com</li>
+                <li><strong>Address:</strong> CodeTapasya, Hyderabad, Telangana, India</li>
+                <li><strong>Response Timeline:</strong> We aim to respond within 7 working days as per Indian law.</li>
               </ul>
 
               <Typography paragraph>
                 <strong>Response Times:</strong> We aim to respond to all inquiries within 48 hours during business days. Legal matters may require additional processing time.
+              </Typography>
+
+              <Typography paragraph>
+                For concerns related to data protection under the Digital Personal Data Protection Act (DPDPB), you may also contact our Grievance Officer at support@codetapasya.com.
               </Typography>
 
               <Box mt={4} p={3} className="policy-highlight">
