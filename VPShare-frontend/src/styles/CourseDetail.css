@@ -316,10 +316,6 @@
   }
 }
 
-.modules-container {
-  /* Module items have individual margin-bottom */
-}
-
 .sidebar-module-item {
   margin-bottom: 1rem;
   border-radius: 12px;
