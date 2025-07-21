@@ -2,32 +2,11 @@
 Firebase RAG System for VPShare
 Integrates with Firestore collections: users, userChats, userEngagement, userProgress, playgroundActiveUsers
 """
-
-import firebase_admin
 from firebase_admin import credentials, firestore
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import os
 from datetime import datetime, timedelta, timezone
-
-# Initialize Firebase Admin (if not already initialized)
-def initialize_firebase():
-    if not firebase_admin._apps:
-        try:
-            # Try to get credentials from environment or service account file
-            cred_path = os.getenv('FIREBASE_ADMINSDK_JSON')
-            cred = credentials.Certificate(cred_path)
-            firebase_admin.initialize_app(cred)
-        except Exception as e:
-            print(f"Firebase initialization error: {e}")
-            # Fallback to default credentials if available
-            try:
-                firebase_admin.initialize_app()
-            except:
-                print("Could not initialize Firebase. Some features may not work.")
-
-# Initialize Firebase
-initialize_firebase()
 
 # Get Firestore client
 try:
