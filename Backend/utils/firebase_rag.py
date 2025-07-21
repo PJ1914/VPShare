@@ -15,7 +15,7 @@ def initialize_firebase():
     if not firebase_admin._apps:
         try:
             # Try to get credentials from environment or service account file
-            cred_path = os.getenv('FIREBASE_CREDENTIALS_PATH', './firebase_adminsdk.json')
+            cred_path = os.getenv('FIREBASE_ADMINSDK_JSON')
             cred = credentials.Certificate(cred_path)
             firebase_admin.initialize_app(cred)
         except Exception as e:
