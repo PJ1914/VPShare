@@ -46,8 +46,16 @@ export const SubscriptionProvider = ({ children }) => {
   // Listen to auth state changes
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    let unsubscribeDoc = null; // Store the document listener unsubscribe function
+    
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
+      // Clean up previous document listener if it exists
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+        unsubscribeDoc = null;
+      }
       
       if (currentUser) {
         await checkSubscription();
@@ -56,7 +64,7 @@ export const SubscriptionProvider = ({ children }) => {
         const db = getFirestore();
         const userDocRef = doc(db, 'users', currentUser.uid);
         
-        const unsubscribeDoc = onSnapshot(userDocRef, (docSnapshot) => {
+        unsubscribeDoc = onSnapshot(userDocRef, (docSnapshot) => {
           if (docSnapshot.exists()) {
             const userData = docSnapshot.data();
             const subscription = userData.subscription;
@@ -93,22 +101,38 @@ export const SubscriptionProvider = ({ children }) => {
             }
           }
         }, (error) => {
-          console.error('Error listening to subscription changes:', error);
+          // Only log error if user is still authenticated
+          if (currentUser && auth.currentUser) {
+            console.error('Error listening to subscription changes:', error);
+          }
+          // Set default state on error
+          setSubscriptionData({
+            hasSubscription: false,
+            plan: null,
+            expiresAt: null,
+            status: 'error',
+            loading: false
+          });
         });
-        
-        // Return cleanup function for document listener
-        return () => unsubscribeDoc();
       } else {
+        // User is logged out, set default state
         setSubscriptionData({
           hasSubscription: false,
           plan: null,
           expiresAt: null,
+          status: 'logged_out',
           loading: false
         });
       }
     });
 
-    return () => unsubscribe();
+    // Cleanup function
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDoc) {
+        unsubscribeDoc();
+      }
+    };
   }, []);
 
   // Refresh subscription data

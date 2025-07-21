@@ -62,6 +62,76 @@ function Assignments() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [submissionModalOpen, setSubmissionModalOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [submissionData, setSubmissionData] = useState({
+    solution: '',
+    submission_url: '',
+    notes: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Helper function to get auth headers
+  const getAuthHeaders = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+    
+    const token = await user.getIdToken(true);
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+  };
+
+  // Submit assignment function
+  const submitAssignment = async (assignmentId, submissionData) => {
+    setSubmitting(true);
+    try {
+      const headers = await getAuthHeaders();
+      const apiUrl = import.meta.env.VITE_ASSIGNMENTS_API_URL;
+      
+      await axios.post(`${apiUrl}/assignments/${assignmentId}/submit`, submissionData, { headers });
+      
+      // Refresh assignments to show updated status
+      const response = await axios.get(`${apiUrl}/assignments`, { headers });
+      setCourses(Array.isArray(response.data) ? response.data : []);
+      
+      setSubmissionModalOpen(false);
+      setSubmissionData({ solution: '', submission_url: '', notes: '' });
+      alert('Assignment submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting assignment:', error);
+      alert('Failed to submit assignment: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Mark assignment as complete function
+  const markAsComplete = async (assignmentId) => {
+    try {
+      const headers = await getAuthHeaders();
+      const apiUrl = import.meta.env.VITE_ASSIGNMENTS_API_URL;
+      
+      await axios.post(`${apiUrl}/assignments/${assignmentId}/complete`, {}, { headers });
+      
+      // Refresh assignments to show updated status
+      const response = await axios.get(`${apiUrl}/assignments`, { headers });
+      setCourses(Array.isArray(response.data) ? response.data : []);
+      
+      alert('Assignment marked as completed!');
+    } catch (error) {
+      console.error('Error marking assignment complete:', error);
+      alert('Failed to mark assignment as complete: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  // Open submission modal
+  const openSubmissionModal = (assignment) => {
+    setSelectedAssignment(assignment);
+    setSubmissionModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -93,15 +163,16 @@ function Assignments() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`,
         };
-        const response = await axios.get(apiUrl, { headers, timeout: 30000 });
-        // Expecting API to return [{ name: 'HTML', modules: [ ... ] }, ...]
-        const data = Array.isArray(response.data)
-          ? response.data
-          : response.data.Items || response.data.assignments || [];
+        const response = await axios.get(`${apiUrl}/assignments`, { headers, timeout: 30000 });
+        console.log('Assignments API response:', response.data);
+        
+        // API returns array of courses with modules
+        const data = Array.isArray(response.data) ? response.data : [];
         setCourses(data);
         setSelectedCourse(data[0]?.name || '');
       } catch (err) {
-        setError('Unexpected error: ' + (err.message || err));
+        console.error('Error fetching assignments:', err);
+        setError('Failed to load assignments: ' + (err.response?.data?.error || err.message));
         setCourses([]);
       } finally {
         setLoading(false);
@@ -382,23 +453,37 @@ function Assignments() {
                     </div>
 
                     <div className="assignment-actions">
-                      <motion.button 
-                        className={`action-button ${assignment.status === 'Pending' ? 'primary' : 'secondary'}`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {assignment.status === 'Pending' ? (
-                          <>
+                      {assignment.status === 'Pending' ? (
+                        <div className="action-buttons">
+                          <motion.button 
+                            className="action-button primary"
+                            onClick={() => openSubmissionModal(assignment)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
                             <UploadIcon />
                             Submit Assignment
-                          </>
-                        ) : (
-                          <>
-                            <VisibilityIcon />
-                            View Submission
-                          </>
-                        )}
-                      </motion.button>
+                          </motion.button>
+                          <motion.button 
+                            className="action-button secondary"
+                            onClick={() => markAsComplete(assignment.id)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <CheckCircleIcon />
+                            Mark Complete
+                          </motion.button>
+                        </div>
+                      ) : (
+                        <motion.button 
+                          className="action-button secondary"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <VisibilityIcon />
+                          View Submission
+                        </motion.button>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -504,11 +589,34 @@ function Assignments() {
                       </td>
                       <td>
                         <div className="table-actions">
-                          <Tooltip title={assignment.status === 'Pending' ? 'Submit' : 'View'}>
-                            <IconButton size="small" className="table-action-btn">
-                              {assignment.status === 'Pending' ? <UploadIcon /> : <VisibilityIcon />}
-                            </IconButton>
-                          </Tooltip>
+                          {assignment.status === 'Pending' ? (
+                            <>
+                              <Tooltip title="Submit Assignment">
+                                <IconButton 
+                                  size="small" 
+                                  className="table-action-btn"
+                                  onClick={() => openSubmissionModal(assignment)}
+                                >
+                                  <UploadIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Mark Complete">
+                                <IconButton 
+                                  size="small" 
+                                  className="table-action-btn"
+                                  onClick={() => markAsComplete(assignment.id)}
+                                >
+                                  <CheckCircleIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <Tooltip title="View Submission">
+                              <IconButton size="small" className="table-action-btn">
+                                <VisibilityIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           {assignment.feedback && (
                             <Tooltip title="View Feedback">
                               <IconButton size="small" className="table-action-btn">
@@ -534,6 +642,96 @@ function Assignments() {
           </div>
         </motion.section>
       )}
+
+      {/* Submission Modal */}
+      <AnimatePresence>
+        {submissionModalOpen && (
+          <motion.div 
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSubmissionModalOpen(false)}
+          >
+            <motion.div 
+              className="submission-modal"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h3>Submit Assignment: {selectedAssignment?.title}</h3>
+                <button 
+                  className="close-button"
+                  onClick={() => setSubmissionModalOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="modal-content">
+                <div className="form-group">
+                  <label>Solution/Code:</label>
+                  <textarea
+                    value={submissionData.solution}
+                    onChange={(e) => setSubmissionData({
+                      ...submissionData,
+                      solution: e.target.value
+                    })}
+                    placeholder="Paste your code solution here..."
+                    rows="10"
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Submission URL (optional):</label>
+                  <input
+                    type="url"
+                    value={submissionData.submission_url}
+                    onChange={(e) => setSubmissionData({
+                      ...submissionData,
+                      submission_url: e.target.value
+                    })}
+                    placeholder="https://github.com/username/repo or live demo URL"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>Notes (optional):</label>
+                  <textarea
+                    value={submissionData.notes}
+                    onChange={(e) => setSubmissionData({
+                      ...submissionData,
+                      notes: e.target.value
+                    })}
+                    placeholder="Add any notes about your solution..."
+                    rows="3"
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  className="cancel-button"
+                  onClick={() => setSubmissionModalOpen(false)}
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="submit-button"
+                  onClick={() => submitAssignment(selectedAssignment?.id, submissionData)}
+                  disabled={submitting || !submissionData.solution.trim()}
+                >
+                  {submitting ? 'Submitting...' : 'Submit Assignment'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

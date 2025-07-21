@@ -6,12 +6,76 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
 *.local
 .env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+out/
+coverage/
+tmp/
+temp/
+.next/
+.vercel/
+.turbo/
+
+# Environment files
+.env
+.env.*
+*.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+.AppleDouble
+.LSOverride
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history/
+
+# Misc
+*.pid
+*.seed
+*.pid.lock
+*.tgz
+*.bak
+*.tmp
+*.swp
+*.swo
+*.orig
+*.rej
+
+# Test output
+junit.xml
+test-results.xml
 
 # Editor directories and files
 .vscode/*

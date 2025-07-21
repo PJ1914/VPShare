@@ -1,0 +1,257 @@
+/* Message Component Styles */
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.message.user {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  margin-left: auto;
+  margin-right: 0;
+  max-width: 85%;
+  border-bottom-right-radius: 4px;
+}
+
+.message.bot {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  margin-left: 0;
+  margin-right: auto;
+  max-width: 95%;
+  border-bottom-left-radius: 4px;
+}
+
+.messageIcon {
+  margin-right: 12px;
+  margin-top: 2px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.messageContent {
+  flex: 1;
+  min-width: 0; /* Allow content to shrink */
+}
+
+.messageContent p {
+  margin: 0 0 8px 0;
+  line-height: 1.6;
+}
+
+.messageContent p:last-child {
+  margin-bottom: 0;
+}
+
+.messageTimestamp {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+.user .messageTimestamp {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Code Block Improvements */
+.codeBlockWrapper {
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #1e293b;
+  max-width: 100%;
+}
+
+.codeBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #334155;
+  border-bottom: 1px solid #475569;
+}
+
+.codeLanguage {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.copyCodeBtn {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.copyCodeBtn:hover {
+  background: #475569;
+  border-color: #64748b;
+}
+
+.codeBlockWrapper pre {
+  margin: 0;
+  padding: 16px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-width: 100%;
+  white-space: pre;
+}
+
+.codeBlockWrapper code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.codeLine {
+  display: flex;
+  min-height: 20px;
+}
+
+.lineNumber {
+  color: #64748b;
+  margin-right: 16px;
+  user-select: none;
+  text-align: right;
+  min-width: 24px;
+  flex-shrink: 0;
+}
+
+/* Inline code styling */
+.messageContent code:not(.codeBlockWrapper code) {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.user code:not(.codeBlockWrapper code) {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Typing indicators */
+.typingIndicator {
+  padding: 16px 20px;
+}
+
+.typingDots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.typingDots span {
+  width: 8px;
+  height: 8px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  30% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.typingText {
+  position: relative;
+}
+
+.typingCursor {
+  animation: blink 1s infinite;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .message {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+  }
+  
+  .message.user {
+    max-width: 90%;
+  }
+  
+  .message.bot {
+    max-width: 98%;
+  }
+  
+  .codeBlockWrapper pre {
+    padding: 12px;
+    font-size: 12px;
+  }
+  
+  .lineNumber {
+    min-width: 20px;
+    margin-right: 12px;
+  }
+}
+
+/* Scrollbar styling for code blocks */
+.codeBlockWrapper pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.codeBlockWrapper pre::-webkit-scrollbar-track {
+  background: #334155;
+}
+
+.codeBlockWrapper pre::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border-radius: 3px;
+}
+
+.codeBlockWrapper pre::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

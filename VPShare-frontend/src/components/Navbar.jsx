@@ -19,6 +19,7 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import LockIcon from '@mui/icons-material/Lock';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Logo from '../assets/CT Logo.png';
 import '../styles/Navbar.css';
 
@@ -33,6 +34,7 @@ const logoVariants = {
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   // --- CHANGE START ---
@@ -73,6 +75,15 @@ function Navbar() {
       setUser(currentUser);
       setIsMobileMenuOpen(false);
       setIsSidebarOpen(false);
+      
+      // Check if user is admin
+      if (currentUser) {
+        const adminEmails = ['admin@codetapasya.com', 'your-admin-email@domain.com'];
+        setIsAdmin(adminEmails.includes(currentUser.email));
+      } else {
+        setIsAdmin(false);
+      }
+      
       // Set profile picture directly; let <img onError> handle fallback
       if (currentUser && currentUser.photoURL) {
         setProfilePicture(currentUser.photoURL);
@@ -163,10 +174,19 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
+      // Close any open menus before logout
+      setIsSidebarOpen(false);
+      setIsMobileMenuOpen(false);
+      
+      // Sign out and wait for completion
       await signOut(auth);
+      
+      // Navigate to home page after successful logout
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+      // Still try to navigate even if logout had issues
+      navigate('/');
     }
   };
 
@@ -343,6 +363,13 @@ function Navbar() {
                   <GitHubIcon className="sidebar-icon" /> GitHub
                 </Link>
               </li>
+              {isAdmin && (
+                <li>
+                  <Link to="/admin" className="profile-sidebar-link admin-link" onClick={() => setIsSidebarOpen(false)}>
+                    <AdminPanelSettingsIcon className="sidebar-icon" /> Admin Panel
+                  </Link>
+                </li>
+              )}
             </ul>
             
             {/* Subscription Status Section */}

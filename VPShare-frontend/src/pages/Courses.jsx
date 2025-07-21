@@ -43,7 +43,7 @@ const cardVariants = {
   exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
 };
 
-// Replace mapModuleIdToCategory with CATEGORY_MAP approach
+// Category mapping for courses
 const CATEGORY_MAP = {
   html: 'Frontend', css: 'Frontend', javascript: 'Frontend', react: 'Frontend',
   node: 'Backend', express: 'Backend', api: 'Backend',
@@ -52,21 +52,22 @@ const CATEGORY_MAP = {
   agile: 'Project Management', scrum: 'Project Management', project: 'Project Management',
   python: 'Programming Languages', java: 'Programming Languages', 'c++': 'Programming Languages', c: 'Programming Languages'
 };
-const mapModuleIdToCategory = (moduleId, title = '') => {
-  const source = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(moduleId) && title
-    ? title.toLowerCase()
-    : moduleId.toLowerCase();
+
+const mapCourseToCategory = (courseId, title = '') => {
+  const source = title ? title.toLowerCase() : courseId.toLowerCase();
   for (const [key, category] of Object.entries(CATEGORY_MAP)) {
     if (source.includes(key)) return category;
   }
   return 'Misc';
 };
 
+// Helper to strip DynamoDB prefixes (e.g., "COURSE#html" -> "html")
+const stripPrefix = (id) => id && id.includes('#') ? id.split('#')[1] : id;
+
 function Courses() {
   const location = useLocation();
   const { hasSubscription, loading: subscriptionLoading } = useSubscription();
   const [filter, setFilter] = useState(() => {
-    // Use filter from navigation state if present, else default to 'All'
     return location.state && location.state.filter ? location.state.filter : 'All';
   });
   const [courses, setCourses] = useState([]);
@@ -74,8 +75,20 @@ function Courses() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const getAuthHeaders = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+    
+    const token = await user.getIdToken(true);
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   useEffect(() => {
-    const fetchCoursesAndProgress = async () => {
+    const fetchCoursesData = async () => {
       setLoading(true);
       setError(null);
 
@@ -89,99 +102,82 @@ function Courses() {
         return;
       }
 
-      let authToken;
       try {
-        authToken = await user.getIdToken(true); // force refresh
-      } catch (tokenError) {
-        setError("Authentication error. Please log out and log in again.");
-        setLoading(false);
-        navigate('/login', { replace: true });
-        return;
-      }
+        const headers = await getAuthHeaders();
+        const apiUrl = import.meta.env.VITE_COURSES_API_URL;
 
-      const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-      if (!apiUrl) {
-        setError("Server configuration error. Please contact support.");
-        setLoading(false);
-        return;
-      }
+        // Fetch courses from new LMS API
+        const coursesResponse = await axios.get(`${apiUrl}/courses`, { headers });
+        const rawCourses = Array.isArray(coursesResponse.data) ? coursesResponse.data : coursesResponse.data.Items || [];
 
-      try {
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        };
-        const response = await axios.get(apiUrl, { headers, timeout: 30000 });
-        const rawData = Array.isArray(response.data)
-          ? response.data
-          : response.data.Items || response.data.courses || [];
-        if (!rawData.length) {
+        if (!rawCourses.length) {
           setError("No courses available. Check back later or contact support.");
           setCourses([]);
           setLoading(false);
           return;
         }
 
-        // Fetch user progress for each course by ID
-        const db = getFirestore();
-        const progressMap = {};
-        await Promise.all(
-          rawData.map(async (course) => {
-            const courseId = course.module_id;
-            if (!courseId) return;
-            const progressDocId = `${user.uid}_${courseId}`;
-            const progressDocRef = doc(db, 'userProgress', progressDocId);
-            const progressSnap = await getDoc(progressDocRef);
-            if (progressSnap.exists()) {
-              const data = progressSnap.data();
-              if (data.courseId && Array.isArray(data.completedSections)) {
-                progressMap[courseId] = data;
+        // Fetch modules for each course to get module count
+        const coursesWithModules = await Promise.all(
+          rawCourses.map(async (course) => {
+            try {
+              const courseId = stripPrefix(course.SK); // Remove COURSE# prefix
+              const modulesResponse = await axios.get(`${apiUrl}/courses/${courseId}/modules`, { headers });
+              const modules = Array.isArray(modulesResponse.data) ? modulesResponse.data : modulesResponse.data.Items || [];
+              
+              const category = mapCourseToCategory(courseId, course.title);
+              
+              // Fetch user progress from Firestore
+              const db = getFirestore();
+              const progressDocId = `${user.uid}_${courseId}`;
+              const progressDocRef = doc(db, 'userProgress', progressDocId);
+              const progressSnap = await getDoc(progressDocRef);
+              
+              let progress = 0;
+              let completedModules = 0;
+              
+              if (progressSnap.exists()) {
+                const progressData = progressSnap.data();
+                completedModules = progressData.completedSections?.length || 0;
+                progress = modules.length > 0 ? Math.min(100, Math.round((completedModules / modules.length) * 100)) : 0;
               }
+
+              return {
+                id: courseId,
+                title: course.title || 'Untitled Course',
+                description: course.description || 'No description provided.',
+                thumbnail: course.thumbnail || '',
+                category,
+                level: 'Beginner', // Could be added to course data later
+                link: `/courses/${courseId}`,
+                progress,
+                totalModules: modules.length,
+                completedModules,
+                order: course.order || 1
+              };
+            } catch (moduleError) {
+              console.error(`Failed to fetch modules for course ${course.SK}:`, moduleError);
+              return null;
             }
           })
         );
 
-        // Merge progress into courses
-        const enrichedCourses = rawData
-          .map((course, index) => {
-            const courseId = course.module_id;
-            if (!courseId) {
-              console.warn('Missing module_id for course', course);
-              return null;
-            }
-            const category = mapModuleIdToCategory(courseId, course.title);
-            if (category === 'Misc') return null;
-            // totalSections fallback to 0
-            const totalSections = Array.isArray(course.sections) ? course.sections.length : 0;
-            let completed = progressMap[courseId]?.completedSections?.length || 0;
-            let quizComplete = false;
-            if (course.quiz) {
-              const questionsCount = Array.isArray(course.quiz.questions)
-                ? course.quiz.questions.length
-                : 0;
-              if (progressMap[courseId]?.quizSubmitted &&
-                  Array.isArray(progressMap[courseId].quizAnswers) &&
-                  progressMap[courseId].quizAnswers.length === questionsCount) {
-                quizComplete = true;
-              }
-            }
-            if (quizComplete) completed += 1;
-            const percent = totalSections > 0 ? Math.min(100, Math.round((completed / totalSections) * 100)) : 0;
-            const progressSectionIndex = completed < totalSections ? completed : Math.max(0, totalSections - 1);
-            return { id: courseId, title: course.title || 'Untitled Course', description: course.description || 'No description provided.', category, level: course.level || 'Beginner', link: `/courses/${courseId}`, progress: percent, progressSectionIndex };
-          })
-          .filter(Boolean);
+        const validCourses = coursesWithModules
+          .filter(Boolean)
+          .filter(course => course.category !== 'Misc')
+          .sort((a, b) => a.order - b.order);
 
-        setCourses(enrichedCourses);
+        setCourses(validCourses);
       } catch (err) {
-        setError("Unexpected error: " + (err.message || err));
+        console.error('Failed to fetch courses:', err);
+        setError("Failed to load courses. Please try again later.");
         setCourses([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCoursesAndProgress();
+    fetchCoursesData();
     window.scrollTo(0, 0);
   }, [navigate]);
 
@@ -212,7 +208,6 @@ function Courses() {
     'Version Control',
     'Project Management',
     'Programming Languages',
-    // 'Misc', // Removed Misc from filter bar
   ];
 
   const scrollToCourses = () => {
@@ -243,7 +238,7 @@ function Courses() {
         "url": "https://codetapasya.com"
       },
       "teaches": course.category,
-      "timeRequired": "P4W", // 4 weeks average
+      "timeRequired": "P4W",
       "offers": {
         "@type": "Offer",
         "category": "Educational",
@@ -370,16 +365,25 @@ function Courses() {
                         Limited Access
                       </span>
                     )}
+                    {course.thumbnail && (
+                      <img 
+                        src={course.thumbnail} 
+                        alt={course.title}
+                        className="course-thumbnail"
+                        loading="lazy"
+                      />
+                    )}
                     <h3 id={`course-title-${course.id}`}>{course.title}</h3>
                     <p className="course-description">{course.description}</p>
                     <p className="course-level">Level: {course.level}</p>
+                    <p className="course-modules">{course.totalModules} modules</p>
                     {course.progress > 0 && (
                       <div className="course-progress">
                         {course.progress === 100 ? (
                           <p className="course-completed">Course Completed!</p>
                         ) : (
                           <>
-                            <p>{course.progress}% Complete</p>
+                            <p>{course.progress}% Complete ({course.completedModules}/{course.totalModules} modules)</p>
                             <div className="progress-bar">
                               <motion.div
                                 className="progress-fill"
@@ -397,11 +401,10 @@ function Courses() {
                         to={course.link}
                         className="course-link"
                         aria-label={`Go to ${course.title}`}
-                        state={{ continueSection: course.progressSectionIndex }}
+                        state={{ continueModule: course.completedModules }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            // Navigate programmatically if needed
                           }
                         }}
                       >

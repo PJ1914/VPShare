@@ -20,6 +20,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsConditions from './pages/TermsConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -116,6 +117,15 @@ function App() {
           element={
             <PrivateRoute>
               <Quizzes />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <AdminPanel />
             </PrivateRoute>
           }
         />
