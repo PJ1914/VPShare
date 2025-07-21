@@ -157,7 +157,7 @@ export const useChat = (user) => {
 
       // Get auth token and make API call
       const token = await user.getIdToken();
-      const baseUrl = import.meta.env.VITE_AI_CHAT_API_URL_LOCAL || 'http://127.0.0.1:8000';
+      const baseUrl = import.meta.env.VITE_AI_CHAT_API_URL_LOCAL;
       const chatUrl = `${baseUrl}/chat`;
 
       const response = await fetch(chatUrl, {
