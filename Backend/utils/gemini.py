@@ -1,5 +1,8 @@
 import os
 import google.generativeai as genai
+import json
+import logging
+from typing import Dict, List, Any, Optional
 from utils.dynamo import get_recent_messages_async
 from utils.user_context import update_user_context, get_personalized_prompt_additions
 from utils.firebase_rag import (
@@ -12,6 +15,8 @@ from utils.firebase_rag import (
     save_chat_to_firestore_async,
     get_comprehensive_user_context
 )
+
+logger = logging.getLogger(__name__)
 
 # Configure Gemini API
 api_key = os.getenv("GEMINI_API_KEY")
@@ -295,6 +300,259 @@ Respond naturally and helpfully. Use the user's name when appropriate. Keep your
     else:
         full_prompt = f"""Context: {base_prompt}{rag_info}
 
-Respond naturally and helpfully. Use the user's name when appropriate. Keep your tone conversational and adaptive to their background."""
-    
+Respond naturally and helpfully. Use the user's name when appropriate. Keep your tone conversational and adaptive to their skill level and interests."""
+
     return full_prompt
+
+# Resume and ATS AI Functions
+async def generate_ai_resume_content(
+    resume_data: Dict[str, Any],
+    target_role: Optional[str] = None,
+    industry: Optional[str] = None,
+    experience_level: str = "mid",
+    focus_areas: List[str] = None
+) -> Dict[str, Any]:
+    """Generate AI-enhanced resume content using Gemini"""
+    try:
+        focus_areas = focus_areas or []
+        
+        prompt = f"""
+        You are an expert resume writer and career coach. Enhance the following resume data for a {experience_level}-level professional targeting a {target_role or 'general'} role in the {industry or 'technology'} industry.
+
+        Current Resume Data:
+        {json.dumps(resume_data, indent=2)}
+
+        Focus Areas: {', '.join(focus_areas) if focus_areas else 'General improvement'}
+
+        Please provide:
+        1. Enhanced content for each section with impactful, quantified achievements
+        2. Industry-specific keywords and phrases
+        3. Improved action verbs and professional language
+        4. Suggestions for missing sections or improvements
+        5. Keywords that should be added for ATS optimization
+
+        Return your response in the following JSON format:
+        {{
+            "enhanced_resume": {{
+                "personal_info": {{}},
+                "professional_summary": "",
+                "experience": [],
+                "education": [],
+                "skills": [],
+                "projects": [],
+                "certifications": []
+            }},
+            "improvements_made": [],
+            "suggestions": [],
+            "keywords_added": []
+        }}
+        """
+
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-pro",
+            generation_config={
+                "temperature": 0.3,
+                "top_p": 0.8,
+                "max_output_tokens": 4096,
+            }
+        )
+
+        response = model.generate_content(prompt)
+        
+        # Try to parse JSON response
+        try:
+            result = json.loads(response.text)
+        except json.JSONDecodeError:
+            # If JSON parsing fails, create structured response
+            result = {
+                "enhanced_resume": resume_data,
+                "improvements_made": ["AI enhancement applied"],
+                "suggestions": [response.text],
+                "keywords_added": []
+            }
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error generating AI resume content: {e}")
+        raise
+
+async def analyze_resume_for_improvements(
+    current_content: str,
+    section_type: str,
+    target_role: Optional[str] = None,
+    industry: Optional[str] = None
+) -> Dict[str, Any]:
+    """Analyze and improve a specific resume section"""
+    try:
+        prompt = f"""
+        You are an expert resume coach. Analyze and improve the following {section_type} section for a {target_role or 'professional'} role in {industry or 'general'} industry.
+
+        Current {section_type} content:
+        {current_content}
+
+        Please provide:
+        1. Improved version with stronger action verbs and quantified achievements
+        2. Industry-specific keywords
+        3. Specific changes made and why
+        4. Impact score (1-10) for the improvement
+        5. Additional suggestions
+
+        Return in JSON format:
+        {{
+            "improved_content": "",
+            "changes_made": [],
+            "suggestions": [],
+            "impact_score": 0
+        }}
+        """
+
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-pro",
+            generation_config={
+                "temperature": 0.3,
+                "top_p": 0.8,
+                "max_output_tokens": 2048,
+            }
+        )
+
+        response = model.generate_content(prompt)
+        
+        try:
+            result = json.loads(response.text)
+        except json.JSONDecodeError:
+            result = {
+                "improved_content": response.text,
+                "changes_made": ["Content improved with AI assistance"],
+                "suggestions": [],
+                "impact_score": 7
+            }
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error analyzing resume section: {e}")
+        raise
+
+async def get_industry_specific_suggestions(
+    industry: str,
+    role: Optional[str] = None
+) -> Dict[str, Any]:
+    """Get industry-specific resume suggestions"""
+    try:
+        prompt = f"""
+        Provide comprehensive industry insights for the {industry} industry{f', specifically for {role} roles' if role else ''}.
+
+        Include:
+        1. Top 10 most important skills for this industry/role
+        2. Trending technologies and tools
+        3. Resume writing tips specific to this industry
+        4. Salary insights and growth areas
+        5. Key certifications or qualifications valued
+
+        Return in JSON format:
+        {{
+            "key_skills": [],
+            "trending_technologies": [],
+            "resume_tips": [],
+            "salary_insights": "",
+            "growth_areas": []
+        }}
+        """
+
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-pro",
+            generation_config={
+                "temperature": 0.4,
+                "top_p": 0.9,
+                "max_output_tokens": 2048,
+            }
+        )
+
+        response = model.generate_content(prompt)
+        
+        try:
+            result = json.loads(response.text)
+        except json.JSONDecodeError:
+            result = {
+                "key_skills": ["Communication", "Leadership", "Problem-solving"],
+                "trending_technologies": ["Cloud computing", "AI/ML", "Data analytics"],
+                "resume_tips": [response.text],
+                "salary_insights": "Competitive salary range varies by location and experience",
+                "growth_areas": ["Digital transformation", "Remote work capabilities"]
+            }
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error getting industry insights: {e}")
+        raise
+
+# ATS Analysis Functions
+async def analyze_ats_compatibility(
+    resume_text: str,
+    job_description: Optional[str] = None
+) -> Dict[str, Any]:
+    """Analyze resume for ATS compatibility and scoring"""
+    try:
+        prompt = f"""
+        You are an ATS (Applicant Tracking System) expert. Analyze the following resume for ATS compatibility and provide a comprehensive score.
+
+        Resume Content:
+        {resume_text}
+
+        {f"Job Description to match against: {job_description}" if job_description else ""}
+
+        Analyze for:
+        1. Overall ATS compatibility score (0-100)
+        2. Keyword density and relevance
+        3. Format and structure issues
+        4. Missing keywords or skills
+        5. Specific improvement recommendations
+        6. Section-by-section breakdown
+
+        Return in JSON format:
+        {{
+            "overall_score": 0,
+            "keyword_score": 0,
+            "format_score": 0,
+            "content_score": 0,
+            "strengths": [],
+            "weaknesses": [],
+            "missing_keywords": [],
+            "improvement_suggestions": [],
+            "section_scores": {{}}
+        }}
+        """
+
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-pro",
+            generation_config={
+                "temperature": 0.2,
+                "top_p": 0.8,
+                "max_output_tokens": 3072,
+            }
+        )
+
+        response = model.generate_content(prompt)
+        
+        try:
+            result = json.loads(response.text)
+        except json.JSONDecodeError:
+            result = {
+                "overall_score": 75,
+                "keyword_score": 70,
+                "format_score": 80,
+                "content_score": 75,
+                "strengths": ["Well-structured content"],
+                "weaknesses": ["Could improve keyword density"],
+                "missing_keywords": [],
+                "improvement_suggestions": [response.text],
+                "section_scores": {}
+            }
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error analyzing ATS compatibility: {e}")
+        raise

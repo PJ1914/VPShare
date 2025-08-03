@@ -1,107 +1,108 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { auth, db, storage } from '../config/firebase';
-import { onAuthStateChanged, updateProfile } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, getDoc, updateDoc, getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import {
+  Typography, Button, Avatar, TextField, IconButton, Card, CardContent,
+  Dialog, DialogTitle, DialogContent, DialogActions, Grid, Box, Chip,
+  LinearProgress, Tooltip, Snackbar, Alert, Switch, CircularProgress
+} from '@mui/material';
+import {
+  Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon,
+  PhotoCamera as PhotoCameraIcon, Share as ShareIcon, Refresh as RefreshIcon,
+  School as SchoolIcon, Code as CodeIcon, Timer as TimerIcon,
+  LocalFireDepartment as LocalFireDepartmentIcon, EmojiEvents as EmojiEventsIcon,
+  BarChart as BarChartIcon, GitHub as GitHubIcon, LinkedIn as LinkedInIcon,
+  Twitter as TwitterIcon, Link as LinkIcon, Settings as SettingsIcon,
+  FileDownload as FileDownloadIcon, CheckCircle as CheckCircleIcon,
+  WorkspacePremium as WorkspacePremiumIcon, MilitaryTech as MilitaryTechIcon,
+  Whatshot as StreakIcon, TrendingUp as TrendingUpIcon, CalendarToday as ActivityIcon
+} from '@mui/icons-material';
+import { onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, db, storage } from '../config/firebase';
 import { useSubscription } from '../contexts/SubscriptionContext';
-import EditIcon from '@mui/icons-material/Edit';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import SchoolIcon from '@mui/icons-material/School';
-import CodeIcon from '@mui/icons-material/Code';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import StarIcon from '@mui/icons-material/Star';
-import ShareIcon from '@mui/icons-material/Share';
-import DownloadIcon from '@mui/icons-material/Download';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import TimerIcon from '@mui/icons-material/Timer';
-import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
-import MilitaryTechIcon from '@mui/icons-material/MilitaryTech';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import LinkIcon from '@mui/icons-material/Link';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import DiamondIcon from '@mui/icons-material/Diamond';
-import Tooltip from '@mui/material/Tooltip';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import '../styles/UserProfile.css';
+import './UserProfile.css';
 
+// Animation variants
 const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.1
+    }
+  }
 };
-const buttonVariants = {
-  hover: { scale: 1.05, transition: { duration: 0.2 } },
+
+const staggerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
 };
+
 const cardVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.3 }
+  }
 };
 
-// Helper to check if a string is a UUID
-const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
-const getTodayDateString = () => {
+// Utility functions
+const calculateStreaks = (activityDates) => {
+  if (!activityDates.length) return { currentStreak: 0, longestStreak: 0 };
+  
+  const sortedDates = activityDates.map(d => new Date(d)).sort((a, b) => b - a);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return today.toISOString().split('T')[0];
-};
-
-const calculateStreaks = (activityDates) => {
-  const sorted = [...activityDates].sort();
+  
   let currentStreak = 0;
   let longestStreak = 0;
-  let streak = 0;
-  let prevDate = null;
-
-  for (const dateStr of sorted) {
-    const date = new Date(dateStr);
-    if (prevDate) {
-      const diff = (date - prevDate) / (1000 * 60 * 60 * 24);
-      if (diff === 1) streak++;
-      else if (diff > 1) streak = 1;
+  let tempStreak = 0;
+  
+  // Check for current streak
+  const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+  const mostRecentDate = sortedDates[0];
+  
+  if (mostRecentDate.getTime() === today.getTime() || mostRecentDate.getTime() === yesterday.getTime()) {
+    let checkDate = new Date(today);
+    for (const date of sortedDates) {
+      if (date.getTime() === checkDate.getTime()) {
+        currentStreak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+  }
+  
+  // Calculate longest streak
+  for (let i = 0; i < sortedDates.length; i++) {
+    if (i === 0) {
+      tempStreak = 1;
     } else {
-      streak = 1;
-    }
-    longestStreak = Math.max(longestStreak, streak);
-    prevDate = date;
-  }
-
-  const todayStr = getTodayDateString();
-  if (activityDates.includes(todayStr)) {
-    let streakCount = 1;
-    let prev = new Date(sorted[sorted.length - 1]);
-    for (let i = sorted.length - 2; i >= 0; i--) {
-      const curr = new Date(sorted[i]);
-      const diff = (prev - curr) / (1000 * 60 * 60 * 24);
+      const diff = (sortedDates[i - 1] - sortedDates[i]) / (1000 * 60 * 60 * 24);
       if (diff === 1) {
-        streakCount++;
-        prev = curr;
-      } else if (diff > 1) break;
+        tempStreak++;
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
     }
-    currentStreak = streakCount;
   }
-
+  longestStreak = Math.max(longestStreak, tempStreak);
+  
   return { currentStreak, longestStreak };
 };
 
-const getStreakCalendarData = (activityDates, dailyMinutes, days = 56) => {
+const getStreakCalendarData = (activityDates, dailyMinutes, days = 365) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const calendar = [];
@@ -175,6 +176,12 @@ const formatMinutes = (mins) => {
   return h > 0 ? `${h}h ${m}m` : `${m} min`;
 };
 
+const formatLargeNumber = (num) => {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toString();
+};
+
 const StatCard = ({ label, value, icon, trend, color = 'default' }) => (
   <motion.div 
     className={`stat-card stat-card-${color}`} 
@@ -225,7 +232,92 @@ const BadgeCard = ({ badge }) => (
   </Tooltip>
 );
 
+// Streak Calendar Component  
+const StreakCalendar = ({ calendar, monthLabels, totalWeeks, selectedRange, onRangeChange }) => (
+  <div className="streak-calendar-container">
+    <div className="calendar-header">
+      <div className="calendar-title">
+        <ActivityIcon />
+        <span>Activity Calendar</span>
+      </div>
+      <div className="calendar-controls">
+        <Button 
+          size="small" 
+          variant={selectedRange === 365 ? "contained" : "outlined"}
+          onClick={() => onRangeChange(365)}
+        >
+          1 Year
+        </Button>
+        <Button 
+          size="small" 
+          variant={selectedRange === 90 ? "contained" : "outlined"}
+          onClick={() => onRangeChange(90)}
+        >
+          3 Months
+        </Button>
+      </div>
+    </div>
+    
+    <div className="calendar-grid">
+      {/* Day labels */}
+      <div className="day-labels">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          <div key={day} className="day-label">{day}</div>
+        ))}
+      </div>
+      
+      {/* Month labels */}
+      <div className="month-labels">
+        {monthLabels.map((month, index) => (
+          <div 
+            key={index} 
+            className="month-label"
+            style={{ gridColumn: `${month.week + 1} / span 1` }}
+          >
+            {month.month}
+          </div>
+        ))}
+      </div>
+      
+      {/* Calendar cells */}
+      <div className="calendar-cells">
+        {calendar.map((day, index) => (
+          <Tooltip 
+            key={index}
+            title={
+              day.isInRange 
+                ? `${day.date}: ${day.minutes} minutes${day.active ? ' (Active)' : ''}`
+                : 'Outside range'
+            }
+            arrow
+          >
+            <motion.div
+              className={`calendar-cell level-${day.level} ${day.active ? 'active' : ''}`}
+              whileHover={{ 
+                scale: 1.2, 
+                zIndex: 10,
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)' 
+              }}
+              transition={{ duration: 0.1 }}
+            />
+          </Tooltip>
+        ))}
+      </div>
+    </div>
+    
+    <div className="calendar-legend">
+      <span>Less</span>
+      {[0, 1, 2, 3, 4].map(level => (
+        <div key={level} className={`legend-cell level-${level}`} />
+      ))}
+      <span>More</span>
+    </div>
+  </div>
+);
+
+// Main UserProfile Component
 export default function UserProfile() {
+  // State management
   const [user, setUser] = useState(null);
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
@@ -235,21 +327,28 @@ export default function UserProfile() {
   const [newPhoto, setNewPhoto] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [stats, setStats] = useState({ courses: 0, codeLines: 0 });
+  const [stats, setStats] = useState({ courses: 0, codeLines: 0, projects: 0, contributions: 0 });
   const [activityDates, setActivityDates] = useState([]);
   const [streakStats, setStreakStats] = useState({ currentStreak: 0, longestStreak: 0 });
-  const [engagement, setEngagement] = useState({ totalMinutes: 0, dailyMinutes: {}, courseProgress: {} });
+  const [engagement, setEngagement] = useState({ 
+    totalMinutes: 0, 
+    dailyMinutes: {}, 
+    courseProgress: {},
+    weeklyAverage: 0,
+    monthlyTotal: 0
+  });
   const [showFileInput, setShowFileInput] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profileVisibility, setProfileVisibility] = useState('public');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = useState(56); // days
-  const navigate = useNavigate();
+  const [selectedTimeRange, setSelectedTimeRange] = useState(365);
+  const [loading, setLoading] = useState(true);
   
-  // Get subscription context
+  const navigate = useNavigate();
   const { hasSubscription, plan, expiresAt, loading: subscriptionLoading } = useSubscription();
 
+  // Authentication effect
   useEffect(() => {
     window.scrollTo(0, 0);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -257,20 +356,19 @@ export default function UserProfile() {
         setUser(currentUser);
         setDisplayName(currentUser.displayName || '');
         setPreviewURL(currentUser.photoURL || '');
+        setLoading(false);
       } else {
-        setUser(null);
+        setLoading(false);
         if (window.location.pathname !== '/login') navigate('/login');
       }
     });
     return () => unsubscribe();
   }, [navigate]);
 
+  // Fetch comprehensive user stats
   const fetchStats = useCallback(async () => {
     if (!user) return;
     setError('');
-    setSuccess('');
-
-    let isMounted = true; // Flag to prevent memory leaks
 
     try {
       // Fetch user stats from userStats collection
@@ -278,274 +376,233 @@ export default function UserProfile() {
       const statsDoc = await getDoc(statsDocRef);
       const statsData = statsDoc.exists() ? statsDoc.data() : {};
       
-      if (!isMounted) return;
-      
       // Fetch user profile data
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       const userData = userDoc.exists() ? userDoc.data() : {};
+      
       setBio(userData.bio || '');
       setSocialLinks({
         github: userData.socialLinks?.github || '',
         linkedin: userData.socialLinks?.linkedin || '',
         twitter: userData.socialLinks?.twitter || '',
       });
-
-      if (!isMounted) return;
+      setProfileVisibility(userData.profileVisibility || 'public');
 
       // Fetch engagement data
       const engagementDoc = await getDoc(doc(db, 'userEngagement', user.uid));
       const engagementData = engagementDoc.exists() ? engagementDoc.data() : {};
       const totalMinutes = engagementData.totalMinutes || 0;
       const dailyMinutes = engagementData.dailyMinutes || {};
-      const courseProgress = engagementData.userProgress || engagementData.courseProgress || {};
-      const dailyCourseReadMinutes = engagementData.dailyCourseReadMinutes || {};
 
-      if (!isMounted) return;
-
-      // Fetch courses to calculate actual completion
-      let coursesCompleted = 0;
-      try {
-        const coursesApiUrl = import.meta.env.VITE_COURSES_API_URL;
-        if (!coursesApiUrl) {
-          console.error('VITE_COURSES_API_URL not configured');
-          throw new Error('Server configuration error');
-        }
-
-        let authToken;
-        try {
-          authToken = await user.getIdToken();
-        } catch (tokenError) {
-          console.error('Error getting auth token:', tokenError);
-          throw new Error('Authentication error');
-        }
-
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        };
-
-        const coursesRes = await axios.get(coursesApiUrl, { headers, timeout: 30000 });
-        
-        if (!isMounted) return;
-        
-        const courses = Array.isArray(coursesRes.data) ? 
-          coursesRes.data 
-          : coursesRes.data.Items || coursesRes.data.courses || [];
-
-        console.log('Fetched courses:', courses.length);
-
-        // Fetch user progress for each course using same pattern as Dashboard
-        await Promise.all(
-          courses.map(async (course) => {
-            if (!isMounted) return;
-            
-            const courseId = course.module_id || course.id;
-            if (!courseId) return;
-            
-            try {
-              const docId = `${user.uid}_${courseId}`;
-              const progressRef = doc(db, 'userProgress', docId);
-              const progressSnap = await getDoc(progressRef);
-              
-              if (!isMounted) return;
-              
-              if (progressSnap.exists()) {
-                const data = progressSnap.data();
-                
-                // Calculate if course is completed (same logic as Dashboard)
-                const baseSections = course.sections ? course.sections.length : 
-                  (course.totalSections || 6);
-                const totalSections = baseSections + 1; // +1 for quiz
-                
-                const completedSections = Array.isArray(data.completedSections) ? 
-                  data.completedSections.length : 0;
-                
-                const quizComplete = data.quizSubmitted && 
-                  data.quizAnswers && 
-                  Object.keys(data.quizAnswers).length > 0;
-                
-                const totalCompleted = completedSections + (quizComplete ? 1 : 0);
-                const courseCompletionPercent = totalSections > 0 ? 
-                  Math.min(100, (totalCompleted / totalSections) * 100) : 0;
-                
-                // Count as completed if 100%
-                if (courseCompletionPercent >= 100) {
-                  coursesCompleted++;
-                }
-              }
-            } catch (error) {
-              console.error(`Error fetching progress for course ${courseId}:`, error);
-            }
-          })
-        );
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-      }
-
-      if (!isMounted) return;
-
-      // Set stats with real data
-      setStats({
-        courses: coursesCompleted,
-        codeLines: statsData.codeLines || 0,
+      // Calculate additional engagement metrics
+      const today = new Date();
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      let weeklyTotal = 0;
+      let monthlyTotal = 0;
+      
+      Object.entries(dailyMinutes).forEach(([dateStr, minutes]) => {
+        const date = new Date(dateStr);
+        if (date >= weekAgo) weeklyTotal += minutes;
+        if (date >= monthAgo) monthlyTotal += minutes;
       });
 
-      setEngagement({ totalMinutes, dailyMinutes, courseProgress });
+      const weeklyAverage = Math.round(weeklyTotal / 7);
 
-      // Calculate activity dates
-      const allDates = new Set([...Object.keys(dailyMinutes), ...Object.keys(dailyCourseReadMinutes)]);
-      const activityDates = Array.from(allDates).filter(
-        (date) => (dailyMinutes[date] || 0) > 0 || (dailyCourseReadMinutes[date] || 0) > 0
+      setEngagement({
+        totalMinutes,
+        dailyMinutes,
+        courseProgress: engagementData.courseProgress || {},
+        weeklyAverage,
+        monthlyTotal
+      });
+
+      // Fetch comprehensive user progress data
+      const progressQuery = query(
+        collection(db, 'userProgress'),
+        where('__name__', '>=', `${user.uid}_`),
+        where('__name__', '<', `${user.uid}_\uf8ff`)
       );
-      setActivityDates(activityDates);
-      setStreakStats(calculateStreaks(activityDates));
-    } catch (e) {
-      if (isMounted) {
-        setError('Failed to fetch user data: ' + e.message);
-        console.error('UserProfile: Firestore fetch error:', e);
-      }
-    }
+      
+      const progressSnapshot = await getDocs(progressQuery);
+      let coursesCompleted = 0;
+      let totalCodeLines = 0;
+      let allActivityDates = new Set();
 
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
+      progressSnapshot.forEach((doc) => {
+        const data = doc.data();
+        const completedSections = data.completedSections || [];
+        const totalSections = data.totalSections || 1;
+        const quizSubmitted = data.quizSubmitted || false;
+        
+        // Count as completed if all sections + quiz done
+        if (completedSections.length >= totalSections && quizSubmitted) {
+          coursesCompleted++;
+        }
+        
+        // Add activity dates
+        if (data.lastAccessed?.seconds) {
+          const dateStr = new Date(data.lastAccessed.seconds * 1000).toISOString().split('T')[0];
+          allActivityDates.add(dateStr);
+        }
+        
+        // Estimate code lines (rough calculation)
+        totalCodeLines += completedSections.length * 50; // ~50 lines per section
+      });
+
+      // Add daily activity dates from engagement
+      Object.keys(dailyMinutes).forEach(dateStr => {
+        if (dailyMinutes[dateStr] > 0) {
+          allActivityDates.add(dateStr);
+        }
+      });
+
+      const activityDatesArray = Array.from(allActivityDates);
+      setActivityDates(activityDatesArray);
+      
+      // Calculate streaks
+      const streakData = calculateStreaks(activityDatesArray);
+      setStreakStats(streakData);
+
+      // Set comprehensive stats
+      setStats({
+        courses: coursesCompleted,
+        codeLines: totalCodeLines,
+        projects: statsData.projects || 0,
+        contributions: activityDatesArray.length
+      });
+
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setError('Failed to load profile data. Please try again.');
+    }
   }, [user]);
 
+  // Fetch stats when user changes
   useEffect(() => {
-    let cleanup = null;
-    
-    const loadStats = async () => {
-      cleanup = await fetchStats();
-    };
-    
-    loadStats();
-    
-    return () => {
-      if (cleanup && typeof cleanup === 'function') {
-        cleanup();
-      }
-    };
+    if (user) {
+      fetchStats();
+    }
   }, [fetchStats]);
+
+  // Badge system with progress tracking
   const badgeList = useMemo(
     () => [
       { 
         id: 1, 
-        label: 'First Course', 
-        desc: 'Completed your first course! Welcome to your coding journey!', 
+        label: 'First Steps', 
+        desc: 'Started your coding journey! Welcome to CodeTapasya!', 
         icon: <SchoolIcon />, 
         unlocked: stats.courses >= 1,
-        category: 'learning',
-        rarity: 'common'
+        category: 'Learning',
+        rarity: 'common',
+        progress: Math.min(100, (stats.courses / 1) * 100)
       },
       { 
         id: 2, 
         label: 'Course Explorer', 
-        desc: 'Completed 5 courses! You\'re building a solid foundation!', 
-        icon: <MenuBookIcon />, 
-        unlocked: stats.courses >= 5,
-        category: 'learning',
-        rarity: 'uncommon'
+        desc: 'Completed 3 courses! You\'re building momentum!', 
+        icon: <EmojiEventsIcon />, 
+        unlocked: stats.courses >= 3,
+        category: 'Learning',
+        rarity: 'uncommon',
+        progress: Math.min(100, (stats.courses / 3) * 100)
       },
       { 
         id: 3, 
-        label: 'Course Master', 
-        desc: 'Completed 10 courses! You\'re becoming a true learner!', 
-        icon: <WorkspacePremiumIcon />, 
-        unlocked: stats.courses >= 10,
-        category: 'learning',
-        rarity: 'rare'
+        label: 'Knowledge Seeker', 
+        desc: 'Completed 5 courses! You\'re becoming quite knowledgeable!', 
+        icon: <TrendingUpIcon />, 
+        unlocked: stats.courses >= 5,
+        category: 'Learning',
+        rarity: 'rare',
+        progress: Math.min(100, (stats.courses / 5) * 100)
       },
       { 
         id: 4, 
-        label: 'Code Novice', 
-        desc: 'Wrote 500 lines of code! Every expert was once a beginner!', 
-        icon: <CodeIcon />, 
-        unlocked: stats.codeLines >= 500,
-        category: 'coding',
-        rarity: 'common'
+        label: 'Master Learner', 
+        desc: 'Completed 10 courses! You\'re a true learning champion!', 
+        icon: <WorkspacePremiumIcon />, 
+        unlocked: stats.courses >= 10,
+        category: 'Learning',
+        rarity: 'epic',
+        progress: Math.min(100, (stats.courses / 10) * 100)
       },
       { 
         id: 5, 
-        label: 'Code Warrior', 
-        desc: 'Wrote 1000 lines of code! You\'re getting the hang of this!', 
+        label: 'Code Novice', 
+        desc: 'Wrote your first 1000 lines of code! Every expert was once a beginner!', 
         icon: <CodeIcon />, 
         unlocked: stats.codeLines >= 1000,
-        category: 'coding',
-        rarity: 'uncommon'
+        category: 'Coding',
+        rarity: 'common',
+        progress: Math.min(100, (stats.codeLines / 1000) * 100)
       },
       { 
         id: 6, 
-        label: 'Code Ninja', 
-        desc: 'Wrote 5000 lines of code! Your skills are impressive!', 
+        label: 'Code Warrior', 
+        desc: 'Wrote 5000 lines of code! You\'re getting serious about this!', 
         icon: <MilitaryTechIcon />, 
         unlocked: stats.codeLines >= 5000,
-        category: 'coding',
-        rarity: 'rare'
+        category: 'Coding',
+        rarity: 'rare',
+        progress: Math.min(100, (stats.codeLines / 5000) * 100)
       },
       { 
         id: 7, 
         label: 'Streak Starter', 
-        desc: '3-day streak! Consistency is key to success!', 
-        icon: <TrendingUpIcon />, 
+        desc: '3-day learning streak! Consistency is the key to mastery!', 
+        icon: <StreakIcon />, 
         unlocked: streakStats.currentStreak >= 3,
-        category: 'streak',
-        rarity: 'common'
+        category: 'Consistency',
+        rarity: 'common',
+        progress: Math.min(100, (streakStats.currentStreak / 3) * 100)
       },
       { 
         id: 8, 
-        label: 'Streak Keeper', 
-        desc: '7-day streak! You\'re building a great habit!', 
+        label: 'Streak Master', 
+        desc: '7-day streak! You\'re building an incredible habit!', 
         icon: <LocalFireDepartmentIcon />, 
         unlocked: streakStats.currentStreak >= 7,
-        category: 'streak',
-        rarity: 'uncommon'
+        category: 'Consistency',
+        rarity: 'uncommon',
+        progress: Math.min(100, (streakStats.currentStreak / 7) * 100)
       },
       { 
         id: 9, 
-        label: 'Streak Legend', 
-        desc: '30-day streak! You\'re a true dedication master!', 
+        label: 'Dedication Legend', 
+        desc: '30-day streak! You\'re unstoppable!', 
         icon: <EmojiEventsIcon />, 
         unlocked: streakStats.currentStreak >= 30,
-        category: 'streak',
-        rarity: 'legendary'
+        category: 'Consistency',
+        rarity: 'legendary',
+        progress: Math.min(100, (streakStats.currentStreak / 30) * 100)
       },
       { 
         id: 10, 
         label: 'Time Devotee', 
-        desc: 'Spent 10+ hours learning! Time well invested!', 
+        desc: 'Spent 20+ hours learning! Time is your most valuable investment!', 
         icon: <TimerIcon />, 
-        unlocked: engagement.totalMinutes >= 600,
-        category: 'time',
-        rarity: 'uncommon'
+        unlocked: engagement.totalMinutes >= 1200,
+        category: 'Dedication',
+        rarity: 'uncommon',
+        progress: Math.min(100, (engagement.totalMinutes / 1200) * 100)
       },
     ],
     [stats.courses, stats.codeLines, streakStats.currentStreak, engagement.totalMinutes]
   );
-  const nextBadge = badgeList.find((b) => !b.unlocked);
-  const progressToNext = useMemo(() => {
-    if (!nextBadge) return 100;
-    switch (nextBadge.id) {
-      case 1: return Math.min(100, (stats.courses / 1) * 100);
-      case 2: return Math.min(100, (stats.courses / 5) * 100);
-      case 3: return Math.min(100, (stats.courses / 10) * 100);
-      case 4: return Math.min(100, (stats.codeLines / 500) * 100);
-      case 5: return Math.min(100, (stats.codeLines / 1000) * 100);
-      case 6: return Math.min(100, (stats.codeLines / 5000) * 100);
-      case 7: return Math.min(100, (streakStats.currentStreak / 3) * 100);
-      case 8: return Math.min(100, (streakStats.currentStreak / 7) * 100);
-      case 9: return Math.min(100, (streakStats.currentStreak / 30) * 100);
-      case 10: return Math.min(100, (engagement.totalMinutes / 600) * 100);
-      default: return 0;
-    }
-  }, [nextBadge, stats.courses, stats.codeLines, streakStats.currentStreak, engagement.totalMinutes]);
 
-  // New utility functions
+  const unlockedBadges = badgeList.filter(b => b.unlocked);
+  const nextBadge = badgeList.find(b => !b.unlocked);
+
+  // Utility functions
   const getStreakStatus = () => {
     if (streakStats.currentStreak === 0) return { text: 'Start your streak!', color: '#6b7280' };
-    if (streakStats.currentStreak < 7) return { text: 'Building momentum!', color: '#f59e0b' };
-    if (streakStats.currentStreak < 30) return { text: 'Great consistency!', color: '#10b981' };
+    if (streakStats.currentStreak < 3) return { text: 'Building momentum', color: '#f59e0b' };
+    if (streakStats.currentStreak < 7) return { text: 'Getting consistent!', color: '#10b981' };
+    if (streakStats.currentStreak < 30) return { text: 'On fire!', color: '#ef4444' };
     return { text: 'Legendary streak!', color: '#8b5cf6' };
   };
 
@@ -553,25 +610,33 @@ export default function UserProfile() {
     setRefreshing(true);
     await fetchStats();
     setRefreshing(false);
+    setSuccess('Profile stats refreshed successfully!');
     setSnackbarOpen(true);
   };
 
   const handleShareProfile = async () => {
+    const shareData = {
+      title: `${displayName || 'User'}'s CodeTapasya Profile`,
+      text: `Check out my coding progress: ${stats.courses} courses completed, ${streakStats.currentStreak} day streak!`,
+      url: window.location.href
+    };
+
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: `${displayName || 'Coder'}'s CodeTapasya Profile`,
-          text: `Check out my coding progress: ${stats.courses} courses completed, ${streakStats.currentStreak} day streak!`,
-          url: window.location.href,
-        });
+        await navigator.share(shareData);
       } catch (err) {
-        console.log('Error sharing:', err);
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
       }
     } else {
-      // Fallback to clipboard
-      const shareText = `Check out my CodeTapasya profile! ${stats.courses} courses completed, ${streakStats.currentStreak} day streak! ${window.location.href}`;
-      navigator.clipboard.writeText(shareText);
-      setSuccess('Profile link copied to clipboard!');
+      try {
+        await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+        setSuccess('Profile link copied to clipboard!');
+        setSnackbarOpen(true);
+      } catch (err) {
+        setError('Failed to copy to clipboard');
+      }
     }
   };
 
@@ -582,10 +647,20 @@ export default function UserProfile() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    const maxSize = 5 * 1024 * 1024;
-    if (!validTypes.includes(file.type)) return setError('Please upload an image (JPEG, PNG, or GIF).');
-    if (file.size > maxSize) return setError('Image size must be less than 5MB.');
+    
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload an image (JPEG, PNG, GIF, or WebP).');
+      return;
+    }
+    
+    if (file.size > maxSize) {
+      setError('Image size must be less than 5MB.');
+      return;
+    }
+    
     setNewPhoto(file);
     setPreviewURL(URL.createObjectURL(file));
     setError('');
@@ -599,23 +674,37 @@ export default function UserProfile() {
 
     try {
       let photoURL = user.photoURL;
+      
+      // Upload new photo if selected
       if (newPhoto) {
-        const fileRef = ref(storage, `profile-pictures/${user.uid}`);
-        await uploadBytes(fileRef, newPhoto);
-        photoURL = await getDownloadURL(fileRef);
+        const photoRef = ref(storage, `profile-photos/${user.uid}/${Date.now()}`);
+        const snapshot = await uploadBytes(photoRef, newPhoto);
+        photoURL = await getDownloadURL(snapshot.ref);
       }
 
-      await updateProfile(user, { displayName: displayName || user.displayName, photoURL });
+      // Update Firebase Auth profile
+      await updateProfile(user, { 
+        displayName: displayName || user.displayName, 
+        photoURL 
+      });
+
+      // Update Firestore user document
       await updateDoc(doc(db, 'users', user.uid), {
         bio,
-        socialLinks: { github: socialLinks.github, linkedin: socialLinks.linkedin, twitter: socialLinks.twitter },
+        socialLinks,
+        profileVisibility,
+        lastUpdated: new Date()
       });
 
       setSuccess('Profile updated successfully!');
+      setSnackbarOpen(true);
       setNewPhoto(null);
       setPreviewURL(photoURL);
-    } catch (e) {
-      setError('Error updating profile: ' + e.message);
+      setIsEditing(false);
+      
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -630,659 +719,625 @@ export default function UserProfile() {
     setError('');
     setSuccess('');
     setShowFileInput(false);
+    setIsEditing(false);
   };
 
   const handleExportProfile = () => {
     const profileData = {
-      displayName: user.displayName,
-      email: user.email,
+      displayName: user?.displayName || '',
+      email: user?.email || '',
+      bio,
+      socialLinks,
       stats,
       streakStats,
       engagement,
-      badges: badgeList.filter((b) => b.unlocked).map((b) => b.label),
-    };    const blob = new Blob([JSON.stringify(profileData, null, 2)], { type: 'application/json' });
+      badges: unlockedBadges.map(b => ({ 
+        name: b.label, 
+        category: b.category, 
+        rarity: b.rarity 
+      })),
+      exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(profileData, null, 2)], { 
+      type: 'application/json' 
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${user.displayName || 'user'}_profile.json`;
+    a.download = `${user?.displayName || 'user'}_codetapasya_profile.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  if (user === null) return (
-    <div className="loading-container">
-      <motion.div 
-        className="loading-spinner"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-      >
-        <RefreshIcon fontSize="large" />
-      </motion.div>
-      <p>Loading your awesome profile...</p>
-    </div>
+  // Generate calendar data
+  const calendarData = useMemo(() => 
+    getStreakCalendarData(activityDates, engagement.dailyMinutes, selectedTimeRange),
+    [activityDates, engagement.dailyMinutes, selectedTimeRange]
   );
 
-  return (
-    <motion.div className="profile-github-bg" variants={containerVariants} initial="hidden" animate="visible">
-      <div className="profile-github-container">        <aside className="profile-github-sidebar">
-          <div className="profile-header">
-            <div className="profile-github-avatar-wrap">
-              <img
-                src={previewURL || 'https://via.placeholder.com/150'}
-                alt="Profile avatar"
-                className="profile-github-avatar"
-                onError={() => setPreviewURL('https://via.placeholder.com/150')}
-              />
-              <motion.button
-                className="edit-avatar-btn"
-                aria-label="Edit profile photo"
-                onClick={() => setShowFileInput(true)}
-                disabled={uploading}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <PhotoCameraIcon fontSize="small" />
-              </motion.button>
-            </div>
-            
-            <div className="profile-info">
-              <h2 className="profile-github-name">
-                <PersonIcon className="profile-name-icon" />
-                {displayName || 'Coder'}
-              </h2>
-              <div className="profile-github-email">
-                <EmailIcon fontSize="small" />
-                {user.email}
-              </div>
-              {bio && (
-                <motion.div 
-                  className="profile-github-bio"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {bio}
-                </motion.div>
-              )}
-              
-              <div className="profile-status">
-                <Chip 
-                  icon={profileVisibility === 'public' ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                  label={profileVisibility === 'public' ? 'Public Profile' : 'Private Profile'}
-                  onClick={toggleProfileVisibility}
-                  variant={profileVisibility === 'public' ? 'filled' : 'outlined'}
-                  color={profileVisibility === 'public' ? 'success' : 'default'}
-                  size="small"
-                />
-              </div>
-            </div>
-            
-            <div className="profile-github-social">
-              {socialLinks.github && (
-                <Tooltip title="GitHub Profile" arrow>
-                  <IconButton 
-                    component="a"
-                    href={socialLinks.github} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    size="small"
-                    className="social-link github"
-                  >
-                    <GitHubIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {socialLinks.linkedin && (
-                <Tooltip title="LinkedIn Profile" arrow>
-                  <IconButton 
-                    component="a"
-                    href={socialLinks.linkedin} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    size="small"
-                    className="social-link linkedin"
-                  >
-                    <LinkedInIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {socialLinks.twitter && (
-                <Tooltip title="Twitter Profile" arrow>
-                  <IconButton 
-                    component="a"
-                    href={socialLinks.twitter} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    size="small"
-                    className="social-link twitter"
-                  >
-                    <TwitterIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              <Tooltip title="Share Profile" arrow>
-                <IconButton 
-                  onClick={handleShareProfile}
-                  size="small"
-                  className="social-link share"
-                >
-                  <ShareIcon />
-                </IconButton>
-              </Tooltip>
-            </div>
-          </div>          <motion.div 
-            className={`profile-github-edit-fields ${isEditing ? 'editing' : ''}`}
-            layout
+  // Loading state
+  if (loading) {
+    return (
+      <div className="modern-profile-container">
+        <div className="loading-container">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           >
-            <div className="edit-toggle">
-              <motion.button
-                onClick={() => setIsEditing(!isEditing)}
-                className="edit-toggle-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <EditIcon fontSize="small" />
-                {isEditing ? 'Close Editor' : 'Edit Profile'}
-              </motion.button>
-            </div>
-            
-            <AnimatePresence>
-              {isEditing && (
-                <motion.div
-                  className="edit-form"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="input-group">
-                    <label htmlFor="display-name" className="profile-label">
-                      <PersonIcon fontSize="small" />
-                      Display Name
-                    </label>
-                    <input
-                      id="display-name"
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Enter your name"
-                      className="profile-input"
-                      disabled={uploading}
-                      aria-required="true"
-                    />
-                  </div>
-                  
-                  <div className="input-group">
-                    <label htmlFor="bio" className="profile-label">
-                      <MenuBookIcon fontSize="small" />
-                      Bio ({160 - bio.length} characters left)
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell us about yourself"
-                      className="profile-input profile-textarea"
-                      disabled={uploading}
-                      maxLength={160}
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div className="social-inputs">
-                    <div className="input-group">
-                      <label htmlFor="github" className="profile-label">
-                        <GitHubIcon fontSize="small" />
-                        GitHub
-                      </label>
-                      <input
-                        id="github"
-                        type="url"
-                        value={socialLinks.github}
-                        onChange={(e) => setSocialLinks({ ...socialLinks, github: e.target.value })}
-                        placeholder="https://github.com/username"
-                        className="profile-input"
-                        disabled={uploading}
-                      />
-                    </div>
-                    
-                    <div className="input-group">
-                      <label htmlFor="linkedin" className="profile-label">
-                        <LinkedInIcon fontSize="small" />
-                        LinkedIn
-                      </label>
-                      <input
-                        id="linkedin"
-                        type="url"
-                        value={socialLinks.linkedin}
-                        onChange={(e) => setSocialLinks({ ...socialLinks, linkedin: e.target.value })}
-                        placeholder="https://linkedin.com/in/username"
-                        className="profile-input"
-                        disabled={uploading}
-                      />
-                    </div>
-                    
-                    <div className="input-group">
-                      <label htmlFor="twitter" className="profile-label">
-                        <TwitterIcon fontSize="small" />
-                        Twitter
-                      </label>
-                      <input
-                        id="twitter"
-                        type="url"
-                        value={socialLinks.twitter}
-                        onChange={(e) => setSocialLinks({ ...socialLinks, twitter: e.target.value })}
-                        placeholder="https://twitter.com/username"
-                        className="profile-input"
-                        disabled={uploading}
-                      />
-                    </div>
-                  </div>
-                  
-                  {showFileInput && (
-                    <motion.div 
-                      className="input-group"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <label htmlFor="profile-photo" className="profile-label">
-                        <PhotoCameraIcon fontSize="small" />
-                        Profile Photo
-                      </label>
-                      <input
-                        id="profile-photo"
-                        type="file"
-                        onChange={handleFileChange}
-                        accept="image/*"
-                        className="profile-input file-input"
-                        disabled={uploading}
-                      />
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>          <div className="profile-github-actions">
-            <div className="action-buttons-row">
-              <motion.button
-                onClick={handleUpdate}
-                disabled={uploading || !isEditing}
-                className={`action-button update-button ${!isEditing ? 'disabled' : ''}`}
-                aria-label="Update profile"
-                variants={buttonVariants}
-                whileHover={!uploading && isEditing ? "hover" : {}}
-                whileTap={!uploading && isEditing ? { scale: 0.95 } : {}}
-              >
-                <CheckCircleIcon fontSize="small" />
-                {uploading ? 'Updating...' : 'Save Changes'}
-              </motion.button>
-              
-              {(newPhoto || displayName !== (user.displayName || '') || bio || socialLinks.github || socialLinks.linkedin || socialLinks.twitter) && (
-                <motion.button
-                  onClick={handleCancel}
-                  disabled={uploading}
-                  className="action-button cancel-button"
-                  aria-label="Cancel changes"
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <CancelIcon fontSize="small" />
-                  Cancel
-                </motion.button>
-              )}
-            </div>
-            
-            <div className="action-buttons-row">
-              <motion.button
-                onClick={handleExportProfile}
-                className="action-button export-button"
-                aria-label="Export profile"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.95 }}
-              >
-                <DownloadIcon fontSize="small" />
-                Export
-              </motion.button>
-              
-              <motion.button
-                onClick={handleRefreshStats}
-                disabled={refreshing}
-                className="action-button refresh-button"
-                aria-label="Refresh stats"
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.div
-                  animate={refreshing ? { rotate: 360 } : {}}
-                  transition={refreshing ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
-                >
-                  <RefreshIcon fontSize="small" />
-                </motion.div>
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </motion.button>
-            </div>
-          </div>
-        </aside>        <main className="profile-github-main">
-          <div className="main-header">
-            <h1 className="profile-title">
-              <WorkspacePremiumIcon className="title-icon" />
-              Profile Overview
-            </h1>
-            <div className="streak-status">
-              <span 
-                className="streak-status-text"
-                style={{ color: getStreakStatus().color }}
-              >
-                {getStreakStatus().text}
-              </span>
-            </div>
+            <RefreshIcon style={{ fontSize: 48, color: '#6366f1' }} />
+          </motion.div>
+          <Typography variant="h6" sx={{ mt: 2, color: '#6b7280' }}>
+            Loading your awesome profile...
+          </Typography>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="modern-profile-container">
+        <div className="loading-container">
+          <Typography variant="h5" color="error">
+            Please log in to view your profile
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/login')} 
+            sx={{ mt: 2 }}
+          >
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modern-profile-container">
+      <motion.div 
+        className="modern-profile-wrapper"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* Profile Header Section */}
+        <motion.div className="profile-header-section" variants={staggerVariants}>
+          <div className="profile-header-background">
+            <div className="profile-gradient-overlay"></div>
           </div>
           
-          <motion.div className="profile-github-stats-row" variants={cardVariants}>
-            <StatCard 
-              label="Courses Completed" 
-              value={stats.courses} 
+          <div className="profile-header-content">
+            <motion.div className="profile-avatar-section" variants={cardVariants}>
+              <div className="profile-avatar-container">
+                <Avatar
+                  src={previewURL || user.photoURL}
+                  alt={displayName || user.displayName || 'User'}
+                  className="profile-avatar"
+                  sx={{ width: 120, height: 120 }}
+                />
+                {isEditing && (
+                  <motion.div 
+                    className="avatar-edit-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <IconButton
+                      onClick={() => setShowFileInput(true)}
+                      className="avatar-edit-button"
+                      size="large"
+                    >
+                      <PhotoCameraIcon />
+                    </IconButton>
+                  </motion.div>
+                )}
+              </div>
+              
+              <div className="profile-basic-info">
+                {isEditing ? (
+                  <TextField
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your name"
+                    variant="outlined"
+                    size="medium"
+                    className="profile-name-input"
+                    sx={{ mb: 1 }}
+                  />
+                ) : (
+                  <Typography variant="h4" className="profile-name">
+                    {displayName || user.displayName || 'Anonymous User'}
+                  </Typography>
+                )}
+                
+                <Typography variant="body1" className="profile-email">
+                  {user.email}
+                </Typography>
+                
+                {isEditing ? (
+                  <TextField
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell us about yourself..."
+                    multiline
+                    rows={3}
+                    variant="outlined"
+                    className="profile-bio-input"
+                    sx={{ mt: 2, width: '100%' }}
+                  />
+                ) : (
+                  bio && (
+                    <Typography variant="body2" className="profile-bio">
+                      {bio}
+                    </Typography>
+                  )
+                )}
+              </div>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div className="profile-actions" variants={cardVariants}>
+              {isEditing ? (
+                <div className="profile-edit-actions">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdate}
+                    disabled={uploading}
+                    startIcon={uploading ? <CircularProgress size={16} /> : <SaveIcon />}
+                    className="action-button primary"
+                  >
+                    {uploading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleCancel}
+                    disabled={uploading}
+                    startIcon={<CancelIcon />}
+                    className="action-button secondary"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="profile-view-actions">
+                  <Button
+                    variant="contained"
+                    onClick={() => setIsEditing(true)}
+                    startIcon={<EditIcon />}
+                    className="action-button primary"
+                  >
+                    Edit Profile
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleShareProfile}
+                    startIcon={<ShareIcon />}
+                    className="action-button secondary"
+                  >
+                    Share
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleRefreshStats}
+                    disabled={refreshing}
+                    startIcon={refreshing ? <CircularProgress size={16} /> : <RefreshIcon />}
+                    className="action-button secondary"
+                  >
+                    {refreshing ? 'Refreshing...' : 'Refresh'}
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Quick Stats Overview */}
+        <motion.div className="profile-stats-overview" variants={staggerVariants}>
+          <motion.div className="stats-grid" variants={containerVariants}>
+            <StatCard
+              label="Courses Completed"
+              value={stats.courses}
               icon={<SchoolIcon />}
               color="primary"
             />
-            <StatCard 
-              label="Current Streak" 
-              value={`${streakStats.currentStreak} days`} 
-              icon={<LocalFireDepartmentIcon />}
-              color="streak"
+            <StatCard
+              label="Lines of Code"
+              value={formatLargeNumber(stats.codeLines)}
+              icon={<CodeIcon />}
+              color="secondary"
             />
-            <StatCard 
-              label="Longest Streak" 
-              value={`${streakStats.longestStreak} days`} 
-              icon={<TrendingUpIcon />}
+            <StatCard
+              label="Current Streak"
+              value={`${streakStats.currentStreak} days`}
+              icon={<LocalFireDepartmentIcon />}
+              color="accent"
+            />
+            <StatCard
+              label="Total Learning Time"
+              value={formatMinutes(engagement.totalMinutes)}
+              icon={<TimerIcon />}
               color="success"
             />
-            <StatCard 
-              label="Lines of Code" 
-              value={stats.codeLines.toLocaleString()} 
-              icon={<CodeIcon />}
-              color="code"
-            />
-            <StatCard 
-              label="Time Invested" 
-              value={formatMinutes(engagement.totalMinutes)} 
-              icon={<TimerIcon />}
-              color="time"
-            />
           </motion.div>
+        </motion.div>
 
-          {/* Subscription Status Card */}
-          <motion.div className="subscription-status-card" variants={cardVariants}>
-            <div className="subscription-header">
-              <div className="subscription-info">
-                <WorkspacePremiumIcon className={`subscription-icon ${hasSubscription ? 'premium' : 'free'}`} />
-                <div className="subscription-details">
-                  <h3 className="subscription-title">
-                    {subscriptionLoading ? 'Loading...' : (hasSubscription ? 'Premium Member' : 'Free Plan')}
-                  </h3>
-                  {!subscriptionLoading && (
-                    <div className="subscription-meta">
-                      {hasSubscription ? (
-                        <>
-                          <Chip 
-                            icon={<DiamondIcon />}
-                            label={plan ? plan.toUpperCase() : 'PREMIUM'}
-                            color="primary"
-                            size="small"
-                            className="subscription-chip premium"
-                          />
-                          {expiresAt && (
-                            <span className="subscription-expiry">
-                              Expires: {expiresAt.toLocaleDateString()}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <Chip 
-                            label="FREE"
-                            variant="outlined"
-                            size="small"
-                            className="subscription-chip free"
-                          />
-                          <span className="subscription-benefits">
-                            Limited to first 2 modules per course
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {!hasSubscription && !subscriptionLoading && (
-                <motion.button
-                  className="upgrade-btn"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/payment/monthly')}
-                >
-                  <StarIcon className="upgrade-icon" />
-                  Upgrade
-                </motion.button>
-              )}
-            </div>
-            <div className="subscription-features">
-              {hasSubscription ? (
-                <div className="premium-features">
-                  <div className="feature-item active">
-                    <CheckCircleIcon className="feature-icon" />
-                    <span>Unlimited access to all courses</span>
-                  </div>
-                  <div className="feature-item active">
-                    <CheckCircleIcon className="feature-icon" />
-                    <span>Premium support</span>
-                  </div>
-                  <div className="feature-item active">
-                    <CheckCircleIcon className="feature-icon" />
-                    <span>No ads</span>
-                  </div>
-                  <div className="feature-item active">
-                    <CheckCircleIcon className="feature-icon" />
-                    <span>Certificate eligible</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="free-features">
-                  <div className="feature-item limited">
-                    <CancelIcon className="feature-icon" />
-                    <span>Limited course access (2 modules per course)</span>
-                  </div>
-                  <div className="feature-item limited">
-                    <CancelIcon className="feature-icon" />
-                    <span>Community support only</span>
-                  </div>
-                  <div className="feature-item limited">
-                    <CancelIcon className="feature-icon" />
-                    <span>Ads supported</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>          {nextBadge && (
-            <motion.div className="profile-progress-section" variants={cardVariants}>
-              <div className="progress-header">
-                <div className="progress-info">
-                  <StarIcon className="star-icon" />
-                  <span className="progress-title">Next Achievement</span>
-                  <Chip 
-                    label={nextBadge.category} 
-                    size="small" 
-                    variant="outlined"
-                    className={`category-chip ${nextBadge.category}`}
-                  />
-                </div>
-                <div className="progress-target">
-                  <span className="target-badge">{nextBadge.label}</span>
-                </div>
-              </div>
-              <div className="progress-bar-container">
-                <div className="progress-bar-track">
-                  <motion.div
-                    className={`progress-bar-fill rarity-${nextBadge.rarity}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressToNext}%` }}
-                    transition={{ duration: 1, ease: 'easeOut' }}
-                  >
-                    {progressToNext >= 100 && (
-                      <motion.div 
-                        className="progress-bar-sparkle"
-                        animate={{ opacity: [0, 1, 0] }}
-                        transition={{ duration: 0.8, repeat: Infinity }}
-                      />
-                    )}
-                  </motion.div>
-                </div>
-                <span className="progress-bar-percent">{Math.round(progressToNext)}%</span>
-              </div>
-              <div className="progress-description">
-                {nextBadge.desc}
-              </div>
-            </motion.div>
-          )}
-          
-          <motion.div className="profile-github-card streak-card" variants={cardVariants}>
-            <div className="card-header">
-              <h3>
-                <CalendarTodayIcon className="card-icon" />
-                Activity Overview
-              </h3>
-              <div className="time-range-selector">
-                <select 
-                  value={selectedTimeRange} 
-                  onChange={(e) => setSelectedTimeRange(Number(e.target.value))}
-                  className="time-range-select"
-                >
-                  <option value={28}>Last 4 weeks</option>
-                  <option value={56}>Last 8 weeks</option>
-                  <option value={84}>Last 12 weeks</option>
-                </select>
-              </div>
-            </div>
-            <div className="streak-info" data-streak={streakStats.currentStreak}>
-              <div className="streak-main">
-                <LocalFireDepartmentIcon className="streak-icon" />
-                <div className="streak-numbers">
-                  <span className="current-streak">{streakStats.currentStreak}</span>
-                  <span className="streak-label">Day Streak</span>
-                </div>
-              </div>
-              <div className="streak-secondary">
-                <span className="longest-streak">
-                  <TrendingUpIcon fontSize="small" />
-                  Best: {streakStats.longestStreak} days
-                </span>
-              </div>
-            </div>
+        {/* Main Content Grid */}
+        <motion.div className="profile-main-content" variants={containerVariants}>
+          <div className="profile-content-grid">
             
-            <div className="streak-calendar-section">
-              <div className="streak-calendar-header">
-                <h4>Activity Calendar</h4>
-                <span className="activity-summary">
-                  {activityDates.length} {activityDates.length === 1 ? 'day' : 'days'} of activity in the last {selectedTimeRange} days
-                </span>
-              </div>
+            {/* Left Column - Activity & Streaks */}
+            <motion.div className="profile-left-column" variants={staggerVariants}>
               
-              <div className="calendar-container">
-                <div className="calendar-days-header">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                    <span key={index} className="day-label">{day}</span>
-                  ))}
+              {/* Streak Calendar */}
+              <motion.div className="profile-section streak-section" variants={cardVariants}>
+                <div className="section-header">
+                  <Typography variant="h6" className="section-title">
+                    <LocalFireDepartmentIcon className="section-icon" />
+                    Activity & Streaks
+                  </Typography>
+                  <div className="streak-status">
+                    <Chip
+                      label={getStreakStatus().text}
+                      sx={{ 
+                        bgcolor: getStreakStatus().color,
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}
+                    />
+                  </div>
                 </div>
                 
-                <div className="streak-calendar">
-                  {(() => {
-                    const calendarData = getStreakCalendarData(activityDates, engagement.dailyMinutes, selectedTimeRange);
-                    return calendarData.calendar.map((cell, index) => (
-                      <Tooltip
-                        key={`${cell.date}-${index}`}
-                        title={cell.isInRange ? `${new Date(cell.date).toLocaleDateString()}: ${cell.active ? `${cell.minutes} min activity` : 'No activity'}` : ''}
-                        arrow
-                        placement="top"
-                      >
-                        <motion.div 
-                          className={`calendar-cell ${cell.active ? 'active' : ''} level-${cell.level} ${!cell.isInRange ? 'out-of-range' : ''}`}
-                          whileHover={cell.isInRange ? { scale: 1.3 } : {}}
-                          transition={{ duration: 0.1 }}
-                        />
-                      </Tooltip>
-                    ));
-                  })()}
+                <div className="streak-stats-row">
+                  <div className="streak-stat">
+                    <Typography variant="h3" className="streak-number current">
+                      {streakStats.currentStreak}
+                    </Typography>
+                    <Typography variant="body2" className="streak-label">
+                      Current Streak
+                    </Typography>
+                  </div>
+                  <div className="streak-stat">
+                    <Typography variant="h3" className="streak-number longest">
+                      {streakStats.longestStreak}
+                    </Typography>
+                    <Typography variant="body2" className="streak-label">
+                      Longest Streak
+                    </Typography>
+                  </div>
                 </div>
-              </div>
+
+                <StreakCalendar
+                  calendar={calendarData.calendar}
+                  monthLabels={calendarData.monthLabels}
+                  totalWeeks={calendarData.totalWeeks}
+                  selectedRange={selectedTimeRange}
+                  onRangeChange={setSelectedTimeRange}
+                />
+              </motion.div>
+
+              {/* Learning Insights */}
+              <motion.div className="profile-section insights-section" variants={cardVariants}>
+                <div className="section-header">
+                  <Typography variant="h6" className="section-title">
+                    <BarChartIcon className="section-icon" />
+                    Learning Insights
+                  </Typography>
+                </div>
+                
+                <div className="insights-grid">
+                  <div className="insight-item">
+                    <div className="insight-value">{formatMinutes(engagement.weeklyAverage)}</div>
+                    <div className="insight-label">Daily Average (7 days)</div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-value">{formatMinutes(engagement.monthlyTotal)}</div>
+                    <div className="insight-label">Monthly Total</div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-value">{stats.contributions}</div>
+                    <div className="insight-label">Active Days</div>
+                  </div>
+                  <div className="insight-item">
+                    <div className="insight-value">{stats.projects}</div>
+                    <div className="insight-label">Projects</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Social Links (Edit Mode) */}
+              {isEditing && (
+                <motion.div className="profile-section social-section" variants={cardVariants}>
+                  <div className="section-header">
+                    <Typography variant="h6" className="section-title">
+                      <LinkIcon className="section-icon" />
+                      Social Links
+                    </Typography>
+                  </div>
+                  
+                  <div className="social-inputs">
+                    <TextField
+                      label="GitHub Username"
+                      value={socialLinks.github}
+                      onChange={(e) => setSocialLinks(prev => ({ ...prev, github: e.target.value }))}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      sx={{ mb: 2 }}
+                      placeholder="your-github-username"
+                      InputProps={{
+                        startAdornment: <GitHubIcon sx={{ mr: 1, color: 'action.disabled' }} />
+                      }}
+                    />
+                    <TextField
+                      label="LinkedIn Profile"
+                      value={socialLinks.linkedin}
+                      onChange={(e) => setSocialLinks(prev => ({ ...prev, linkedin: e.target.value }))}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      sx={{ mb: 2 }}
+                      placeholder="your-linkedin-profile"
+                      InputProps={{
+                        startAdornment: <LinkedInIcon sx={{ mr: 1, color: 'action.disabled' }} />
+                      }}
+                    />
+                    <TextField
+                      label="Twitter Handle"
+                      value={socialLinks.twitter}
+                      onChange={(e) => setSocialLinks(prev => ({ ...prev, twitter: e.target.value }))}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      placeholder="your-twitter-handle"
+                      InputProps={{
+                        startAdornment: <TwitterIcon sx={{ mr: 1, color: 'action.disabled' }} />
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Right Column - Achievements & Progress */}
+            <motion.div className="profile-right-column" variants={staggerVariants}>
               
-              <div className="streak-calendar-legend">
-                <span>Less</span>
-                <div className="legend-cells">
-                  {[0, 1, 2, 3, 4].map(level => (
-                    <span key={level} className={`calendar-cell level-${level}`} />
+              {/* Achievement Badges */}
+              <motion.div className="profile-section badges-section" variants={cardVariants}>
+                <div className="section-header">
+                  <Typography variant="h6" className="section-title">
+                    <EmojiEventsIcon className="section-icon" />
+                    Achievements ({unlockedBadges.length}/{badgeList.length})
+                  </Typography>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={handleExportProfile}
+                    startIcon={<FileDownloadIcon />}
+                    className="export-button"
+                  >
+                    Export
+                  </Button>
+                </div>
+                
+                <div className="badges-grid">
+                  {badgeList.map(badge => (
+                    <BadgeCard key={badge.id} badge={badge} />
                   ))}
                 </div>
-                <span>More</span>
-              </div>
-            </div>
-          </motion.div>
-          <motion.div className="profile-github-card" variants={cardVariants}>
-            <h3>Badges</h3>
-            <div className="badges-grid">
-              {badgeList.map((badge) => (
-                <BadgeCard key={badge.id} badge={badge} />
-              ))}
-            </div>
-          </motion.div>
-          {Object.keys(engagement.courseProgress).length > 0 && (
-            <motion.div className="profile-github-card" variants={cardVariants}>
-              <h3>Course Progress</h3>
-              {Object.entries(engagement.courseProgress).map(([courseId, percent]) => (
-                <div key={courseId} className="course-progress">
-                  <div className="course-progress-header">
-                    <span>{courseId}</span>
-                    <span>{percent}%</span>
+
+                {nextBadge && (
+                  <div className="next-badge-section">
+                    <Typography variant="body2" className="next-badge-title">
+                      Next Achievement:
+                    </Typography>
+                    <div className="next-badge-card">
+                      <div className="next-badge-info">
+                        <div className="next-badge-icon">
+                          {nextBadge.icon}
+                        </div>
+                        <div className="next-badge-content">
+                          <div className="next-badge-label">{nextBadge.label}</div>
+                          <div className="next-badge-desc">{nextBadge.desc}</div>
+                        </div>
+                      </div>
+                      <div className="next-badge-progress">
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={nextBadge.progress} 
+                          className="progress-bar"
+                          sx={{
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            '& .MuiLinearProgress-bar': {
+                              borderRadius: 4,
+                              background: 'linear-gradient(45deg, #6366f1, #8b5cf6)'
+                            }
+                          }}
+                        />
+                        <Typography variant="caption" className="progress-text">
+                          {Math.round(nextBadge.progress)}% Complete
+                        </Typography>
+                      </div>
+                    </div>
                   </div>
-                  <div className="progress-bar-container">
-                    <div className="progress-bar-track">
-                      <motion.div
-                        className="progress-bar-fill"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percent}%` }}
-                        transition={{ duration: 1, ease: 'easeOut' }}
+                )}
+              </motion.div>
+
+              {/* Social Links Display */}
+              {!isEditing && (socialLinks.github || socialLinks.linkedin || socialLinks.twitter) && (
+                <motion.div className="profile-section social-links-section" variants={cardVariants}>
+                  <div className="section-header">
+                    <Typography variant="h6" className="section-title">
+                      <LinkIcon className="section-icon" />
+                      Connect With Me
+                    </Typography>
+                  </div>
+                  
+                  <div className="social-links-display">
+                    {socialLinks.github && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<GitHubIcon />}
+                        href={`https://github.com/${socialLinks.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-link-button github"
+                      >
+                        GitHub
+                      </Button>
+                    )}
+                    {socialLinks.linkedin && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<LinkedInIcon />}
+                        href={`https://linkedin.com/in/${socialLinks.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-link-button linkedin"
+                      >
+                        LinkedIn
+                      </Button>
+                    )}
+                    {socialLinks.twitter && (
+                      <Button
+                        variant="outlined"
+                        startIcon={<TwitterIcon />}
+                        href={`https://twitter.com/${socialLinks.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-link-button twitter"
+                      >
+                        Twitter
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Profile Settings */}
+              {isEditing && (
+                <motion.div className="profile-section settings-section" variants={cardVariants}>
+                  <div className="section-header">
+                    <Typography variant="h6" className="section-title">
+                      <SettingsIcon className="section-icon" />
+                      Profile Settings
+                    </Typography>
+                  </div>
+                  
+                  <div className="settings-content">
+                    <div className="setting-item">
+                      <div className="setting-info">
+                        <Typography variant="body1" className="setting-label">
+                          Profile Visibility
+                        </Typography>
+                        <Typography variant="body2" className="setting-desc">
+                          Control who can see your profile information
+                        </Typography>
+                      </div>
+                      <Switch
+                        checked={profileVisibility === 'public'}
+                        onChange={toggleProfileVisibility}
+                        color="primary"
                       />
                     </div>
-                    <span className="progress-bar-percent">{percent}%</span>
                   </div>
-                </div>
-              ))}
+                </motion.div>
+              )}
             </motion.div>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* File Input Dialog */}
+      <Dialog open={showFileInput} onClose={() => setShowFileInput(false)}>
+        <DialogTitle>Change Profile Photo</DialogTitle>
+        <DialogContent>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            id="photo-upload"
+            style={{ display: 'none' }}
+          />
+          <label htmlFor="photo-upload">
+            <Button
+              variant="contained"
+              component="span"
+              startIcon={<PhotoCameraIcon />}
+              fullWidth
+              sx={{ mb: 2 }}
+            >
+              Choose Photo
+            </Button>
+          </label>
+          {newPhoto && (
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Avatar
+                src={previewURL}
+                alt="Preview"
+                sx={{ width: 100, height: 100, mx: 'auto', mb: 1 }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                Preview of new photo
+              </Typography>
+            </Box>
           )}
-          <motion.div className="motivation-card profile-github-card" variants={cardVariants}>
-            <TipsAndUpdatesIcon />
-            <div>
-              <div className="motivation-title">Tip for Beginners</div>
-              <div className="motivation-text">
-                Practice daily to unlock more badges and keep your streak alive! Your coding journey is just beginning.
-              </div>
-            </div>
-          </motion.div>
-          <AnimatePresence>
-            {error && (
-              <motion.p className="error-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                {error}
-              </motion.p>
-            )}
-            {success && (
-              <motion.p className="success-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                {success}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </main>
-      </div>
-    </motion.div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowFileInput(false)}>Cancel</Button>
+          {newPhoto && (
+            <Button onClick={() => setShowFileInput(false)} variant="contained">
+              Confirm
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Success/Error Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={error ? 'error' : 'success'}
+          variant="filled"
+        >
+          {error || success}
+        </Alert>
+      </Snackbar>
+
+      {/* Error/Success Messages */}
+      {error && (
+        <motion.div 
+          className="message-container error"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Alert severity="error" onClose={() => setError('')}>
+            {error}
+          </Alert>
+        </motion.div>
+      )}
+      
+      {success && (
+        <motion.div 
+          className="message-container success"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Alert severity="success" onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        </motion.div>
+      )}
+    </div>
   );
 }

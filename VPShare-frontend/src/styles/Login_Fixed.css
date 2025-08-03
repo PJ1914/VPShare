@@ -1,0 +1,762 @@
+/* Professional Login Page - Enhanced Design System */
+:root {
+  /* Website Color Variables */
+  --login-primary: #6366f1;
+  --login-primary-dark: #4f46e5;
+  --login-primary-light: #818cf8;
+  --login-secondary: #8b5cf6;
+  --login-accent: #f59e0b;
+  --login-success: #10b981;
+  --login-error: #ef4444;
+  
+  /* Background Colors */
+  --login-bg-primary: #ffffff;
+  --login-bg-secondary: #f9fafb;
+  --login-bg-tertiary: #f3f4f6;
+  
+  /* Text Colors */
+  --login-text-primary: #111827;
+  --login-text-secondary: #6b7280;
+  --login-text-tertiary: #9ca3af;
+  --login-text-muted: #9ca3af;
+  
+  /* Border Colors */
+  --login-border-light: #e5e7eb;
+  --login-border-medium: #d1d5db;
+  
+  /* Shadows */
+  --login-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --login-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --login-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --login-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --login-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Gradients */
+  --login-gradient-primary: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  --login-gradient-bg: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  --login-gradient-surface: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  
+  /* Typography */
+  --login-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  
+  /* Border Radius */
+  --login-radius-sm: 6px;
+  --login-radius-md: 8px;
+  --login-radius-lg: 12px;
+  --login-radius-xl: 16px;
+  --login-radius-2xl: 24px;
+  
+  /* Spacing */
+  --login-space-1: 0.25rem;
+  --login-space-2: 0.5rem;
+  --login-space-3: 0.75rem;
+  --login-space-4: 1rem;
+  --login-space-5: 1.25rem;
+  --login-space-6: 1.5rem;
+  --login-space-8: 2rem;
+  --login-space-10: 2.5rem;
+  --login-space-12: 3rem;
+  
+  /* Transitions */
+  --login-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --login-transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --login-transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--login-space-4);
+  background: var(--login-gradient-bg);
+  font-family: var(--login-font-family);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+  background-size: 600px 600px, 800px 800px;
+  animation: backgroundFloat 30s ease-in-out infinite;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes backgroundFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-20px, 15px) rotate(0.5deg); }
+  66% { transform: translate(15px, -10px) rotate(-0.5deg); }
+}
+
+/* Login Card */
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--login-radius-2xl);
+  box-shadow: var(--login-shadow-2xl);
+  border: 1px solid var(--login-border-light);
+  padding: var(--login-space-12);
+  position: relative;
+  transition: all var(--login-transition-normal);
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--login-gradient-primary);
+  border-radius: var(--login-radius-2xl) var(--login-radius-2xl) 0 0;
+}
+
+.login-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--login-shadow-2xl), 0 0 0 1px rgba(99, 102, 241, 0.1);
+}
+
+/* Typography */
+.login-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--login-text-primary);
+  margin-bottom: var(--login-space-2);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-align: center;
+  background: var(--login-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--login-text-secondary);
+  margin-bottom: var(--login-space-8);
+  line-height: 1.6;
+  text-align: center;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Brand Section */
+.brand-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--login-space-8);
+  gap: var(--login-space-3);
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--login-radius-md);
+  box-shadow: var(--login-shadow-sm);
+}
+
+.brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--login-text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* Social Authentication */
+.auth-section {
+  margin-bottom: var(--login-space-6);
+}
+
+.auth-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--login-text-secondary);
+  text-align: center;
+  margin-bottom: var(--login-space-4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--login-space-4);
+}
+
+/* Circular Social Auth Buttons */
+.google-auth-button,
+.github-auth-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.google-auth-button::before,
+.github-auth-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--login-gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%;
+}
+
+.google-auth-button:hover,
+.github-auth-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+  border-color: var(--login-primary);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.google-auth-button:hover::before,
+.github-auth-button:hover::before {
+  opacity: 0.1;
+}
+
+.google-auth-button:active,
+.github-auth-button:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.google-auth-button svg,
+.github-auth-button svg {
+  font-size: 1.75rem;
+  color: var(--login-text-primary);
+  transition: all 0.3s ease;
+  z-index: 1;
+  position: relative;
+}
+
+.google-auth-button:hover svg {
+  color: #4285f4;
+  transform: scale(1.1);
+}
+
+.github-auth-button:hover svg {
+  color: #333;
+  transform: scale(1.1);
+}
+
+/* Form Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: var(--login-space-8) 0;
+  font-size: 0.875rem;
+  color: var(--login-text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
+.divider::before {
+  margin-right: var(--login-space-4);
+}
+
+.divider::after {
+  margin-left: var(--login-space-4);
+}
+
+.divider span {
+  padding: 0 var(--login-space-3);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--login-radius-md);
+  font-size: 0.8125rem;
+}
+
+/* Form Styling */
+.manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-space-5);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-space-2);
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--login-text-primary);
+  margin-bottom: var(--login-space-1);
+}
+
+/* Enhanced MUI TextField */
+.login-input .MuiOutlinedInput-root {
+  border-radius: var(--login-radius-lg);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  min-height: 56px;
+}
+
+.login-input .MuiOutlinedInput-root:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+.login-input .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--login-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 4px 20px rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.login-input .MuiOutlinedInput-root.Mui-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+}
+
+.login-input .MuiInputLabel-root {
+  color: var(--login-text-secondary);
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.login-input .MuiInputLabel-root.Mui-focused {
+  color: var(--login-primary);
+  font-weight: 600;
+}
+
+.login-input .MuiInputAdornment-root .MuiSvgIcon-root {
+  color: var(--login-text-tertiary);
+  transition: color 0.3s ease;
+}
+
+.login-input .MuiOutlinedInput-root.Mui-focused .MuiInputAdornment-root .MuiSvgIcon-root {
+  color: var(--login-primary);
+}
+
+.login-input .MuiOutlinedInput-input {
+  color: var(--login-text-primary);
+  font-weight: 500;
+  padding: 16px 14px;
+}
+
+.login-input .MuiOutlinedInput-input::placeholder {
+  color: var(--login-text-tertiary);
+  opacity: 0.8;
+}
+
+/* Password Visibility Toggle */
+.login-input .MuiInputAdornment-root .MuiIconButton-root {
+  color: var(--login-text-tertiary);
+  border-radius: var(--login-radius-md);
+  transition: all 0.3s ease;
+}
+
+.login-input .MuiInputAdornment-root .MuiIconButton-root:hover {
+  color: var(--login-primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+/* Primary Submit Button */
+.submit-button {
+  background: var(--login-gradient-primary) !important;
+  color: white !important;
+  padding: 16px 24px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  text-transform: none !important;
+  border-radius: var(--login-radius-lg) !important;
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-height: 56px !important;
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.submit-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4) !important;
+}
+
+.submit-button:hover::before {
+  opacity: 1;
+}
+
+.submit-button:active {
+  transform: translateY(0) !important;
+}
+
+.submit-button:disabled {
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: var(--login-text-tertiary) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.6;
+}
+
+.submit-button .MuiButton-startIcon {
+  position: relative;
+  z-index: 1;
+}
+
+.submit-button span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Toggle Section */
+.toggle-section {
+  margin-top: var(--login-space-6);
+  padding-top: var(--login-space-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.toggle-text {
+  font-size: 0.875rem;
+  color: var(--login-text-secondary);
+  font-weight: 500;
+  margin-bottom: var(--login-space-3);
+}
+
+.toggle-button {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--login-primary) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  padding: var(--login-space-2) var(--login-space-4) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  text-transform: none !important;
+  border-radius: var(--login-radius-md) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-height: 40px !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.toggle-button:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--login-primary) !important;
+  transform: translateY(-1px);
+}
+
+.toggle-button:active {
+  transform: translateY(0);
+}
+
+/* Footer Links */
+.footer-links {
+  margin-top: var(--login-space-6);
+  padding-top: var(--login-space-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-space-4);
+  align-items: center;
+}
+
+.legal-notice {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--login-radius-md);
+  padding: var(--login-space-4);
+  font-size: 0.8125rem;
+  color: var(--login-text-tertiary);
+  line-height: 1.5;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.legal-notice a {
+  color: var(--login-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.legal-notice a:hover {
+  color: var(--login-primary-dark);
+  text-decoration: underline;
+}
+
+.home-link {
+  display: flex;
+  align-items: center;
+  gap: var(--login-space-2);
+  color: var(--login-text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--login-space-2) var(--login-space-4);
+  border-radius: var(--login-radius-md);
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.home-link:hover {
+  color: var(--login-primary);
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Responsive Design */
+
+/* Large Tablets and Small Desktops (769px - 1200px) */
+@media (max-width: 1200px) and (min-width: 769px) {
+  .login-card {
+    max-width: 440px;
+    padding: var(--login-space-10);
+  }
+  
+  .login-title {
+    font-size: 2rem;
+  }
+  
+  .google-auth-button,
+  .github-auth-button {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Tablets (481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  .login-container {
+    padding: var(--login-space-6);
+  }
+  
+  .login-card {
+    max-width: 400px;
+    padding: var(--login-space-8);
+    border-radius: var(--login-radius-xl);
+  }
+  
+  .login-title {
+    font-size: 1.875rem;
+  }
+  
+  .login-subtitle {
+    font-size: 0.9375rem;
+  }
+  
+  .google-auth-button,
+  .github-auth-button {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .submit-button {
+    min-height: 50px !important;
+    font-size: 0.9375rem !important;
+  }
+}
+
+/* Mobile Devices (320px - 480px) */
+@media (max-width: 480px) {
+  .login-container {
+    padding: var(--login-space-4);
+    align-items: flex-start;
+    padding-top: var(--login-space-8);
+  }
+  
+  .login-card {
+    width: 100%;
+    max-width: none;
+    padding: var(--login-space-6);
+    border-radius: var(--login-radius-lg);
+    margin-top: 0;
+  }
+  
+  .login-title {
+    font-size: 1.75rem;
+    margin-bottom: var(--login-space-3);
+  }
+  
+  .login-subtitle {
+    font-size: 0.9375rem;
+    margin-bottom: var(--login-space-6);
+  }
+  
+  .auth-buttons {
+    gap: var(--login-space-3);
+  }
+  
+  .google-auth-button,
+  .github-auth-button {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .google-auth-button svg,
+  .github-auth-button svg {
+    font-size: 1.4rem;
+  }
+  
+  .manual-form {
+    gap: var(--login-space-4);
+  }
+  
+  .submit-button {
+    min-height: 52px !important;
+    font-size: 0.9375rem !important;
+    padding: 14px 20px !important;
+  }
+  
+  .toggle-section {
+    margin-top: var(--login-space-6);
+    padding-top: var(--login-space-4);
+  }
+  
+  .footer-links {
+    margin-top: var(--login-space-6);
+    padding-top: var(--login-space-4);
+  }
+}
+
+/* Extra Small Devices (max-width: 320px) */
+@media (max-width: 320px) {
+  .login-card {
+    padding: var(--login-space-4);
+  }
+  
+  .login-title {
+    font-size: 1.5rem;
+  }
+  
+  .login-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  .google-auth-button,
+  .github-auth-button {
+    width: 52px;
+    height: 52px;
+  }
+  
+  .google-auth-button svg,
+  .github-auth-button svg {
+    font-size: 1.25rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .login-container::before {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .login-card {
+    border: 2px solid var(--login-text-primary);
+    box-shadow: none;
+  }
+  
+  .google-auth-button,
+  .github-auth-button {
+    border-width: 3px;
+  }
+  
+  .submit-button {
+    border: 2px solid var(--login-text-primary) !important;
+  }
+  
+  .toggle-button {
+    border-width: 3px !important;
+  }
+}
+
+/* Focus Styles */
+.google-auth-button:focus-visible,
+.github-auth-button:focus-visible,
+.submit-button:focus-visible,
+.toggle-button:focus-visible,
+.home-link:focus-visible {
+  outline: 3px solid var(--login-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.2);
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .google-auth-button,
+  .github-auth-button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .submit-button {
+    min-height: 48px !important;
+  }
+  
+  .toggle-button,
+  .home-link {
+    min-height: 44px;
+    padding: var(--login-space-3) var(--login-space-4);
+  }
+}

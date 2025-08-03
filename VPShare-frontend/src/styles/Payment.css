@@ -1,19 +1,21 @@
 /* Import modern font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Use existing color palette */
+/* Website color palette - Purple/Indigo theme */
 :root {
-  --primary-gradient-start: #1e40af;
-  --primary-gradient-end: #10b981;
-  --cta-gradient-start: #10b981;
-  --cta-gradient-end: #34d399;
+  --primary-gradient-start: #6366f1;
+  --primary-gradient-end: #8b5cf6;
+  --cta-gradient-start: #8b5cf6;
+  --cta-gradient-end: #a855f7;
   --text-primary: #1f2937;
   --text-secondary: #4b5563;
   --text-light: #e5e7eb;
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: rgba(139, 92, 246, 0.1);
+  --glass-border: rgba(139, 92, 246, 0.2);
   --card-bg-light: rgba(255, 255, 255, 0.95);
   --card-bg-dark: rgba(30, 41, 59, 0.9);
+  --accent-purple: #7c3aed;
+  --accent-indigo: #6366f1;
 }
 
 .payment-page {
@@ -30,7 +32,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Enhanced glassmorphism background */
+/* Enhanced glassmorphism background with purple theme */
 .payment-page::before {
   content: '';
   position: absolute;
@@ -39,9 +41,9 @@
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-  opacity: 0.6;
+    radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+  opacity: 0.8;
   pointer-events: none;
 }
 
@@ -170,7 +172,7 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--cta-gradient-start), var(--cta-gradient-end));
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-indigo));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -181,22 +183,22 @@
 }
 
 .plan-card.selected {
-  border-color: var(--cta-gradient-start);
+  border-color: var(--accent-purple);
   box-shadow: 
-    0 8px 32px rgba(16, 185, 129, 0.25),
-    0 0 0 1px rgba(16, 185, 129, 0.1);
+    0 8px 32px rgba(139, 92, 246, 0.25),
+    0 0 0 1px rgba(139, 92, 246, 0.15);
   transform: translateY(-4px);
 }
 
 .plan-card:hover:not(.selected) {
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.15);
   transform: translateY(-2px);
 }
 
 .plan-card.popular {
   border-color: var(--primary-gradient-start);
-  box-shadow: 0 8px 32px rgba(30, 64, 175, 0.15);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
 }
 
 /* Plan header */
@@ -216,8 +218,8 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--cta-gradient-start), var(--cta-gradient-end));
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
   flex-shrink: 0;
 }
 
@@ -274,7 +276,7 @@
   width: 24px;
   height: 24px;
   color: #ffffff;
-  background: var(--cta-gradient-start);
+  background: var(--accent-purple);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -284,7 +286,7 @@
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
 }
 
 .plan-card.selected .selected-icon {
@@ -299,15 +301,15 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .price {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--cta-gradient-start);
+  color: var(--accent-purple);
   margin-bottom: 0.25rem;
 }
 
@@ -331,17 +333,17 @@
   text-align: left;
   padding: 0.5rem;
   border-radius: 8px;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   transition: all 0.2s ease;
 }
 
 .feature-item:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(139, 92, 246, 0.1);
   transform: translateX(4px);
 }
 
 .feature-check {
-  color: var(--cta-gradient-start);
+  color: var(--accent-purple);
   font-size: 1.1rem;
   flex-shrink: 0;
 }
@@ -390,9 +392,9 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .price-display {
@@ -411,7 +413,7 @@
 .total-price {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--cta-gradient-start);
+  color: var(--accent-purple);
 }
 
 .duration-label {
@@ -427,11 +429,11 @@
   gap: 0.5rem;
   margin-top: 1rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-indigo) 100%);
   color: white;
   border-radius: 12px;
   font-weight: 600;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
 .features-included h3 {
@@ -456,19 +458,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.1);
   transition: all 0.2s ease;
 }
 
 .feature-highlight:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(139, 92, 246, 0.1);
   transform: translateX(2px);
 }
 
 .feature-icon {
-  color: var(--cta-gradient-start);
+  color: var(--accent-purple);
   font-size: 1.1rem;
   flex-shrink: 0;
 }
@@ -488,9 +490,9 @@
   font-size: 0.875rem;
   font-weight: 500;
   padding: 1rem;
-  background: rgba(16, 185, 129, 0.02);
+  background: rgba(139, 92, 246, 0.02);
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.05);
 }
 
 .legal-notice {
@@ -509,20 +511,20 @@
 }
 
 .legal-notice a {
-  color: #34d399;
+  color: var(--accent-purple);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .legal-notice a:hover {
-  color: #10b981;
+  color: var(--accent-indigo);
   text-decoration: underline;
 }
 
 /* Pay button */
 .pay-button {
-  background: linear-gradient(135deg, var(--cta-gradient-start), var(--cta-gradient-end));
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
   color: #ffffff;
   padding: 1rem 2rem;
   border: none;
@@ -531,7 +533,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
   width: 100%;
   max-width: 400px;
   position: relative;
@@ -541,7 +543,7 @@
 
 .pay-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
 }
 
 .pay-button:disabled {
@@ -639,12 +641,12 @@
 
 /* Enhanced focus states for accessibility */
 .plan-card:focus-visible {
-  outline: 3px solid var(--cta-gradient-start);
+  outline: 3px solid var(--accent-purple);
   outline-offset: 2px;
 }
 
 .pay-button:focus-visible {
-  outline: 3px solid rgba(16, 185, 129, 0.5);
+  outline: 3px solid rgba(139, 92, 246, 0.5);
   outline-offset: 2px;
 }
 
@@ -727,9 +729,9 @@
   }
   
   .plan-card.selected {
-    border-color: var(--cta-gradient-start);
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.02) 0%, rgba(37, 99, 235, 0.02) 100%);
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+    border-color: var(--accent-purple);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.02) 0%, rgba(99, 102, 241, 0.02) 100%);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
     transform: translateY(-3px);
   }
   
@@ -749,8 +751,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--cta-gradient-start), var(--cta-gradient-end));
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
   }
   
   .plan-icon-wrapper .plan-icon {
@@ -784,7 +786,7 @@
   .selected-icon {
     width: 24px;
     height: 24px;
-    color: var(--cta-gradient-start);
+    color: var(--accent-purple);
     flex-shrink: 0;
   }
   
@@ -792,15 +794,15 @@
     padding: 1rem;
     margin-bottom: 1rem;
     text-align: center;
-    background: rgba(16, 185, 129, 0.05);
+    background: rgba(139, 92, 246, 0.05);
     border-radius: 12px;
-    border: 1px solid rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.1);
   }
   
   .price {
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--cta-gradient-start);
+    color: var(--accent-purple);
     margin-bottom: 0.25rem;
     display: block;
   }
@@ -820,7 +822,7 @@
   .feature-item {
     padding: 0.6rem 0.8rem;
     font-size: 0.85rem;
-    background: rgba(16, 185, 129, 0.05);
+    background: rgba(139, 92, 246, 0.05);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -828,7 +830,7 @@
   }
   
   .feature-check {
-    color: var(--cta-gradient-start);
+    color: var(--accent-purple);
     font-size: 1rem;
     flex-shrink: 0;
   }
@@ -837,9 +839,9 @@
     padding: 1.5rem;
     margin-bottom: 2rem;
     background: #ffffff !important;
-    border: 2px solid var(--cta-gradient-start);
+    border: 2px solid var(--accent-purple);
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.1);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -862,8 +864,8 @@
   }
   
   .pricing-breakdown {
-    background: rgba(16, 185, 129, 0.05) !important;
-    border: 1px solid rgba(16, 185, 129, 0.1);
+    background: rgba(139, 92, 246, 0.05) !important;
+    border: 1px solid rgba(139, 92, 246, 0.1);
     padding: 1.5rem;
   }
   
@@ -894,7 +896,7 @@
   
   .feature-highlight {
     padding: 0.8rem;
-    background: rgba(16, 185, 129, 0.05);
+    background: rgba(139, 92, 246, 0.05);
     border-radius: 8px;
   }
   
@@ -904,18 +906,18 @@
   }
   
   .feature-icon {
-    color: var(--cta-gradient-start) !important;
+    color: var(--accent-purple) !important;
   }
   
   .security-info {
     color: var(--text-secondary) !important;
-    background: rgba(16, 185, 129, 0.02);
-    border: 1px solid rgba(16, 185, 129, 0.05);
+    background: rgba(139, 92, 246, 0.02);
+    border: 1px solid rgba(139, 92, 246, 0.05);
   }
   
   .total-price {
     font-size: 2rem;
-    color: var(--cta-gradient-start);
+    color: var(--accent-purple);
   }
   
   /* Fixed button for mobile */
@@ -1218,23 +1220,23 @@
 
 /* Accessibility: Focus styles for interactive elements */
 .pay-button:focus {
-  outline: 3px solid #2563eb;
+  outline: 3px solid var(--accent-indigo);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
 }
 
 .plan-card:focus {
-  outline: 3px solid #10b981;
+  outline: 3px solid var(--accent-purple);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
 }
 
 /* Subtle hover for plan cards (for mouse users) */
 .plan-card:hover:not(.selected),
 .plan-card:focus-visible:not(.selected) {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: #10b981;
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.15);
+  background: rgba(139, 92, 246, 0.08);
+  border-color: var(--accent-purple);
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.15);
 }
 
 
@@ -1383,7 +1385,7 @@
 @media (max-width: 768px) {
   .plan-card {
     cursor: pointer;
-    -webkit-tap-highlight-color: rgba(16, 185, 129, 0.1);
+    -webkit-tap-highlight-color: rgba(139, 92, 246, 0.1);
     touch-action: manipulation;
   }
   
@@ -1393,7 +1395,7 @@
   
   .pay-button {
     cursor: pointer;
-    -webkit-tap-highlight-color: rgba(16, 185, 129, 0.2);
+    -webkit-tap-highlight-color: rgba(139, 92, 246, 0.2);
     touch-action: manipulation;
   }
   

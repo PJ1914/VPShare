@@ -105,6 +105,8 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SchoolIcon from '@mui/icons-material/School';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import SkipNextIcon from '@mui/icons-material/SkipNext';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import '../styles/CourseDetail.css';
 import CourseCompletionModal from '../components/CourseCompletionModal';
@@ -1714,15 +1716,92 @@ function CourseDetail() {
   };
 
   const getAuthHeaders = async () => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) throw new Error('Not authenticated');
-    
-    const token = await user.getIdToken(true);
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+      
+      // Force token refresh to ensure it's valid
+      const token = await user.getIdToken(true);
+      
+      if (!token) {
+        throw new Error('Failed to get authentication token');
+      }
+      
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    } catch (error) {
+      console.error('Authentication error:', error);
+      throw error;
+    }
+  };
+
+  // Enhanced API call with retry logic for 403 errors
+  const makeAuthenticatedRequest = async (url, options = {}, retries = 2) => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axios.get(url, { headers, ...options });
+      return response;
+    } catch (error) {
+      console.error(`API request failed for ${url}:`, error);
+      
+      // Handle 403 errors specifically
+      if (error.response?.status === 403) {
+        if (retries > 0) {
+          console.log(`Retrying request to ${url} due to 403 error. Retries left: ${retries}`);
+          // Wait a bit before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return makeAuthenticatedRequest(url, options, retries - 1);
+        } else {
+          // After all retries failed, redirect to login
+          console.error('Authentication failed after retries. Redirecting to login.');
+          const auth = getAuth();
+          await auth.signOut();
+          navigate('/login', { 
+            state: { 
+              message: 'Authentication expired. Please log in again.',
+              returnUrl: window.location.pathname 
+            } 
+          });
+          throw new Error('Authentication failed. Please log in again.');
+        }
+      }
+      
+      // Handle other errors
+      if (error.response?.status === 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Request timeout. Please check your internet connection.');
+      }
+      
+      throw error;
+    }
+  };
+
+  // Test API connection and authentication
+  const testApiConnection = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_COURSES_API_URL;
+      if (!apiUrl) {
+        console.error('VITE_COURSES_API_URL environment variable is not set');
+        return false;
+      }
+      
+      console.log('Testing API connection to:', apiUrl);
+      const response = await makeAuthenticatedRequest(`${apiUrl}/courses`);
+      console.log('API connection test successful:', response.status);
+      return true;
+    } catch (error) {
+      console.error('API connection test failed:', error);
+      return false;
+    }
   };
 
   // Fetch course data
@@ -1738,22 +1817,41 @@ function CourseDetail() {
       const user = auth.currentUser;
 
       if (!user) {
-        navigate('/login');
+        console.log('No authenticated user found, redirecting to login');
+        navigate('/login', { 
+          state: { 
+            message: 'Please log in to access course content.',
+            returnUrl: `/courses/${courseId}` 
+          } 
+        });
+        return;
+      }
+
+      // Test API connection first
+      const connectionTest = await testApiConnection();
+      if (!connectionTest) {
+        setError('Unable to connect to the courses API. Please check your internet connection and try again.');
+        setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const headers = await getAuthHeaders();
+        setError(''); // Clear any previous errors
         const apiUrl = import.meta.env.VITE_COURSES_API_URL;
 
-        // Fetch course details
-        const courseResponse = await axios.get(`${apiUrl}/courses`, { headers });
+        if (!apiUrl) {
+          throw new Error('Courses API URL not configured. Please check your environment variables.');
+        }
+
+        // Fetch course details with enhanced error handling
+        console.log('Fetching courses from:', `${apiUrl}/courses`);
+        const courseResponse = await makeAuthenticatedRequest(`${apiUrl}/courses`);
         const courses = Array.isArray(courseResponse.data) ? courseResponse.data : courseResponse.data.Items || [];
         const courseData = courses.find(c => stripPrefix(c.SK) === courseId);
 
         if (!courseData) {
-          setError('Course not found');
+          setError(`Course with ID "${courseId}" not found. Please check the URL or try again.`);
           setLoading(false);
           return;
         }
@@ -1766,8 +1864,9 @@ function CourseDetail() {
           order: courseData.order
         });
 
-        // Fetch modules for this course
-        const modulesResponse = await axios.get(`${apiUrl}/courses/${courseId}/modules`, { headers });
+        // Fetch modules for this course with enhanced error handling
+        console.log('Fetching modules from:', `${apiUrl}/courses/${courseId}/modules`);
+        const modulesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses/${courseId}/modules`);
         const modulesData = Array.isArray(modulesResponse.data) ? modulesResponse.data : modulesResponse.data.Items || [];
         
         const processedModules = modulesData
@@ -1782,11 +1881,12 @@ function CourseDetail() {
 
         setModules(processedModules);
 
-        // Fetch content for all modules
+        // Fetch content for all modules with enhanced error handling
         const allContents = [];
         for (const module of processedModules) {
           try {
-            const contentResponse = await axios.get(`${apiUrl}/modules/${module.id}/content`, { headers });
+            console.log('Fetching content for module:', module.id);
+            const contentResponse = await makeAuthenticatedRequest(`${apiUrl}/modules/${module.id}/content`);
             const contentData = Array.isArray(contentResponse.data) ? contentResponse.data : contentResponse.data.Items || [];
             
             console.log(`Content data for module ${module.id}:`, contentData);
@@ -1861,7 +1961,27 @@ function CourseDetail() {
 
       } catch (err) {
         console.error('Failed to fetch course data:', err);
-        setError('Failed to load course data');
+        
+        // Provide more specific error messages
+        let errorMessage = 'Failed to load course data';
+        
+        if (err.message.includes('Authentication failed')) {
+          errorMessage = 'Authentication failed. Please log in again.';
+        } else if (err.message.includes('not found')) {
+          errorMessage = err.message;
+        } else if (err.message.includes('Server error')) {
+          errorMessage = 'Server is currently experiencing issues. Please try again later.';
+        } else if (err.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please check your internet connection and try again.';
+        } else if (err.response?.status === 403) {
+          errorMessage = 'Access denied. Please check your subscription or log in again.';
+        } else if (err.response?.status === 500) {
+          errorMessage = 'Server error. Our team has been notified. Please try again later.';
+        } else if (err.code === 'NETWORK_ERROR') {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -2768,10 +2888,69 @@ function CourseDetail() {
   if (error) {
     return (
       <div className="course-detail-error">
-        <Typography color="error">{error}</Typography>
-        <Button onClick={() => navigate('/courses')} variant="contained">
-          Back to Courses
-        </Button>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="error-content"
+          style={{
+            textAlign: 'center',
+            padding: '2rem',
+            maxWidth: '600px',
+            margin: '0 auto'
+          }}
+        >
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" color="error" sx={{ mb: 2, fontWeight: 600 }}>
+              Oops! Something went wrong
+            </Typography>
+            <Typography color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
+              {error}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button 
+              onClick={() => {
+                setError('');
+                setLoading(true);
+                // Trigger a re-fetch by changing a dependency
+                window.location.reload();
+              }} 
+              variant="contained"
+              startIcon={<RefreshIcon />}
+              sx={{ borderRadius: 2 }}
+            >
+              Try Again
+            </Button>
+            <Button 
+              onClick={() => navigate('/courses')} 
+              variant="outlined"
+              startIcon={<ArrowBackIcon />}
+              sx={{ borderRadius: 2 }}
+            >
+              Back to Courses
+            </Button>
+          </Box>
+          
+          {error.includes('Authentication') && (
+            <Box sx={{ mt: 3, p: 2, backgroundColor: '#f8f9fa', borderRadius: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Having authentication issues? Try logging out and back in.
+              </Typography>
+              <Button 
+                onClick={async () => {
+                  const auth = getAuth();
+                  await auth.signOut();
+                  navigate('/login');
+                }}
+                variant="text"
+                sx={{ mt: 1 }}
+              >
+                Log Out
+              </Button>
+            </Box>
+          )}
+        </motion.div>
       </div>
     );
   }

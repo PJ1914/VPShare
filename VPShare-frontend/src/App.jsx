@@ -12,6 +12,7 @@ import Payment from './pages/Payment';
 import PrivateRoute from './components/PrivateRoute';
 import CourseDetail from './pages/CourseDetail';
 import ErrorBoundary from './components/ErrorBoundary';
+import ApiErrorBoundary from './components/ApiErrorBoundary';
 import Assignments from './pages/Assignments';
 import GitHubPage from './pages/GitHub';
 import Projects from './pages/Projects';
@@ -21,30 +22,34 @@ import TermsConditions from './pages/TermsConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import AdminPanel from './pages/AdminPanel';
+import ResumeBuilder from './pages/ResumeBuilder';
+import ATSChecker from './pages/ATSChecker';
+import Hackathon from './pages/Hackathon';
 
 function App() {
   return (
     <>
       <Navbar />
       <AIChat />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/payment/:plan" element={<Payment />} />
+      <ApiErrorBoundary>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/payment/:plan" element={<Payment />} />
 
-        {/* Private Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
+          {/* Private Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/courses"
+          <Route
+            path="/courses"
           element={
             <PrivateRoute>
               <Courses />
@@ -81,6 +86,24 @@ function App() {
           element={
             <PrivateRoute>
               <Playground />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/resume-builder"
+          element={
+            <PrivateRoute>
+              <ResumeBuilder />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/ats-checker"
+          element={
+            <PrivateRoute>
+              <ATSChecker />
             </PrivateRoute>
           }
         />
@@ -135,7 +158,11 @@ function App() {
         <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
+        
+        {/* Hackathon Page */}
+        <Route path="/hackathon" element={<Hackathon />} />
       </Routes>
+      </ApiErrorBoundary>
 
       <Footer />
     </>

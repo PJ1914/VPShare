@@ -22,6 +22,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import DiscountIcon from '@mui/icons-material/Discount';
+import { createApiClient, retryRequest, getErrorMessage } from '../utils/apiUtils';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -48,6 +49,9 @@ function Payment() {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [error, setError] = useState('');
   const [userToken, setUserToken] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [paymentApiClient, setPaymentApiClient] = useState(null);
+
   const plans = {
     'one-day': {
       name: 'One-Day Plan',
@@ -103,7 +107,6 @@ function Payment() {
   useEffect(() => {
     // Initialize Firebase auth check without verbose logging
     if (!plans[initialPlan]) {
-      console.warn('Invalid plan selected. Defaulting to Monthly Plan.');
       setSelectedPlan('monthly');
       navigate('/payment/monthly', { replace: true });
       setError('Invalid plan selected. Defaulting to Monthly Plan.');
@@ -155,42 +158,37 @@ function Payment() {
     };
   }, []);
 
+  // Initialize API client on component mount
+  useEffect(() => {
+    const apiClient = createApiClient(import.meta.env.VITE_API_BASE_URL);
+    setPaymentApiClient(apiClient);
+  }, []);
+
   const handlePayment = async () => {
-    if (!razorpayLoaded) return setError('Razorpay SDK not loaded.');
-    if (!userToken) return setError('User not authenticated.');
+    if (!razorpayLoaded) return setError('Razorpay SDK not loaded. Please refresh the page and try again.');
+    if (!userToken) return setError('User not authenticated. Please log in again.');
+    if (!paymentApiClient) return setError('Payment system not initialized. Please refresh the page.');
+    
     const planDetails = plans[selectedPlan] || plans.monthly;
     setLoading(true);
     setError('');
     
     try {
-      // Create order payload
-      const orderPayload = { plan: selectedPlan, amount: planDetails.amount };
-      
-      // Only log in development environment
-      if (import.meta.env.DEV) {
-        console.log('Sending order payload to AWS Lambda:', orderPayload);
-      }
-      
-      const orderResponse = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/create-order`,
-        orderPayload,
-        { 
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
-          timeout: 10000 // 10 second timeout
-        }
-      );
-      
-      // Only log in development environment (remove sensitive data in production)
-      if (import.meta.env.DEV) {
-        console.log('AWS Lambda response received successfully');
-      }
+      // Create order with retry logic
+      const createOrderRequest = async () => {
+        const orderPayload = { plan: selectedPlan, amount: planDetails.amount };
+        
+        return await paymentApiClient.post('/create-order', orderPayload, {
+          headers: { Authorization: `Bearer ${userToken}` },
+          timeout: 15000
+        });
+      };
+
+      const orderResponse = await retryRequest(createOrderRequest, 3, 1000);
       
       const { order_id, amount, currency, key_id } = orderResponse.data || {};
       if (!order_id || !amount || !currency || !key_id) {
-        console.error('Missing order details in response');
-        setError('Failed to create order: Missing required order details from payment gateway');
-        setLoading(false);
-        return;
+        throw new Error('Missing required order details from payment gateway');
       }
       
       const options = {
@@ -265,13 +263,8 @@ function Payment() {
                   },
                   lastUpdated: serverTimestamp()
                 }, { merge: true });
-                
-                if (import.meta.env.DEV) {
-                  console.log('Firestore subscription updated successfully');
-                }
               }
             } catch (firestoreError) {
-              console.error('Firestore update error:', firestoreError);
               // Don't fail the entire flow - payment was successful
             }
 
@@ -290,11 +283,7 @@ function Payment() {
                   timeout: 10000 // 10 second timeout for email
                 }
               );
-              if (import.meta.env.DEV) {
-                console.log('Confirmation email sent successfully');
-              }
             } catch (emailErr) {
-              console.error('Email sending failed:', emailErr.response?.data?.error || 'Email service unavailable');
               // Don't fail the entire flow if email fails - payment was successful
             }
 
@@ -315,7 +304,6 @@ function Payment() {
               navigate('/dashboard?from=payment');
             }
           } catch (err) {
-            console.error('Payment verification error:', err);
             const errorMsg = err.response?.data?.error || err.message || 'Payment verification failed';
             setError(`Payment verification failed: ${errorMsg}`);
           } finally {
@@ -333,9 +321,6 @@ function Payment() {
           ondismiss: function () {
             setLoading(false);
             // User dismissing the modal is normal behavior, not an error condition
-            if (import.meta.env.DEV) {
-              console.log('Payment modal dismissed by user');
-            }
           },
         },
         method: {
@@ -351,7 +336,6 @@ function Payment() {
         const razorpay = new window.Razorpay(options);
         
         razorpay.on('payment.failed', function (response) {
-          console.error('Payment failed - please try again');
           const errorMsg = response.error?.description || response.error?.reason || 'Payment failed';
           setError(`Payment failed: ${errorMsg}. Please try again or contact support.`);
           setLoading(false);
@@ -359,43 +343,28 @@ function Payment() {
         
         // Add error handling for Razorpay modal issues
         razorpay.on('modal.ondismiss', function() {
-          if (import.meta.env.DEV) {
-            console.log('Payment modal was dismissed');
-          }
           setLoading(false);
         });
         
         razorpay.open();
       } catch (razorpayError) {
-        console.error('Razorpay initialization error:', razorpayError);
         setError('Failed to initialize payment gateway. This might be due to network issues. Please try again or contact support.');
         setLoading(false);
       }
       
     } catch (err) {
-      console.error('Order creation error:', err);
       let errorMessage = 'Failed to create order. Please try again.';
       
       if (err.code === 'ECONNABORTED') {
         errorMessage = 'Request timeout. Please check your internet connection and try again.';
       } else if (err.response?.status === 500) {
         errorMessage = 'Payment gateway error (500). This could be due to Razorpay configuration issues on the server. Please try again or contact support.';
-        if (import.meta.env.DEV) {
-          console.error('500 Error Details:', {
-            url: err.config?.url,
-            status: err.response?.status,
-            message: 'Server configuration or Razorpay API issue'
-          });
-        }
       } else if (err.response?.status === 401) {
         errorMessage = 'Authentication failed. Please log in again.';
         navigate('/login');
         return;
       } else if (err.response?.status === 400) {
         errorMessage = 'Invalid payment request. Please refresh the page and try again.';
-        if (import.meta.env.DEV) {
-          console.error('400 Error - Bad Request:', err.response?.status);
-        }
       } else if (err.response?.data?.error) {
         errorMessage = err.response.data.error;
       } else if (err.message?.includes('Network Error')) {
@@ -407,89 +376,111 @@ function Payment() {
     }
   };
 
-  // Test payment function for debugging (development only)
-  const testRazorpayConnection = () => {
-    if (!import.meta.env.DEV) {
-      console.warn('Test function only available in development mode');
-      return;
-    }
-    
-    if (!window.Razorpay) {
-      setError('Razorpay SDK not loaded. Please refresh the page.');
-      return;
-    }
-    
-    // Test with minimal options
-    const testOptions = {
-      key: 'rzp_test_9999999999', // dummy test key
-      amount: 100, // ₹1
-      currency: 'INR',
-      name: 'Test Payment',
-      description: 'Connection Test',
-      handler: function(response) {
-        console.log('Test payment successful');
-      },
-      modal: {
-        ondismiss: function() {
-          console.log('Test modal dismissed');
-        }
-      }
-    };
-    
-    try {
-      const razorpay = new window.Razorpay(testOptions);
-      console.log('Razorpay initialized successfully');
-    } catch (error) {
-      console.error('Razorpay initialization failed');
-      setError('Payment gateway initialization failed. Please try refreshing the page.');
-    }
-  };
-
   return (
     <motion.div className="payment-page" initial="hidden" animate="visible" variants={sectionVariants} style={{ paddingBottom: window.innerWidth <= 600 ? '6.5rem' : undefined }}>
       <h1 className="payment-title">Unlock Your Coding Potential</h1>
       <p className="payment-subtitle">Choose a CodeTapasya plan to start learning today!</p>
       {error && (
-        <div className="error-message">
-          {error}
-          <div style={{ marginTop: '10px' }}>
-            <button 
-              onClick={() => setError('')} 
-              style={{ 
-                marginRight: '10px',
-                padding: '5px 10px', 
-                backgroundColor: '#ff4444', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer' 
-              }}
-            >
-              Dismiss
-            </button>
-            {error.includes('Server error') || error.includes('gateway') ? (
+        <motion.div 
+          className="error-message"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          style={{
+            background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+            border: '1px solid #fecaca',
+            borderRadius: '12px',
+            padding: '1rem',
+            margin: '1rem 0',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem'
+          }}
+        >
+          <div style={{ 
+            color: '#dc2626', 
+            fontSize: '1.25rem',
+            marginTop: '0.125rem',
+            flexShrink: 0
+          }}>
+            ⚠️
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              color: '#7f1d1d', 
+              fontWeight: '600',
+              marginBottom: '0.5rem'
+            }}>
+              Payment Error
+            </div>
+            <div style={{ 
+              color: '#991b1b',
+              lineHeight: '1.5',
+              marginBottom: '0.75rem'
+            }}>
+              {error}
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              gap: '0.5rem',
+              flexWrap: 'wrap'
+            }}>
               <button 
-                onClick={() => {
-                  setError('');
-                  // Retry after a short delay
-                  setTimeout(() => handlePayment(), 1000);
-                }}
+                onClick={() => setError('')} 
                 style={{ 
-                  padding: '5px 10px', 
-                  backgroundColor: '#10b981', 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: '#dc2626', 
                   color: 'white', 
                   border: 'none', 
-                  borderRadius: '4px', 
-                  cursor: 'pointer' 
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
-                disabled={loading}
+                onMouseOver={e => e.target.style.backgroundColor = '#b91c1c'}
+                onMouseOut={e => e.target.style.backgroundColor = '#dc2626'}
               >
-                Retry Payment
+                Dismiss
               </button>
-            ) : null}
+              {retryCount < 3 && (
+                <button 
+                  onClick={handlePayment} 
+                  disabled={loading}
+                  style={{ 
+                    padding: '0.5rem 1rem', 
+                    backgroundColor: '#1d4ed8', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.6 : 1,
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={e => !loading && (e.target.style.backgroundColor = '#1e40af')}
+                  onMouseOut={e => !loading && (e.target.style.backgroundColor = '#1d4ed8')}
+                >
+                  Try Again
+                </button>
+              )}
+              {retryCount >= 3 && (
+                <p style={{ 
+                  color: '#7f1d1d',
+                  fontSize: '0.875rem',
+                  margin: 0,
+                  fontStyle: 'italic'
+                }}>
+                  Multiple attempts failed. Please contact support or try again later.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      )}      <div className="plans-container">
+        </motion.div>
+      )}
+
+      <div className="plans-container">
         {Object.keys(plans).map((planKey) => (
           <motion.div
             key={planKey}

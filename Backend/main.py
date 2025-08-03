@@ -13,7 +13,16 @@ from firebase_admin import credentials, auth
 from utils.dynamo import save_message_async, get_recent_messages_async
 from utils.gemini import get_gemini_reply
 
-app = FastAPI()
+# Import route modules
+from routes.resume_routes import resume_router
+from routes.ats_routes import ats_router
+from routes.ai_routes import ai_router
+
+app = FastAPI(
+    title="VPShare API",
+    description="AI-powered resume builder and ATS checker",
+    version="1.0.0"
+)
 
 # Firebase Admin SDK Init
 if not firebase_admin._apps:
@@ -168,6 +177,11 @@ async def get_chat_history(chat_id: str, authorization: str = Header(None)):
     except Exception as e:
         print(f"Error getting chat history: {e}")
         raise HTTPException(status_code=500, detail="Error retrieving chat history")
+
+# Include routers with prefixes
+app.include_router(resume_router, prefix="/api/resume", tags=["Resume"])
+app.include_router(ats_router, prefix="/api/ats", tags=["ATS"])
+app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
 
 if __name__ == "__main__":
     import uvicorn

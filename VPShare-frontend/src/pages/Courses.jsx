@@ -249,7 +249,7 @@ function Courses() {
   };
 
   return (
-    <div className="courses-container">
+    <>
       <SEO
         title="Programming Courses - Learn JavaScript, React, Python | CodeTapasya"
         description="Explore our comprehensive programming courses. Learn JavaScript, React, Python, Node.js, and more with hands-on projects, interactive coding playground, and expert guidance."
@@ -259,177 +259,243 @@ function Courses() {
         structuredData={structuredData}
       />
       
-      <main className="courses-main">
-        <motion.section
-          className="courses-hero"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+      <div className="modern-page">
+        <div className="modern-container">
+          {/* Hero Section */}
+          <motion.section
+            className="modern-section"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
           >
-            <h1>Explore Our Courses</h1>
-            <p>Master web development with beginner-friendly, job-ready courses.</p>
-            <motion.div variants={hoverVariants} whileHover="hover">
-              <button onClick={scrollToCourses} className="hero-cta">
-                Start Learning
-              </button>
-            </motion.div>
-          </motion.div>
-        </motion.section>
-
-        {/* Show subscription banner for non-subscribers */}
-        <SubscriptionBanner />
-
-        <motion.section
-          className="filter-bar"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          <h2>Filter Courses</h2>
-          <div className="filter-buttons">
-            {categories.map(category => (
-              <motion.button
-                key={category}
-                className={`filter-button ${filter === category ? 'active' : ''}`}
-                onClick={() => setFilter(category)}
-                variants={hoverVariants}
-                whileHover="hover"
+            <div className="modern-card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
               >
-                {category}
-              </motion.button>
-            ))}
-          </div>
-        </motion.section>
+                <h1 className="modern-heading-xl">Explore Our Courses</h1>
+                <p className="modern-text" style={{ marginBottom: '2rem' }}>
+                  Master web development with beginner-friendly, job-ready courses.
+                </p>
+                <motion.div variants={hoverVariants} whileHover="hover">
+                  <button onClick={scrollToCourses} className="modern-btn modern-btn-primary modern-btn-lg">
+                    Start Learning
+                  </button>
+                </motion.div>
+              </motion.div>
+            </div>
+          </motion.section>
 
-        <motion.section
-          className="course-list"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-          id="courses"
-        >
-          <h2>{filter} Courses</h2>
+          {/* Show subscription banner for non-subscribers */}
+          <SubscriptionBanner />
 
-          {loading && (
-            <div className="loading-container">
-              <p className="loading-text">Loading courses...</p>
-              <div className="spinner" role="status" aria-label="Loading">
-                <span className="sr-only">Loading...</span>
+          {/* Filter Section */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <div className="modern-card">
+              <h2 className="modern-heading-md" style={{ marginBottom: '1.5rem' }}>Filter Courses</h2>
+              <div className="modern-flex" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+                {categories.map(category => (
+                  <motion.button
+                    key={category}
+                    className={`modern-btn ${filter === category ? 'modern-btn-primary' : 'modern-btn-secondary'} modern-btn-sm`}
+                    onClick={() => setFilter(category)}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                  >
+                    {category}
+                  </motion.button>
+                ))}
               </div>
             </div>
-          )}
-          {error && (
-            <div className="error-container">
-              <p className="error-text">{error}</p>
-              <button
-                onClick={() => navigate('/')}
-                className="error-back-button"
-                aria-label="Back to Home"
-              >
-                Back to Home
-              </button>
-            </div>
-          )}
+          </motion.section>
 
-          <motion.div
-            className="course-grid"
-            variants={containerVariants}
+          {/* Courses Section */}
+          <motion.section
+            className="modern-section"
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+            id="courses"
           >
-            <AnimatePresence>              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course, index) => (
-                  <motion.div 
-                    key={course.id || `fallback-${index}`} 
-                    className="course-card" 
-                    variants={cardVariants} 
-                    initial="initial" 
-                    animate="animate" 
-                    exit="exit" 
-                    whileHover="hover"
-                    role="article"
-                    aria-labelledby={`course-title-${course.id}`}
-                    tabIndex="0"
-                  >                    <span className={`course-category ${course.category.toLowerCase().replace(/\s/g, '-')}`}>
-                      {course.category}
-                    </span>
-                    {!hasSubscription && (
-                      <span className="subscription-indicator">
-                        Limited Access
-                      </span>
-                    )}
-                    {course.thumbnail && (
-                      <img 
-                        src={course.thumbnail} 
-                        alt={course.title}
-                        className="course-thumbnail"
-                        loading="lazy"
-                      />
-                    )}
-                    <h3 id={`course-title-${course.id}`}>{course.title}</h3>
-                    <p className="course-description">{course.description}</p>
-                    <p className="course-level">Level: {course.level}</p>
-                    <p className="course-modules">{course.totalModules} modules</p>
-                    {course.progress > 0 && (
-                      <div className="course-progress">
-                        {course.progress === 100 ? (
-                          <p className="course-completed">Course Completed!</p>
-                        ) : (
-                          <>
-                            <p>{course.progress}% Complete ({course.completedModules}/{course.totalModules} modules)</p>
-                            <div className="progress-bar">
-                              <motion.div
-                                className="progress-fill"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${course.progress}%` }}
-                                transition={{ duration: 1, ease: 'easeOut' }}
-                              ></motion.div>
-                            </div>
-                          </>
+            <h2 className="modern-heading-lg" style={{ marginBottom: '2rem' }}>{filter} Courses</h2>
+
+            {loading && (
+              <div className="modern-card modern-flex-center" style={{ padding: '3rem', textAlign: 'center' }}>
+                <div className="modern-flex-col" style={{ alignItems: 'center', gap: '1rem' }}>
+                  <div className="modern-skeleton" style={{ width: '200px', height: '24px' }}></div>
+                  <div className="modern-skeleton" style={{ width: '150px', height: '16px' }}></div>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="modern-card" style={{ textAlign: 'center', padding: '3rem', background: 'rgba(239, 68, 68, 0.1)' }}>
+                <p className="modern-text" style={{ color: 'var(--error)', marginBottom: '2rem' }}>{error}</p>
+                <button
+                  onClick={() => navigate('/')}
+                  className="modern-btn modern-btn-secondary"
+                  aria-label="Back to Home"
+                >
+                  Back to Home
+                </button>
+              </div>
+            )}
+
+            <motion.div
+              className="modern-grid modern-grid-3"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <AnimatePresence>
+                {filteredCourses.length > 0 ? (
+                  filteredCourses.map((course, index) => (
+                    <motion.div 
+                      key={course.id || `fallback-${index}`} 
+                      className="modern-card modern-slide-up" 
+                      variants={cardVariants} 
+                      initial="initial" 
+                      animate="animate" 
+                      exit="exit" 
+                      whileHover="hover"
+                      role="article"
+                      aria-labelledby={`course-title-${course.id}`}
+                      tabIndex="0"
+                      style={{ 
+                        animationDelay: `${index * 0.1}s`,
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%'
+                      }}
+                    >
+                      {/* Category Badge */}
+                      <div className="modern-flex-between" style={{ marginBottom: '1rem', alignItems: 'flex-start' }}>
+                        <span className={`modern-badge modern-badge-primary`}>
+                          {course.category}
+                        </span>
+                        {!hasSubscription && (
+                          <span className="modern-badge modern-badge-warning" style={{ fontSize: '0.75rem' }}>
+                            Limited Access
+                          </span>
                         )}
                       </div>
-                    )}                    {/* Remove motion.div hover for the course-link button */}
-                    <div>
-                      <Link
-                        to={course.link}
-                        className="course-link"
-                        aria-label={`Go to ${course.title}`}
-                        state={{ continueModule: course.completedModules }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        {getCourseCTA(course.progress)}
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))
-              ) : (
-                !loading && !error && (
-                  <motion.p
-                    className="no-courses-found"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    No courses found in this category.
-                  </motion.p>
-                )
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.section>
-      </main>
-    </div>
+
+                      {/* Course Thumbnail */}
+                      {course.thumbnail && (
+                        <div style={{ marginBottom: '1rem', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                          <img 
+                            src={course.thumbnail} 
+                            alt={course.title}
+                            style={{ 
+                              width: '100%', 
+                              height: '180px', 
+                              objectFit: 'cover',
+                              transition: 'transform var(--transition-normal)'
+                            }}
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+
+                      {/* Course Content */}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <h3 id={`course-title-${course.id}`} className="modern-heading-sm" style={{ marginBottom: '0.75rem' }}>
+                          {course.title}
+                        </h3>
+                        <p className="modern-text-sm" style={{ marginBottom: '1rem', flex: 1 }}>
+                          {course.description}
+                        </p>
+
+                        {/* Course Meta Info */}
+                        <div className="modern-flex" style={{ gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                          <span className="modern-badge modern-badge-primary" style={{ fontSize: '0.75rem' }}>
+                            {course.level}
+                          </span>
+                          <span className="modern-text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            {course.totalModules} modules
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        {course.progress > 0 && (
+                          <div style={{ marginBottom: '1.5rem' }}>
+                            {course.progress === 100 ? (
+                              <div className="modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                                <span className="modern-badge modern-badge-success">✅ Completed</span>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="modern-flex-between" style={{ marginBottom: '0.5rem' }}>
+                                  <span className="modern-text-sm">Progress</span>
+                                  <span className="modern-text-sm">{course.progress}%</span>
+                                </div>
+                                <div className="modern-progress">
+                                  <motion.div
+                                    className="modern-progress-bar"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${course.progress}%` }}
+                                    transition={{ duration: 1, ease: 'easeOut', delay: index * 0.1 }}
+                                  ></motion.div>
+                                </div>
+                                <p className="modern-text-sm" style={{ marginTop: '0.5rem', opacity: 0.7 }}>
+                                  {course.completedModules}/{course.totalModules} modules completed
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Course Action Button */}
+                        <div>
+                          <Link
+                            to={course.link}
+                            className={`modern-btn ${course.progress === 100 ? 'modern-btn-secondary' : 'modern-btn-primary'}`}
+                            style={{ width: '100%', justifyContent: 'center' }}
+                            aria-label={`Go to ${course.title}`}
+                            state={{ continueModule: course.completedModules }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
+                            {getCourseCTA(course.progress)}
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  !loading && !error && (
+                    <motion.div
+                      className="modern-card modern-flex-center"
+                      style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center' }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <div>
+                        <h3 className="modern-heading-sm" style={{ marginBottom: '1rem' }}>No courses found</h3>
+                        <p className="modern-text">No courses found in this category. Try selecting a different filter.</p>
+                      </div>
+                    </motion.div>
+                  )
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.section>
+        </div>
+      </div>
+    </>
   );
 }
 

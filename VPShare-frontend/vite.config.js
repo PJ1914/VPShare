@@ -10,7 +10,7 @@ export default defineConfig({
   
   // Ensure XML files are served with correct MIME type
   server: {
-    port: 3000,
+    port: 5173,
     mimeTypes: {
       'application/xml': ['xml']
     }

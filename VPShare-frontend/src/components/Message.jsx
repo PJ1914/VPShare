@@ -28,6 +28,10 @@ const Message = ({ message, onCopyCode }) => {
           <ReactMarkdown
             components={{
               a: (props) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+              // Custom paragraph component that avoids nesting pre elements
+              p({ children, ...props }) {
+                return <div className={styles.markdownParagraph}>{children}</div>;
+              },
               code({ inline, className, children, ...props }) {
                 const codeContent = String(children).replace(/\n$/, '');
                 const language = className?.replace('language-', '') || 'text';

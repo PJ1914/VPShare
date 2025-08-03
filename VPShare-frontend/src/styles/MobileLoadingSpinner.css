@@ -1,0 +1,349 @@
+/* Mobile Loading Spinner Styles */
+.mobile-loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 200px;
+}
+
+.mobile-loading-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 9999;
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Main Spinner */
+.mobile-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid #2196F3;
+  border-radius: 50%;
+  position: relative;
+}
+
+.fullscreen .mobile-spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  width: 80px;
+  height: 80px;
+}
+
+/* Pulse Dots */
+.pulse-dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  background: #2196F3;
+  border-radius: 50%;
+  animation: pulse-animation 1.5s ease-in-out infinite;
+}
+
+.fullscreen .pulse-dot {
+  background: rgba(255, 255, 255, 0.8);
+  width: 14px;
+  height: 14px;
+}
+
+.pulse-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.pulse-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse-animation {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Loading Text */
+.loading-text {
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.fullscreen .loading-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(33, 150, 243, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fullscreen .progress-container {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.progress-bar {
+  height: 100%;
+  background: #2196F3;
+  border-radius: 2px;
+}
+
+.fullscreen .progress-bar {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Inline Loader */
+.mobile-inline-loader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.mobile-inline-loader.small .inline-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.mobile-inline-loader.medium .inline-spinner {
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
+}
+
+.mobile-inline-loader.large .inline-spinner {
+  width: 32px;
+  height: 32px;
+  border-width: 4px;
+}
+
+.inline-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(33, 150, 243, 0.2);
+  border-top: 2px solid #2196F3;
+  border-radius: 50%;
+}
+
+.inline-text {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Section Loader */
+.mobile-section-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  min-height: 200px;
+}
+
+.mobile-section-loader.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.section-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.section-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(102, 126, 234, 0.2);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+}
+
+.section-loading-text {
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+  max-width: 250px;
+}
+
+/* Button Loader */
+.mobile-btn-with-loader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  min-width: 120px;
+  overflow: hidden;
+}
+
+.mobile-btn-with-loader:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.mobile-btn-with-loader.loading {
+  pointer-events: none;
+}
+
+.btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.btn-text-visible {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.btn-text-hidden {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 767px) {
+  .mobile-loading-container.fullscreen {
+    padding: 2rem 1rem;
+  }
+  
+  .mobile-loading-content {
+    gap: 2rem;
+  }
+  
+  .loading-text {
+    font-size: 1.1rem;
+    padding: 0 1rem;
+  }
+  
+  .progress-container {
+    max-width: 250px;
+  }
+  
+  .mobile-btn-with-loader {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .section-loading-text {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+}
+
+/* Animations for better performance on mobile */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-spinner,
+  .inline-spinner,
+  .section-spinner,
+  .btn-spinner {
+    animation: none;
+  }
+  
+  .pulse-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+  
+  .progress-bar {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .mobile-spinner,
+  .inline-spinner,
+  .section-spinner,
+  .btn-spinner {
+    border-top-color: #000;
+  }
+  
+  .loading-text,
+  .inline-text,
+  .section-loading-text {
+    color: #000;
+  }
+  
+  .pulse-dot {
+    background: #000;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-loading-container:not(.fullscreen) {
+    background: #1a1a1a;
+  }
+  
+  .loading-text,
+  .inline-text,
+  .section-loading-text {
+    color: #e0e0e0;
+  }
+  
+  .mobile-section-loader.overlay {
+    background: rgba(26, 26, 26, 0.95);
+  }
+}

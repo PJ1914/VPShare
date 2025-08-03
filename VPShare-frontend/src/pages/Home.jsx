@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import '../styles/Home.css';
+import '../styles/ModernGlobal.css';
 import SubscriptionBanner from '../components/SubscriptionBanner';
 import HeroCarousel from '../components/HeroCarousel';
 import SEO from '../components/SEO';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import { useNotification } from '../contexts/NotificationContext';
 import CodeIcon from '@mui/icons-material/Code';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import SchoolIcon from '@mui/icons-material/School';
@@ -29,11 +30,51 @@ const hoverVariants = {
 function Home() {
   // Get subscription context
   const { hasSubscription, plan, expiresAt, loading: subscriptionLoading } = useSubscription();
+  
+  // Get notification context
+  const { showHackathonNotification, showLoginPrompt } = useNotification();
+  
+  // State for hackathon notification
+  const [hackathonNotificationShown, setHackathonNotificationShown] = useState(false);
 
   // Reset scroll position to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Show hackathon notification for new visitors
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('hackathon-notification-shown');
+    
+    if (!hasVisited && !hackathonNotificationShown) {
+      // Show notification after a short delay
+      const timer = setTimeout(() => {
+        showHackathonNotification();
+        setHackathonNotificationShown(true);
+        localStorage.setItem('hackathon-notification-shown', 'true');
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showHackathonNotification, hackathonNotificationShown]);
+
+  // Show login prompt for unauthenticated users after some time
+  useEffect(() => {
+    if (!hasSubscription && !subscriptionLoading) {
+      const timer = setTimeout(() => {
+        const lastLoginPrompt = localStorage.getItem('last-login-prompt');
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+        
+        if (!lastLoginPrompt || (now - parseInt(lastLoginPrompt)) > oneHour) {
+          showLoginPrompt();
+          localStorage.setItem('last-login-prompt', now.toString());
+        }
+      }, 15000); // Show after 15 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [hasSubscription, subscriptionLoading, showLoginPrompt]);
 
   // Define plan hierarchy for upgrade suggestions
   const planHierarchy = {
@@ -160,182 +201,482 @@ function Home() {
         structuredData={structuredData}
       />
       
-      <main className="home-main">
+      <div className="modern-page">
         {/* Hero Carousel Section */}
-        <HeroCarousel />
-
-        {/* Vision Section */}
-        <motion.section
-          className="vision"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
+        <motion.section 
+          className="modern-section"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          <h2>Our Vision</h2>
-          <p>
-            At CodeTapasya, we empower beginners to master web development with structured learning, hands-on projects, and a vibrant community. Our goal is to make tech skills accessible to all!
-          </p>
+          <HeroCarousel />
         </motion.section>
 
-        {/* Featured Tools Section */}
-        <motion.section
-          className="featured-tools"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          <h2>Featured Tools & Features</h2>
-          <p>Discover the powerful tools that make CodeTapasya stand out!</p>
-          <div className="tools-container">
-            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
-              <CodeIcon fontSize="large" color="primary" className="tool-icon" />
-              <h3>Coding Playground</h3>
-              <p>Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
-            </motion.div>            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
-              <GitHubIcon fontSize="large" color="secondary" className="tool-icon" />
-              <h3>GitHub Integration</h3>
-              <p>Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
-              <motion.div
-                role="button"
-                tabIndex={0}
-                variants={hoverVariants}
-                whileHover="hover"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/github" className="cta-button secondary">
-                  Connect Now
-                </Link>
-              </motion.div>
-            </motion.div>            <motion.div className="tool-card" variants={hoverVariants} whileHover="hover">
-              <SchoolIcon fontSize="large" color="success" className="tool-icon" />
-              <h3>Learning Courses</h3>
-              <p>Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
-              <motion.div
-                role="button"
-                tabIndex={0}
-                variants={hoverVariants}
-                whileHover="hover"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/courses" className="cta-button">
-                  Explore Courses
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* Learning Paths Section */}
-        <motion.section
-          className="learning-paths"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          <h2>Explore Our Learning Paths</h2>
-          <div className="paths-container">
-            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
-              <WebIcon fontSize="large" color="primary" className="path-icon" />
-              <h3>Frontend Development</h3>
-              <p>Learn HTML, CSS, JavaScript, and React to build stunning user interfaces.</p>
-            </motion.div>
-            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
-              <CodeIcon fontSize="large" color="secondary" className="path-icon" />
-              <h3>Backend Development</h3>
-              <p>Master Node.js, Express, and APIs to power your applications.</p>
-            </motion.div>
-            <motion.div className="path-card" variants={hoverVariants} whileHover="hover">
-              <StorageIcon fontSize="large" color="success" className="path-icon" />
-              <h3>Databases</h3>
-              <p>Understand MySQL and MongoDB to manage data effectively.</p>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* Dynamic Pricing Section */}
-        <motion.section
-          className="pricing"
-          id="pricing"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          {subscriptionLoading ? (
-            <div className="pricing-loading">
-              <h2>Loading subscription status...</h2>
+        <div className="modern-container">
+          {/* Vision Section */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <div className="modern-card">
+              <div className="modern-card-header">
+                <div className="modern-card-icon">
+                  <WorkspacePremiumIcon />
+                </div>
+                <div>
+                  <h2 className="modern-heading-md modern-card-title">Our Vision</h2>
+                  <p className="modern-card-subtitle">Empowering the next generation of developers</p>
+                </div>
+              </div>
+              <p className="modern-text">
+                At CodeTapasya, we empower beginners to master web development with structured learning, hands-on projects, and a vibrant community. Our goal is to make tech skills accessible to all!
+              </p>
             </div>
-          ) : hasSubscription && plan ? (
-            // User has active subscription - show current plan and upgrade options
-            <div className="subscription-status-section">
-              <h2>Your Current Plan</h2>
-              <motion.div
-                className="current-plan-card"
-                variants={hoverVariants}
+          </motion.section>
+
+          {/* Featured Tools Section */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <h2 className="modern-heading-lg">Featured Tools & Features</h2>
+            <p className="modern-text modern-fade-in">Discover the powerful tools that make CodeTapasya stand out!</p>
+            
+            <div className="modern-grid modern-grid-3">
+              <motion.div 
+                className="modern-card modern-slide-up" 
+                variants={hoverVariants} 
                 whileHover="hover"
+                style={{ animationDelay: '0.1s' }}
               >
-                <div className="plan-header">
-                  <WorkspacePremiumIcon fontSize="large" color="primary" />
-                  <h3>{planHierarchy[plan]?.name || plan}</h3>
-                  <span className="premium-badge">Premium Active</span>
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <CodeIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">Coding Playground</h3>
+                  </div>
                 </div>
-                <div className="plan-details">
-                  <p className="expiry-info">
-                    <AccessTimeIcon fontSize="small" />
-                    {getDaysUntilExpiry() !== null && getDaysUntilExpiry() > 0 ? (
-                      <>
-                        Expires in {getDaysUntilExpiry()} {getDaysUntilExpiry() === 1 ? 'day' : 'days'} 
-                        ({expiresAt ? new Date(expiresAt).toLocaleDateString() : 'Unknown'})
-                      </>
-                    ) : (
-                      'Plan has expired'
-                    )}
-                  </p>
-                  <ul className="plan-benefits">
-                    <li>Full access to all courses</li>
-                    <li>All projects and assignments</li>
-                    <li>Priority support</li>
-                    <li>Coding playground access</li>
-                  </ul>
-                </div>
+                <p className="modern-text-sm">Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
               </motion.div>
 
-              {upgradeInfo && (
-                <div className="upgrade-section">
-                  <h3>
-                    <TrendingUpIcon fontSize="medium" color="success" />
-                    Upgrade Recommendation
-                  </h3>
+              <motion.div 
+                className="modern-card modern-slide-up" 
+                variants={hoverVariants} 
+                whileHover="hover"
+                style={{ animationDelay: '0.2s' }}
+              >
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <GitHubIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">GitHub Integration</h3>
+                  </div>
+                </div>
+                <p className="modern-text-sm">Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
+                <motion.div
+                  role="button"
+                  tabIndex={0}
+                  className="modern-flex modern-flex-center"
+                  style={{ marginTop: '1rem' }}
+                  variants={hoverVariants}
+                  whileHover="hover"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.querySelector('a').click();
+                    }
+                  }}
+                >
+                  <Link to="/github" className="modern-btn modern-btn-secondary modern-btn-sm">
+                    Connect Now
+                  </Link>
+                </motion.div>
+              </motion.div>
+
+              <motion.div 
+                className="modern-card modern-slide-up" 
+                variants={hoverVariants} 
+                whileHover="hover"
+                style={{ animationDelay: '0.3s' }}
+              >
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <SchoolIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">Learning Courses</h3>
+                  </div>
+                </div>
+                <p className="modern-text-sm">Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
+                <motion.div
+                  role="button"
+                  tabIndex={0}
+                  className="modern-flex modern-flex-center"
+                  style={{ marginTop: '1rem' }}
+                  variants={hoverVariants}
+                  whileHover="hover"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.querySelector('a').click();
+                    }
+                  }}
+                >
+                  <Link to="/courses" className="modern-btn modern-btn-primary modern-btn-sm">
+                    Explore Courses
+                  </Link>
+                </motion.div>
+              </motion.div>
+            </div>
+          </motion.section>
+
+          {/* Learning Paths Section */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <h2 className="modern-heading-lg">Explore Our Learning Paths</h2>
+            
+            <div className="modern-grid modern-grid-3">
+              <motion.div 
+                className="modern-card modern-card-compact modern-slide-in-left" 
+                variants={hoverVariants} 
+                whileHover="hover"
+                style={{ animationDelay: '0.1s' }}
+              >
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <WebIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">Frontend Development</h3>
+                  </div>
+                </div>
+                <p className="modern-text-sm">Learn HTML, CSS, JavaScript, and React to build stunning user interfaces.</p>
+              </motion.div>
+
+              <motion.div 
+                className="modern-card modern-card-compact modern-slide-up" 
+                variants={hoverVariants} 
+                whileHover="hover"
+                style={{ animationDelay: '0.2s' }}
+              >
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <CodeIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">Backend Development</h3>
+                  </div>
+                </div>
+                <p className="modern-text-sm">Master Node.js, Express, and APIs to power your applications.</p>
+              </motion.div>
+
+              <motion.div 
+                className="modern-card modern-card-compact modern-slide-in-right" 
+                variants={hoverVariants} 
+                whileHover="hover"
+                style={{ animationDelay: '0.3s' }}
+              >
+                <div className="modern-card-header">
+                  <div className="modern-card-icon">
+                    <StorageIcon />
+                  </div>
+                  <div>
+                    <h3 className="modern-card-title">Databases</h3>
+                  </div>
+                </div>
+                <p className="modern-text-sm">Understand MySQL and MongoDB to manage data effectively.</p>
+              </motion.div>
+            </div>
+          </motion.section>
+
+          {/* Hackathon Information Section */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <div className="modern-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))' }}>
+              <div className="modern-flex-between" style={{ marginBottom: '2rem' }}>
+                <div>
                   <motion.div
-                    className="upgrade-card"
+                    className="modern-badge modern-badge-primary"
+                    animate={{ 
+                      scale: [1, 1.05, 1],
+                      rotate: [0, 2, -2, 0]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                    style={{ marginBottom: '1rem', display: 'inline-block' }}
+                  >
+                    🚀 LIVE NOW
+                  </motion.div>
+                  <h2 className="modern-heading-lg">TKR College Hackathon - CognitiveX</h2>
+                  <p className="modern-text">
+                    Powered by <strong>SmartBridge</strong> & <strong>IBM</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="modern-grid modern-grid-2" style={{ marginBottom: '2rem' }}>
+                <div>
+                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>The Ultimate GenAI Experience</h3>
+                  <div className="modern-flex-col">
+                    <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📚</span>
+                      <div>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>4-Day Intensive Bootcamp</h4>
+                        <p className="modern-text-sm">Master IBM Granite & GenAI fundamentals with hands-on experience</p>
+                      </div>
+                    </div>
+                    <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>⚡</span>
+                      <div>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>24-Hour Hackathon Challenge</h4>
+                        <p className="modern-text-sm">Build innovative solutions with cutting-edge AI technologies</p>
+                      </div>
+                    </div>
+                    <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🏆</span>
+                      <div>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Amazing Prizes & Recognition</h4>
+                        <p className="modern-text-sm">Win exciting rewards and industry recognition for your innovations</p>
+                      </div>
+                    </div>
+                    <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🤝</span>
+                      <div>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Industry Collaboration</h4>
+                        <p className="modern-text-sm">Work with real-world problem statements from leading companies</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>Event Statistics</h3>
+                  <div className="modern-grid modern-grid-3">
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>1000+</div>
+                      <div className="modern-text-sm">Participants</div>
+                    </div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>50+</div>
+                      <div className="modern-text-sm">Problem Statements</div>
+                    </div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>₹5L+</div>
+                      <div className="modern-text-sm">Prize Pool</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 className="modern-heading-sm" style={{ marginBottom: '1rem' }}>Event Timeline</h3>
+                <div className="modern-flex" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+                  {[
+                    { number: '1', title: 'Registration', subtitle: 'Open Now' },
+                    { number: '2', title: 'Bootcamp', subtitle: '4 Days Training' },
+                    { number: '3', title: 'Hackathon', subtitle: '24 Hour Challenge' },
+                    { number: '4', title: 'Results', subtitle: 'Awards Ceremony' }
+                  ].map((step, index) => (
+                    <div key={index} className="modern-flex" style={{ alignItems: 'center', flex: '1', minWidth: '200px' }}>
+                      <div className="modern-card-icon" style={{ marginRight: '1rem', fontSize: '1rem' }}>
+                        {step.number}
+                      </div>
+                      <div>
+                        <div className="modern-text" style={{ fontWeight: '600', margin: '0', color: 'var(--text-primary)' }}>{step.title}</div>
+                        <div className="modern-text-sm">{step.subtitle}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modern-flex-center" style={{ flexDirection: 'column', gap: '1rem' }}>
+                <motion.div
+                  variants={hoverVariants}
+                  whileHover="hover"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link to="/hackathon" className="modern-btn modern-btn-primary modern-btn-lg">
+                    🚀 Register for Hackathon
+                  </Link>
+                </motion.div>
+                <p className="modern-text-sm" style={{ textAlign: 'center', opacity: 0.8 }}>
+                  Limited seats available • Registration closes soon
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Dynamic Pricing Section */}
+          <motion.section
+            className="modern-section"
+            id="pricing"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            {subscriptionLoading ? (
+              <div className="modern-card modern-flex-center" style={{ padding: '3rem' }}>
+                <div className="modern-skeleton" style={{ width: '300px', height: '50px' }}></div>
+              </div>
+            ) : hasSubscription && plan ? (
+              // User has active subscription - show current plan and upgrade options
+              <div>
+                <h2 className="modern-heading-lg">Your Current Plan</h2>
+                <motion.div
+                  className="modern-card"
+                  variants={hoverVariants}
+                  whileHover="hover"
+                  style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1))', marginBottom: '2rem' }}
+                >
+                  <div className="modern-card-header">
+                    <div className="modern-card-icon" style={{ background: 'linear-gradient(135deg, var(--success), #10b981)' }}>
+                      <WorkspacePremiumIcon />
+                    </div>
+                    <div>
+                      <h3 className="modern-card-title">{planHierarchy[plan]?.name || plan}</h3>
+                      <span className="modern-badge modern-badge-success">Premium Active</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="modern-text modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <AccessTimeIcon fontSize="small" />
+                      {getDaysUntilExpiry() !== null && getDaysUntilExpiry() > 0 ? (
+                        <>
+                          Expires in {getDaysUntilExpiry()} {getDaysUntilExpiry() === 1 ? 'day' : 'days'} 
+                          ({expiresAt ? new Date(expiresAt).toLocaleDateString() : 'Unknown'})
+                        </>
+                      ) : (
+                        'Plan has expired'
+                      )}
+                    </p>
+                    <div className="modern-grid modern-grid-2">
+                      <div>
+                        <h4 className="modern-text" style={{ fontWeight: '600', marginBottom: '1rem', color: 'var(--text-primary)' }}>Plan Benefits:</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                          <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            ✅ Full access to all courses
+                          </li>
+                          <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            ✅ All projects and assignments
+                          </li>
+                          <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            ✅ Priority support
+                          </li>
+                          <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                            ✅ Coding playground access
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {upgradeInfo && (
+                  <div>
+                    <h3 className="modern-heading-md modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                      <TrendingUpIcon fontSize="medium" color="success" />
+                      Upgrade Recommendation
+                    </h3>
+                    <motion.div
+                      className="modern-card"
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1))' }}
+                    >
+                      <div className="modern-flex-between" style={{ gap: '2rem' }}>
+                        <div>
+                          <h4 className="modern-heading-sm">Upgrade to {upgradeInfo.nextPlan}</h4>
+                          <p className="modern-text">
+                            {upgradeInfo.isExpiringSoon 
+                              ? `Your plan expires soon! Upgrade to ${upgradeInfo.nextPlan} for longer access and better value.`
+                              : `Get more value with our ${upgradeInfo.nextPlan} - enjoy longer access and save money!`
+                            }
+                          </p>
+                          {upgradeInfo.isExpiringSoon && (
+                            <p className="modern-text modern-badge modern-badge-warning">
+                              ⚠️ Expiring in {upgradeInfo.daysLeft} {upgradeInfo.daysLeft === 1 ? 'day' : 'days'}!
+                            </p>
+                          )}
+                        </div>
+                        <motion.div
+                          role="button"
+                          tabIndex={0}
+                          variants={hoverVariants}
+                          whileHover="hover"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.currentTarget.querySelector('a').click();
+                            }
+                          }}
+                        >
+                          <Link to={`/payment/${upgradeInfo.nextPlanKey}`} className="modern-btn modern-btn-accent">
+                            Upgrade Now
+                          </Link>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              // User has no subscription - show standard pricing
+              <div>
+                <h2 className="modern-heading-lg">Pricing Plans</h2>
+                <p className="modern-text">Choose a plan that fits your learning journey. Start for free or unlock premium content.</p>
+                
+                <div className="modern-grid modern-grid-3" style={{ marginBottom: '2rem' }}>
+                  <motion.div
+                    className="modern-card"
                     variants={hoverVariants}
                     whileHover="hover"
                   >
-                    <div className="upgrade-content">
-                      <h4>Upgrade to {upgradeInfo.nextPlan}</h4>
-                      <p>
-                        {upgradeInfo.isExpiringSoon 
-                          ? `Your plan expires soon! Upgrade to ${upgradeInfo.nextPlan} for longer access and better value.`
-                          : `Get more value with our ${upgradeInfo.nextPlan} - enjoy longer access and save money!`
-                        }
-                      </p>
-                      {upgradeInfo.isExpiringSoon && (
-                        <p className="urgency-text">⚠️ Expiring in {upgradeInfo.daysLeft} {upgradeInfo.daysLeft === 1 ? 'day' : 'days'}!</p>
-                      )}
+                    <div className="modern-card-header">
+                      <div className="modern-card-icon">
+                        <SchoolIcon />
+                      </div>
+                      <div>
+                        <h3 className="modern-card-title">Free Plan</h3>
+                        <div className="modern-flex" style={{ alignItems: 'baseline', gap: '0.25rem' }}>
+                          <span className="modern-heading-md" style={{ color: 'var(--success)' }}>₹0</span>
+                          <span className="modern-text-sm">/ forever</span>
+                        </div>
+                      </div>
                     </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ Access to blogs
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ View sample projects
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                        ✅ Community access
+                      </li>
+                    </ul>
                     <motion.div
                       role="button"
                       tabIndex={0}
@@ -348,188 +689,203 @@ function Home() {
                         }
                       }}
                     >
-                      <Link to={`/payment/${upgradeInfo.nextPlanKey}`} className="cta-button upgrade-button">
-                        Upgrade Now
+                      <Link to="/courses" className="modern-btn modern-btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                        Explore Free
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+
+                  <motion.div
+                    className="modern-card"
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    style={{ 
+                      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                      border: '2px solid var(--primary)',
+                      position: 'relative'
+                    }}
+                  >
+                    <div className="modern-badge modern-badge-primary" style={{ position: 'absolute', top: '-10px', right: '1rem' }}>
+                      Most Popular
+                    </div>
+                    <div className="modern-card-header">
+                      <div className="modern-card-icon">
+                        <WorkspacePremiumIcon />
+                      </div>
+                      <div>
+                        <h3 className="modern-card-title">Monthly Plan</h3>
+                        <div className="modern-flex" style={{ alignItems: 'baseline', gap: '0.25rem' }}>
+                          <span className="modern-heading-md" style={{ color: 'var(--primary)' }}>₹99</span>
+                          <span className="modern-text-sm">/ month</span>
+                        </div>
+                      </div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ 30-day full access
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ All courses and projects
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ Priority support
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                        ✅ Monthly progress tracking
+                      </li>
+                    </ul>
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.currentTarget.querySelector('a').click();
+                        }
+                      }}
+                    >
+                      <Link to="/payment/monthly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                        Subscribe Now
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+
+                  <motion.div
+                    className="modern-card"
+                    variants={hoverVariants}
+                    whileHover="hover"
+                  >
+                    <div className="modern-card-header">
+                      <div className="modern-card-icon">
+                        <TrendingUpIcon />
+                      </div>
+                      <div>
+                        <h3 className="modern-card-title">Yearly Plan</h3>
+                        <div className="modern-flex" style={{ alignItems: 'baseline', gap: '0.25rem' }}>
+                          <span className="modern-heading-md" style={{ color: 'var(--secondary)' }}>₹799</span>
+                          <span className="modern-text-sm">/ year</span>
+                        </div>
+                        <span className="modern-badge modern-badge-success" style={{ marginTop: '0.5rem' }}>Save ₹389!</span>
+                      </div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ 1-year full access
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ All courses and projects
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        ✅ Priority support
+                      </li>
+                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                        ✅ Early access to new courses
+                      </li>
+                    </ul>
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.currentTarget.querySelector('a').click();
+                        }
+                      }}
+                    >
+                      <Link to="/payment/yearly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                        Subscribe Now
                       </Link>
                     </motion.div>
                   </motion.div>
                 </div>
-              )}
-            </div>
-          ) : (
-            // User has no subscription - show standard pricing
-            <div className="standard-pricing">
-              <h2>Pricing Plans</h2>
-              <p>Choose a plan that fits your learning journey. Start for free or unlock premium content.</p>
-              <div className="pricing-container">
+
                 <motion.div
-                  className="pricing-card"
+                  className="modern-flex-center"
                   variants={hoverVariants}
                   whileHover="hover"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.currentTarget.querySelector('a').click();
+                    }
+                  }}
                 >
-                  <h3>Free Plan</h3>
-                  <p className="price"><span className="rupee">₹</span><span className="price-amount">0</span> / forever</p>
-                  <ul>
-                    <li>Access to blogs</li>
-                    <li>View sample projects</li>
-                    <li>Community access</li>
-                  </ul>
-                  <motion.div
-                    role="button"
-                    tabIndex={0}
-                    variants={hoverVariants}
-                    whileHover="hover"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.currentTarget.querySelector('a').click();
-                      }
-                    }}
-                  >
-                    <Link to="/courses" className="cta-button secondary">
-                      Explore Free
-                    </Link>
-                  </motion.div>
-                </motion.div>
-                <motion.div
-                  className="pricing-card featured"
-                  variants={hoverVariants}
-                  whileHover="hover"
-                >
-                  <div className="featured-badge">Most Popular</div>
-                  <h3>Monthly Plan</h3>
-                  <p className="price"><span className="rupee">₹</span><span className="price-amount">99</span> / month</p>
-                  <ul>
-                    <li>30-day full access</li>
-                    <li>All courses and projects</li>
-                    <li>Priority support</li>
-                    <li>Monthly progress tracking</li>
-                  </ul>
-                  <motion.div
-                    role="button"
-                    tabIndex={0}
-                    variants={hoverVariants}
-                    whileHover="hover"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.currentTarget.querySelector('a').click();
-                      }
-                    }}
-                  >
-                    <Link to="/payment/monthly" className="cta-button">
-                      Subscribe Now
-                    </Link>
-                  </motion.div>
-                </motion.div>
-                <motion.div
-                  className="pricing-card"
-                  variants={hoverVariants}
-                  whileHover="hover"
-                >
-                  <h3>Yearly Plan</h3>
-                  <p className="price"><span className="rupee">₹</span><span className="price-amount">799</span> / year</p>
-                  <p className="savings">Save ₹389!</p>
-                  <ul>
-                    <li>1-year full access</li>
-                    <li>All courses and projects</li>
-                    <li>Priority support</li>
-                    <li>Early access to new courses</li>
-                  </ul>
-                  <motion.div
-                    role="button"
-                    tabIndex={0}
-                    variants={hoverVariants}
-                    whileHover="hover"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.currentTarget.querySelector('a').click();
-                      }
-                    }}
-                  >
-                    <Link to="/payment/yearly" className="cta-button">
-                      Subscribe Now
-                    </Link>
-                  </motion.div>
+                  <Link to="/payment/one-day" className="modern-btn modern-btn-ghost">
+                    See All Subscriptions
+                  </Link>
                 </motion.div>
               </div>
-              <motion.div
-                className="see-all-subscriptions"
-                variants={hoverVariants}
-                whileHover="hover"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/payment/one-day" className="cta-button">
-                  See All Subscriptions
-                </Link>
-              </motion.div>
-            </div>
-          )}
-        </motion.section>
+            )}
+          </motion.section>
 
-        {/* Call to Action */}
-        <motion.section
-          className="cta"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={sectionVariants}
-        >
-          {hasSubscription && plan ? (
-            // User has subscription - show different message
-            <>
-              <h2>Continue Your Learning Journey!</h2>
-              <p>You're all set with your {planHierarchy[plan]?.name || plan}. Keep exploring and building amazing projects!</p>
-              <motion.div
-                role="button"
-                tabIndex={0}
-                variants={hoverVariants}
-                whileHover="hover"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/courses" className="cta-button">
-                  Explore Courses
-                </Link>
-              </motion.div>
-            </>
-          ) : (
-            // User has no subscription - show join message
-            <>
-              <h2>Ready to Start Your Journey?</h2>
-              <p>Join thousands of learners mastering web development with CodeTapasya.</p>
-              <motion.div
-                role="button"
-                tabIndex={0}
-                variants={hoverVariants}
-                whileHover="hover"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.currentTarget.querySelector('a').click();
-                  }
-                }}
-              >
-                <Link to="/payment/monthly" className="cta-button">
-                  Join Now
-                </Link>
-              </motion.div>
-            </>
-          )}
-        </motion.section>
-      </main>
+          {/* Call to Action */}
+          <motion.section
+            className="modern-section"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={sectionVariants}
+          >
+            <div className="modern-card modern-flex-center" style={{ textAlign: 'center', padding: '3rem' }}>
+              {hasSubscription && plan ? (
+                // User has subscription - show different message
+                <>
+                  <h2 className="modern-heading-lg">Continue Your Learning Journey!</h2>
+                  <p className="modern-text" style={{ marginBottom: '2rem' }}>
+                    You're all set with your {planHierarchy[plan]?.name || plan}. Keep exploring and building amazing projects!
+                  </p>
+                  <motion.div
+                    role="button"
+                    tabIndex={0}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('a').click();
+                      }
+                    }}
+                  >
+                    <Link to="/courses" className="modern-btn modern-btn-primary modern-btn-lg">
+                      Explore Courses
+                    </Link>
+                  </motion.div>
+                </>
+              ) : (
+                // User has no subscription - show join message
+                <>
+                  <h2 className="modern-heading-lg">Ready to Start Your Journey?</h2>
+                  <p className="modern-text" style={{ marginBottom: '2rem' }}>
+                    Join thousands of learners mastering web development with CodeTapasya.
+                  </p>
+                  <motion.div
+                    role="button"
+                    tabIndex={0}
+                    variants={hoverVariants}
+                    whileHover="hover"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('a').click();
+                      }
+                    }}
+                  >
+                    <Link to="/payment/monthly" className="modern-btn modern-btn-primary modern-btn-lg">
+                      Join Now
+                    </Link>
+                  </motion.div>
+                </>
+              )}
+            </div>
+          </motion.section>
+        </div>
+      </div>
       <SubscriptionBanner />
     </>
   );
