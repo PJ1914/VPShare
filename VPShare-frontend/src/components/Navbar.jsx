@@ -23,7 +23,6 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import LockIcon from '@mui/icons-material/Lock';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -84,7 +83,6 @@ function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [profilePicture, setProfilePicture] = useState('/default-avatar.jpg');
   
   const location = useLocation();
@@ -131,15 +129,8 @@ function Navbar() {
         } else {
           setProfilePicture('/default-avatar.jpg');
         }
-        
-        // Mock notifications - replace with real implementation
-        setNotifications([
-          { id: 1, message: 'Welcome to CodeTapasya!', type: 'info', unread: true },
-          { id: 2, message: 'New course available', type: 'success', unread: true }
-        ]);
       } else {
         setIsAdmin(false);
-        setNotifications([]);
         setProfilePicture('/default-avatar.jpg');
       }
     });
@@ -185,6 +176,7 @@ function Navbar() {
   }, []);
 
   const toggleMobileMenu = () => {
+    console.log('Toggle mobile menu clicked, current state:', isMobileMenuOpen);
     setIsMobileMenuOpen(prev => !prev);
     setIsProfileDropdownOpen(false);
     if (navigator.vibrate) navigator.vibrate(50);
@@ -207,7 +199,6 @@ function Navbar() {
     }
   };
 
-  const unreadNotifications = notifications.filter(n => n.unread).length;
   return (
     <motion.nav 
       className={`modern-navbar ${isScrolled ? 'scrolled' : ''}`}
@@ -216,7 +207,24 @@ function Navbar() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="navbar-container">
-        {/* Logo Section */}
+        {/* Mobile Menu Button - Left Side */}
+        <motion.button
+          className="navbar-mobile-menu-btn"
+          onClick={toggleMobileMenu}
+          ref={hamburgerRef}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          aria-label="Toggle mobile menu"
+        >
+          <motion.div
+            animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </motion.div>
+        </motion.button>
+
+        {/* Logo Section - Center for mobile/tablet, Left for desktop */}
         <Link to="/" className="brand">
           <motion.div
             className="brand-container"
@@ -294,19 +302,6 @@ function Navbar() {
           <div className="user-actions">
             {user ? (
               <>
-                {/* Notifications */}
-                <motion.button
-                  className="notification-btn"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {/* Handle notifications */}}
-                >
-                  <NotificationsIcon />
-                  {unreadNotifications > 0 && (
-                    <span className="notification-badge">{unreadNotifications}</span>
-                  )}
-                </motion.button>
-
                 {/* Profile Dropdown */}
                 <div className="profile-dropdown" ref={profileDropdownRef}>
                   <motion.button
@@ -443,227 +438,280 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <motion.button
-          className="mobile-menu-btn"
-          onClick={toggleMobileMenu}
-          ref={hamburgerRef}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label="Toggle mobile menu"
-        >
-          <motion.div
-            animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
-          </motion.div>
-        </motion.button>
-      </div>
-
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            className="mobile-nav"
-            ref={mobileMenuRef}
-            variants={mobileMenuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-          >
-            <div className="mobile-nav-content">
-              {user && (
-                <div className="mobile-user-info">
+        {/* Mobile Profile Section - Right side for mobile/tablet */}
+        <div className="mobile-profile-section">
+          {user ? (
+            <>
+              {/* Mobile Profile Avatar */}
+              <div className="mobile-profile-dropdown" ref={profileDropdownRef}>
+                <motion.button
+                  className="mobile-profile-trigger"
+                  onClick={toggleProfileDropdown}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <img
                     src={profilePicture}
                     alt="Profile"
-                    className="mobile-avatar"
+                    className="mobile-profile-avatar"
                     onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
                   />
-                  <div className="mobile-user-details">
-                    <span className="mobile-name">
-                      {user.displayName || user.email?.split('@')[0] || 'User'}
-                    </span>
-                    <span className="mobile-email">{user.email}</span>
-                  </div>
-                </div>
-              )}
+                </motion.button>
 
-              <nav className="mobile-menu">
-                <Link
-                  to="/"
-                  className={`mobile-nav-item ${location.pathname === '/' ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <HomeIcon />
-                  <span>Home</span>
-                </Link>
-
-                <Link
-                  to="/dashboard"
-                  className={`mobile-nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <DashboardIcon />
-                  <span>Dashboard</span>
-                </Link>
-
-                <Link
-                  to="/courses"
-                  className={`mobile-nav-item ${location.pathname === '/courses' ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <SchoolIcon />
-                  <span>Courses</span>
-                </Link>
-
-                <Link
-                  to="/playground"
-                  className={`mobile-nav-item ${location.pathname === '/playground' ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <CodeIcon />
-                  <span>Playground</span>
-                </Link>
-
-                <Link
-                  to="/hackathon"
-                  className={`mobile-nav-item hackathon ${location.pathname === '/hackathon' ? 'active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <RocketLaunchIcon />
-                  <span>Hackathon</span>
-                  <div className="mobile-badge">Live</div>
-                </Link>
-
-                {user && (
-                  <>
-                    <div className="mobile-divider"></div>
-                    
-                    <Link
-                      to="/profile"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                <AnimatePresence>
+                  {isProfileDropdownOpen && (
+                    <motion.div
+                      className="mobile-dropdown-menu"
+                      variants={dropdownVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
                     >
-                      <PersonIcon />
-                      <span>Profile</span>
-                    </Link>
-
-                    <Link
-                      to="/assignments"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <AssignmentIcon />
-                      <span>Assignments</span>
-                    </Link>
-
-                    <Link
-                      to="/projects"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <FolderIcon />
-                      <span>Projects</span>
-                    </Link>
-
-                    <Link
-                      to="/quizzes"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <QuizIcon />
-                      <span>Quizzes</span>
-                    </Link>
-
-                    <div className="mobile-divider"></div>
-
-                    <Link
-                      to="/resume-builder"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <AssignmentIndIcon />
-                      <span>Resume Builder</span>
-                    </Link>
-
-                    <Link
-                      to="/ats-checker"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <FindInPageIcon />
-                      <span>ATS Checker</span>
-                    </Link>
-
-                    <Link
-                      to="/github"
-                      className="mobile-nav-item"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <GitHubIcon />
-                      <span>GitHub</span>
-                    </Link>
-
-                    {isAdmin && (
-                      <Link
-                        to="/admin"
-                        className="mobile-nav-item admin"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <AdminPanelSettingsIcon />
-                        <span>Admin Panel</span>
-                      </Link>
-                    )}
-
-                    <div className="mobile-divider"></div>
-
-                    <div className="mobile-subscription">
-                      {hasSubscription ? (
-                        <div className="mobile-premium">
-                          <WorkspacePremiumIcon />
-                          <span>Premium Active</span>
+                      <div className="dropdown-header">
+                        <img
+                          src={profilePicture}
+                          alt="Profile"
+                          className="dropdown-avatar"
+                          onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+                        />
+                        <div className="dropdown-user-info">
+                          <span className="dropdown-name">
+                            {user.displayName || 'User'}
+                          </span>
+                          <span className="dropdown-email">{user.email}</span>
                         </div>
-                      ) : (
-                        <Link
-                          to="/payment/monthly"
-                          className="mobile-upgrade"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <WorkspacePremiumIcon />
-                          <span>Upgrade to Premium</span>
-                        </Link>
-                      )}
-                    </div>
+                      </div>
 
-                    <button
-                      className="mobile-nav-item logout"
-                      onClick={handleLogout}
-                    >
-                      <LogoutIcon />
-                      <span>Sign Out</span>
-                    </button>
-                  </>
+                      <div className="dropdown-divider"></div>
+
+                      <div className="dropdown-section">
+                        <Link to="/profile" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <PersonIcon />
+                          <span>Profile Settings</span>
+                        </Link>
+                        <Link to="/assignments" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <AssignmentIcon />
+                          <span>Assignments</span>
+                        </Link>
+                        <Link to="/projects" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <FolderIcon />
+                          <span>Projects</span>
+                        </Link>
+                        <Link to="/quizzes" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <QuizIcon />
+                          <span>Quizzes</span>
+                        </Link>
+                      </div>
+
+                      <div className="dropdown-divider"></div>
+
+                      <div className="dropdown-section">
+                        <Link to="/resume-builder" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <AssignmentIndIcon />
+                          <span>Resume Builder</span>
+                        </Link>
+                        <Link to="/ats-checker" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <FindInPageIcon />
+                          <span>ATS Checker</span>
+                        </Link>
+                        <Link to="/github" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
+                          <GitHubIcon />
+                          <span>GitHub Integration</span>
+                        </Link>
+                      </div>
+
+                      {/* Subscription Status */}
+                      <div className="dropdown-divider"></div>
+                      <div className="subscription-section">
+                        {hasSubscription ? (
+                          <div className="subscription-active">
+                            <WorkspacePremiumIcon />
+                            <span>Premium Active</span>
+                            {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
+                          </div>
+                        ) : (
+                          <Link 
+                            to="/payment/monthly" 
+                            className="upgrade-btn"
+                            onClick={() => setIsProfileDropdownOpen(false)}
+                          >
+                            <WorkspacePremiumIcon />
+                            <span>Upgrade to Premium</span>
+                          </Link>
+                        )}
+                      </div>
+
+                      {isAdmin && (
+                        <>
+                          <div className="dropdown-divider"></div>
+                          <Link to="/admin" className="dropdown-item admin" onClick={() => setIsProfileDropdownOpen(false)}>
+                            <AdminPanelSettingsIcon />
+                            <span>Admin Panel</span>
+                          </Link>
+                        </>
+                      )}
+
+                      <div className="dropdown-divider"></div>
+                      <button className="dropdown-item logout" onClick={handleLogout}>
+                        <LogoutIcon />
+                        <span>Sign Out</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <motion.div variants={navItemVariants} whileHover="hover" whileTap="tap">
+              <Link to="/login" className="mobile-login-btn">
+                <LoginIcon />
+              </Link>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Mobile Menu Button - Remove from here */}
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Mobile Navigation Backdrop */}
+          <div
+            className="mobile-nav-backdrop"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{ 
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 1040
+            }}
+          />
+          
+          {/* Mobile Navigation Sidebar */}
+          <div
+            className="mobile-nav"
+            ref={mobileMenuRef}
+            style={{ 
+              position: 'fixed',
+              top: '70px',
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              maxWidth: '400px',
+              background: 'white',
+              zIndex: 1051,
+              boxShadow: '-10px 0 25px rgba(0, 0, 0, 0.2)',
+              borderLeft: '2px solid #6366f1'
+            }}
+          >
+              <div className="mobile-nav-content" style={{ background: 'white', minHeight: '100%' }}>
+                {user && (
+                  <div className="mobile-user-info">
+                    <img
+                      src={profilePicture}
+                      alt="Profile"
+                      className="mobile-avatar"
+                      onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+                    />
+                    <div className="mobile-user-details">
+                      <span className="mobile-name">
+                        {user.displayName || user.email?.split('@')[0] || 'User'}
+                      </span>
+                      <span className="mobile-email">{user.email}</span>
+                    </div>
+                  </div>
                 )}
 
-                {!user && (
-                  <Link
-                    to="/login"
-                    className="mobile-nav-item login"
+                <nav className="mobile-menu">
+                  <a
+                    href="/"
+                    style={{ 
+                      display: 'block', 
+                      padding: '15px 20px', 
+                      color: 'black', 
+                      backgroundColor: 'lightblue',
+                      textDecoration: 'none',
+                      margin: '5px 0',
+                      borderRadius: '8px'
+                    }}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <LoginIcon />
-                    <span>Sign In</span>
-                  </Link>
-                )}
-              </nav>
+                    🏠 Home
+                  </a>
+
+                  <a
+                    href="/dashboard"
+                    style={{ 
+                      display: 'block', 
+                      padding: '15px 20px', 
+                      color: 'black', 
+                      backgroundColor: 'lightgreen',
+                      textDecoration: 'none',
+                      margin: '5px 0',
+                      borderRadius: '8px'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📊 Dashboard
+                  </a>
+
+                  <a
+                    href="/courses"
+                    style={{ 
+                      display: 'block', 
+                      padding: '15px 20px', 
+                      color: 'black', 
+                      backgroundColor: 'lightyellow',
+                      textDecoration: 'none',
+                      margin: '5px 0',
+                      borderRadius: '8px'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📚 Courses
+                  </a>
+
+                  <a
+                    href="/playground"
+                    style={{ 
+                      display: 'block', 
+                      padding: '15px 20px', 
+                      color: 'black', 
+                      backgroundColor: 'lightcoral',
+                      textDecoration: 'none',
+                      margin: '5px 0',
+                      borderRadius: '8px'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    💻 Playground
+                  </a>
+
+                  <a
+                    href="/hackathon"
+                    style={{ 
+                      display: 'block', 
+                      padding: '15px 20px', 
+                      color: 'white', 
+                      backgroundColor: 'orange',
+                      textDecoration: 'none',
+                      margin: '5px 0',
+                      borderRadius: '8px'
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    🚀 Hackathon
+                  </a>
+                </nav>
             </div>
-          </motion.div>
+          </div>
+          </>
         )}
-      </AnimatePresence>
     </motion.nav>
   );
 }
 
-export default Navbar;
