@@ -418,6 +418,9 @@ const RegistrationForm = () => {
         },
         handler: async function (response) {
           try {
+            // Get a fresh token for payment verification (in case Razorpay modal took time)
+            const freshToken = await user.getIdToken();
+            
             // Verify payment using hackathon format
             const verifyResponse = await axios.post(
               `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
@@ -432,7 +435,7 @@ const RegistrationForm = () => {
                 email: formData.personal_info.email,
               },
               { 
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${freshToken}` },
                 timeout: 15000 // 15 second timeout for payment verification
               }
             );

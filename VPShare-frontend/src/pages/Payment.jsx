@@ -48,7 +48,6 @@ function Payment() {
   const [userData, setUserData] = useState({ name: 'Guest User', email: 'guest@example.com', contact: '9999999999' });
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [error, setError] = useState('');
-  const [userToken, setUserToken] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [paymentApiClient, setPaymentApiClient] = useState(null);
 
@@ -115,8 +114,7 @@ function Payment() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         try {
-          const token = await user.getIdToken();
-          setUserToken(token);
+          // No need to store token in state - we'll fetch fresh tokens just-in-time
           setUserData({
             name: user.displayName || 'User Name',
             email: user.email || 'user@example.com',
@@ -159,32 +157,56 @@ function Payment() {
   }, []);
 
   // Initialize API client on component mount
+  // TEMPORARILY COMMENTED OUT FOR DEBUGGING - BYPASSING API CLIENT
+  /*
   useEffect(() => {
     const apiClient = createApiClient(import.meta.env.VITE_API_BASE_URL);
     setPaymentApiClient(apiClient);
   }, []);
+  */
 
   const handlePayment = async () => {
     if (!razorpayLoaded) return setError('Razorpay SDK not loaded. Please refresh the page and try again.');
-    if (!userToken) return setError('User not authenticated. Please log in again.');
-    if (!paymentApiClient) return setError('Payment system not initialized. Please refresh the page.');
+
+    const user = auth.currentUser;
+    if (!user) {
+      setError('User not authenticated. Please log in again.');
+      return;
+    }
     
     const planDetails = plans[selectedPlan] || plans.monthly;
     setLoading(true);
     setError('');
     
     try {
-      // Create order with retry logic
-      const createOrderRequest = async () => {
-        const orderPayload = { plan: selectedPlan, amount: planDetails.amount };
-        
-        return await paymentApiClient.post('/create-order', orderPayload, {
-          headers: { Authorization: `Bearer ${userToken}` },
-          timeout: 15000
-        });
+      // Get a fresh token right before the API call (just-in-time fetching)
+      const freshToken = await user.getIdToken();
+
+      // TEMPORARY: Bypass API client for debugging - use direct axios call
+      const orderPayload = { 
+        payment_type: 'subscription', // Be explicit for clarity
+        plan: selectedPlan, 
+        amount: planDetails.amount 
       };
 
-      const orderResponse = await retryRequest(createOrderRequest, 3, 1000);
+      console.log('🔍 Direct axios call - Order payload:', orderPayload);
+      console.log('🔍 Direct axios call - URL:', `${import.meta.env.VITE_API_BASE_URL}/create-order`);
+      console.log('🔍 Direct axios call - Fresh token length:', freshToken?.length || 'No token');
+
+      // Use direct axios call instead of API client
+      const orderResponse = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/create-order`,
+        orderPayload,
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${freshToken}` 
+          },
+          timeout: 15000
+        }
+      );
+
+      console.log('✅ Direct axios call succeeded:', orderResponse.status);
       
       const { order_id, amount, currency, key_id } = orderResponse.data || {};
       if (!order_id || !amount || !currency || !key_id) {
@@ -202,23 +224,34 @@ function Payment() {
         // image: `${window.location.origin}/Logo Of CT.png`,
         handler: async function (response) {
           try {
-            // 1. Verify payment first
+            // Get fresh token for payment verification
+            const verifyFreshToken = await user.getIdToken();
+            
+            console.log('💳 Payment verification - Direct axios call');
+            
+            // 1. Verify payment using direct axios call (bypassing API client)
             const verifyResponse = await axios.post(
               `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
               {
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
+                payment_type: 'subscription', // Be explicit here too
                 plan: selectedPlan,
                 amount: planDetails.amount,
                 email: userData.email,
                 duration: planDetails.duration,
               },
               { 
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
+                headers: { 
+                  'Content-Type': 'application/json', 
+                  Authorization: `Bearer ${verifyFreshToken}` 
+                },
                 timeout: 15000 // 15 second timeout for payment verification
               }
             );
+
+            console.log('✅ Payment verification succeeded:', verifyResponse.status);
 
             // 2. Update Firestore with subscription data
             try {
@@ -270,6 +303,8 @@ function Payment() {
 
             // 3. Send confirmation email after successful payment verification
             try {
+              console.log('📧 Sending confirmation email - Direct axios call');
+              
               await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/send-email`,
                 {
@@ -279,11 +314,17 @@ function Payment() {
                   duration: planDetails.duration,
                 },
                 { 
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
+                  headers: { 
+                    'Content-Type': 'application/json', 
+                    Authorization: `Bearer ${verifyFreshToken}` 
+                  },
                   timeout: 10000 // 10 second timeout for email
                 }
               );
+              
+              console.log('✅ Email sent successfully');
             } catch (emailErr) {
+              console.log('⚠️ Email failed but payment succeeded:', emailErr.message);
               // Don't fail the entire flow if email fails - payment was successful
             }
 
@@ -581,7 +622,7 @@ function Payment() {
       </div>      <motion.button
         className="pay-button"
         onClick={handlePayment}
-        disabled={loading || !razorpayLoaded || !userToken}
+        disabled={loading || !razorpayLoaded || !auth.currentUser}
         variants={buttonVariants}
         whileHover="hover"
         whileTap="tap"
