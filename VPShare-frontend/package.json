@@ -2,7 +2,6 @@
   "name": "vpshare-frontend",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -74,5 +73,9 @@
     "react-helmet-async": {
       "react": "$react"
     }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }

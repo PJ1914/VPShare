@@ -35,6 +35,8 @@ export default defineConfig({
     // Ensure proper asset handling
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'terser'
+    minify: 'terser',
+    // Output to dist directory (matches vercel.json)
+    outDir: 'dist'
   }
 })
