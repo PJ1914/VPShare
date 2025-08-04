@@ -196,7 +196,7 @@ const Hackathon = () => {
       {/* Mobile Menu Button */}
       {(isMobile || isTablet) && (
         <button
-          className={`mobile-menu-btn ${mobileSidebarOpen ? 'open' : ''}`}
+          className={`hackathon-mobile-menu-btn ${mobileSidebarOpen ? 'open' : ''}`}
           onClick={toggleMobileSidebar}
           aria-label="Toggle navigation menu"
         >

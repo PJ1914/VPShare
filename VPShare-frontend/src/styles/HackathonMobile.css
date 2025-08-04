@@ -1543,8 +1543,8 @@ img {
 
 /* Mobile Sidebar Navigation Styles */
 @media (max-width: 767px) {
-  /* Mobile menu button */
-  .mobile-menu-btn {
+  /* Hackathon mobile menu button */
+  .hackathon-mobile-menu-btn {
     position: fixed;
     top: 1rem;
     left: 1rem;
@@ -1566,12 +1566,12 @@ img {
     border: 2px solid rgba(255, 255, 255, 0.2);
   }
   
-  .mobile-menu-btn:active {
+  .hackathon-mobile-menu-btn:active {
     transform: scale(0.95);
     background: rgba(102, 126, 234, 1);
   }
   
-  .mobile-menu-btn.open {
+  .hackathon-mobile-menu-btn.open {
     background: rgba(244, 67, 54, 0.9);
   }
   

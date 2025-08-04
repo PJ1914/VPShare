@@ -4,7 +4,7 @@ import { auth } from '../config/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSubscription } from '../contexts/SubscriptionContext';
-import MenuIcon from '@mui/icons-material/Menu';
+import AppsIcon from '@mui/icons-material/Apps';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -39,12 +39,12 @@ const logoVariants = {
 
 const mobileMenuVariants = {
   hidden: { 
-    opacity: 0, 
+    opacity: 0,
     x: '100%',
     transition: { duration: 0.3, ease: 'easeInOut' }
   },
   visible: { 
-    opacity: 1, 
+    opacity: 1,
     x: 0,
     transition: { duration: 0.3, ease: 'easeInOut' }
   }
@@ -76,6 +76,103 @@ const navItemVariants = {
     transition: { duration: 0.1 }
   }
 };
+
+// Helper component for the dropdown menu
+const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, onClose }) => (
+  <motion.div
+    className="dropdown-menu"
+    variants={dropdownVariants}
+    initial="hidden"
+    animate="visible"
+    exit="hidden"
+  >
+    {/* Header */}
+    <div className="dropdown-header">
+      <img
+        src={user.photoURL || '/default-avatar.jpg'}
+        alt="Profile"
+        className="dropdown-avatar"
+        onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+      />
+      <div className="dropdown-user-info">
+        <span className="dropdown-name">{user.displayName || 'User'}</span>
+        <span className="dropdown-email">{user.email}</span>
+      </div>
+    </div>
+    <div className="dropdown-divider"></div>
+
+    {/* Main Links */}
+    <div className="dropdown-section">
+      <Link to="/profile" className="dropdown-item" onClick={onClose}>
+        <PersonIcon />
+        <span>Profile Settings</span>
+      </Link>
+      <Link to="/assignments" className="dropdown-item" onClick={onClose}>
+        <AssignmentIcon />
+        <span>Assignments</span>
+      </Link>
+      <Link to="/projects" className="dropdown-item" onClick={onClose}>
+        <FolderIcon />
+        <span>Projects</span>
+      </Link>
+      <Link to="/quizzes" className="dropdown-item" onClick={onClose}>
+        <QuizIcon />
+        <span>Quizzes</span>
+      </Link>
+    </div>
+    <div className="dropdown-divider"></div>
+
+    {/* Tools */}
+    <div className="dropdown-section">
+      <Link to="/resume-builder" className="dropdown-item" onClick={onClose}>
+        <AssignmentIndIcon />
+        <span>Resume Builder</span>
+      </Link>
+      <Link to="/ats-checker" className="dropdown-item" onClick={onClose}>
+        <FindInPageIcon />
+        <span>ATS Checker</span>
+      </Link>
+      <Link to="/github" className="dropdown-item" onClick={onClose}>
+        <GitHubIcon />
+        <span>GitHub Integration</span>
+      </Link>
+    </div>
+    <div className="dropdown-divider"></div>
+
+    {/* Subscription */}
+    <div className="subscription-section">
+      {hasSubscription ? (
+        <div className="subscription-active">
+          <WorkspacePremiumIcon />
+          <span>Premium Active</span>
+          {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
+        </div>
+      ) : (
+        <Link to="/payment/monthly" className="upgrade-btn" onClick={onClose}>
+          <WorkspacePremiumIcon />
+          <span>Upgrade to Premium</span>
+        </Link>
+      )}
+    </div>
+
+    {/* Admin Link */}
+    {isAdmin && (
+      <>
+        <div className="dropdown-divider"></div>
+        <Link to="/admin" className="dropdown-item admin" onClick={onClose}>
+          <AdminPanelSettingsIcon />
+          <span>Admin Panel</span>
+        </Link>
+      </>
+    )}
+    
+    <div className="dropdown-divider"></div>
+    <button className="dropdown-item logout" onClick={onLogout}>
+      <LogoutIcon />
+      <span>Sign Out</span>
+    </button>
+  </motion.div>
+);
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -209,7 +306,7 @@ function Navbar() {
       <div className="navbar-container">
         {/* Mobile Menu Button - Left Side */}
         <motion.button
-          className="navbar-mobile-menu-btn"
+          className="vp-navbar-grid-menu-btn"
           onClick={toggleMobileMenu}
           ref={hamburgerRef}
           whileHover={{ scale: 1.05 }}
@@ -220,7 +317,7 @@ function Navbar() {
             animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
             transition={{ duration: 0.3 }}
           >
-            {isMobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+            {isMobileMenuOpen ? <CloseIcon /> : <AppsIcon />}
           </motion.div>
         </motion.button>
 
@@ -326,103 +423,14 @@ function Navbar() {
 
                   <AnimatePresence>
                     {isProfileDropdownOpen && (
-                      <motion.div
-                        className="dropdown-menu"
-                        variants={dropdownVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                      >
-                        <div className="dropdown-header">
-                          <img
-                            src={profilePicture}
-                            alt="Profile"
-                            className="dropdown-avatar"
-                            onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
-                          />
-                          <div className="dropdown-user-info">
-                            <span className="dropdown-name">
-                              {user.displayName || 'User'}
-                            </span>
-                            <span className="dropdown-email">{user.email}</span>
-                          </div>
-                        </div>
-
-                        <div className="dropdown-divider"></div>
-
-                        <div className="dropdown-section">
-                          <Link to="/profile" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <PersonIcon />
-                            <span>Profile Settings</span>
-                          </Link>
-                          <Link to="/assignments" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <AssignmentIcon />
-                            <span>Assignments</span>
-                          </Link>
-                          <Link to="/projects" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <FolderIcon />
-                            <span>Projects</span>
-                          </Link>
-                          <Link to="/quizzes" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <QuizIcon />
-                            <span>Quizzes</span>
-                          </Link>
-                        </div>
-
-                        <div className="dropdown-divider"></div>
-
-                        <div className="dropdown-section">
-                          <Link to="/resume-builder" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <AssignmentIndIcon />
-                            <span>Resume Builder</span>
-                          </Link>
-                          <Link to="/ats-checker" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <FindInPageIcon />
-                            <span>ATS Checker</span>
-                          </Link>
-                          <Link to="/github" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <GitHubIcon />
-                            <span>GitHub Integration</span>
-                          </Link>
-                        </div>
-
-                        {/* Subscription Status */}
-                        <div className="dropdown-divider"></div>
-                        <div className="subscription-section">
-                          {hasSubscription ? (
-                            <div className="subscription-active">
-                              <WorkspacePremiumIcon />
-                              <span>Premium Active</span>
-                              {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
-                            </div>
-                          ) : (
-                            <Link 
-                              to="/payment/monthly" 
-                              className="upgrade-btn"
-                              onClick={() => setIsProfileDropdownOpen(false)}
-                            >
-                              <WorkspacePremiumIcon />
-                              <span>Upgrade to Premium</span>
-                            </Link>
-                          )}
-                        </div>
-
-                        {isAdmin && (
-                          <>
-                            <div className="dropdown-divider"></div>
-                            <Link to="/admin" className="dropdown-item admin" onClick={() => setIsProfileDropdownOpen(false)}>
-                              <AdminPanelSettingsIcon />
-                              <span>Admin Panel</span>
-                            </Link>
-                          </>
-                        )}
-
-                        <div className="dropdown-divider"></div>
-                        <button className="dropdown-item logout" onClick={handleLogout}>
-                          <LogoutIcon />
-                          <span>Sign Out</span>
-                        </button>
-                      </motion.div>
+                      <ProfileDropdownMenu
+                        user={user}
+                        isAdmin={isAdmin}
+                        hasSubscription={hasSubscription}
+                        plan={plan}
+                        onLogout={handleLogout}
+                        onClose={() => setIsProfileDropdownOpen(false)}
+                      />
                     )}
                   </AnimatePresence>
                 </div>
@@ -460,103 +468,14 @@ function Navbar() {
 
                 <AnimatePresence>
                   {isProfileDropdownOpen && (
-                    <motion.div
-                      className="mobile-dropdown-menu"
-                      variants={dropdownVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                    >
-                      <div className="dropdown-header">
-                        <img
-                          src={profilePicture}
-                          alt="Profile"
-                          className="dropdown-avatar"
-                          onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
-                        />
-                        <div className="dropdown-user-info">
-                          <span className="dropdown-name">
-                            {user.displayName || 'User'}
-                          </span>
-                          <span className="dropdown-email">{user.email}</span>
-                        </div>
-                      </div>
-
-                      <div className="dropdown-divider"></div>
-
-                      <div className="dropdown-section">
-                        <Link to="/profile" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <PersonIcon />
-                          <span>Profile Settings</span>
-                        </Link>
-                        <Link to="/assignments" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <AssignmentIcon />
-                          <span>Assignments</span>
-                        </Link>
-                        <Link to="/projects" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <FolderIcon />
-                          <span>Projects</span>
-                        </Link>
-                        <Link to="/quizzes" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <QuizIcon />
-                          <span>Quizzes</span>
-                        </Link>
-                      </div>
-
-                      <div className="dropdown-divider"></div>
-
-                      <div className="dropdown-section">
-                        <Link to="/resume-builder" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <AssignmentIndIcon />
-                          <span>Resume Builder</span>
-                        </Link>
-                        <Link to="/ats-checker" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <FindInPageIcon />
-                          <span>ATS Checker</span>
-                        </Link>
-                        <Link to="/github" className="dropdown-item" onClick={() => setIsProfileDropdownOpen(false)}>
-                          <GitHubIcon />
-                          <span>GitHub Integration</span>
-                        </Link>
-                      </div>
-
-                      {/* Subscription Status */}
-                      <div className="dropdown-divider"></div>
-                      <div className="subscription-section">
-                        {hasSubscription ? (
-                          <div className="subscription-active">
-                            <WorkspacePremiumIcon />
-                            <span>Premium Active</span>
-                            {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
-                          </div>
-                        ) : (
-                          <Link 
-                            to="/payment/monthly" 
-                            className="upgrade-btn"
-                            onClick={() => setIsProfileDropdownOpen(false)}
-                          >
-                            <WorkspacePremiumIcon />
-                            <span>Upgrade to Premium</span>
-                          </Link>
-                        )}
-                      </div>
-
-                      {isAdmin && (
-                        <>
-                          <div className="dropdown-divider"></div>
-                          <Link to="/admin" className="dropdown-item admin" onClick={() => setIsProfileDropdownOpen(false)}>
-                            <AdminPanelSettingsIcon />
-                            <span>Admin Panel</span>
-                          </Link>
-                        </>
-                      )}
-
-                      <div className="dropdown-divider"></div>
-                      <button className="dropdown-item logout" onClick={handleLogout}>
-                        <LogoutIcon />
-                        <span>Sign Out</span>
-                      </button>
-                    </motion.div>
+                    <ProfileDropdownMenu
+                      user={user}
+                      isAdmin={isAdmin}
+                      hasSubscription={hasSubscription}
+                      plan={plan}
+                      onLogout={handleLogout}
+                      onClose={() => setIsProfileDropdownOpen(false)}
+                    />
                   )}
                 </AnimatePresence>
               </div>
@@ -574,144 +493,117 @@ function Navbar() {
       </div>
 
       {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <>
-          {/* Mobile Navigation Backdrop */}
-          <div
-            className="mobile-nav-backdrop"
-            onClick={() => setIsMobileMenuOpen(false)}
-            style={{ 
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0, 0, 0, 0.5)',
-              zIndex: 1040
-            }}
-          />
-          
-          {/* Mobile Navigation Sidebar */}
-          <div
-            className="mobile-nav"
-            ref={mobileMenuRef}
-            style={{ 
-              position: 'fixed',
-              top: '70px',
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              maxWidth: '400px',
-              background: 'white',
-              zIndex: 1051,
-              boxShadow: '-10px 0 25px rgba(0, 0, 0, 0.2)',
-              borderLeft: '2px solid #6366f1'
-            }}
-          >
-              <div className="mobile-nav-content" style={{ background: 'white', minHeight: '100%' }}>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Mobile Navigation Backdrop */}
+            <motion.div
+              className="mobile-nav-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Mobile Grid Menu */}
+            <motion.div
+              className="mobile-grid-menu"
+              ref={mobileMenuRef}
+              variants={mobileMenuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="mobile-grid-content">
+                <div className="grid-header">
+                  <h3>Navigation Menu</h3>
+                </div>
+                
+                {/* Main Navigation Grid */}
+                <div className="mobile-grid-nav">
+                  <Link 
+                    to="/" 
+                    className={`grid-nav-item ${location.pathname === '/' ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="grid-icon-wrapper">
+                      <HomeIcon className="grid-icon" />
+                    </div>
+                    <span className="grid-label">Home</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/dashboard" 
+                    className={`grid-nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="grid-icon-wrapper">
+                      <DashboardIcon className="grid-icon" />
+                    </div>
+                    <span className="grid-label">Dashboard</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/playground" 
+                    className={`grid-nav-item ${location.pathname === '/playground' ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="grid-icon-wrapper">
+                      <CodeIcon className="grid-icon" />
+                    </div>
+                    <span className="grid-label">Playground</span>
+                  </Link>
+                  
+                  <Link 
+                    to="/hackathon" 
+                    className={`grid-nav-item hackathon ${location.pathname === '/hackathon' ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <div className="grid-icon-wrapper">
+                      <RocketLaunchIcon className="grid-icon" />
+                    </div>
+                    <span className="grid-label">Hackathon</span>
+                    <div className="hackathon-badge">Live</div>
+                  </Link>
+                </div>
+
+                {/* User Section */}
                 {user && (
-                  <div className="mobile-user-info">
-                    <img
-                      src={profilePicture}
-                      alt="Profile"
-                      className="mobile-avatar"
-                      onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
-                    />
-                    <div className="mobile-user-details">
-                      <span className="mobile-name">
-                        {user.displayName || user.email?.split('@')[0] || 'User'}
-                      </span>
-                      <span className="mobile-email">{user.email}</span>
+                  <div className="mobile-user-section">
+                    <div className="user-info-card">
+                      <img
+                        src={profilePicture}
+                        alt="Profile"
+                        className="user-avatar"
+                        onError={(e) => { e.target.src = '/default-avatar.jpg'; }}
+                      />
+                      <div className="user-details">
+                        <span className="user-name">
+                          {user.displayName || user.email?.split('@')[0] || 'User'}
+                        </span>
+                        <span className="user-email">{user.email}</span>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                <nav className="mobile-menu">
-                  <a
-                    href="/"
-                    style={{ 
-                      display: 'block', 
-                      padding: '15px 20px', 
-                      color: 'black', 
-                      backgroundColor: 'lightblue',
-                      textDecoration: 'none',
-                      margin: '5px 0',
-                      borderRadius: '8px'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🏠 Home
-                  </a>
-
-                  <a
-                    href="/dashboard"
-                    style={{ 
-                      display: 'block', 
-                      padding: '15px 20px', 
-                      color: 'black', 
-                      backgroundColor: 'lightgreen',
-                      textDecoration: 'none',
-                      margin: '5px 0',
-                      borderRadius: '8px'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    📊 Dashboard
-                  </a>
-
-                  <a
-                    href="/courses"
-                    style={{ 
-                      display: 'block', 
-                      padding: '15px 20px', 
-                      color: 'black', 
-                      backgroundColor: 'lightyellow',
-                      textDecoration: 'none',
-                      margin: '5px 0',
-                      borderRadius: '8px'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    📚 Courses
-                  </a>
-
-                  <a
-                    href="/playground"
-                    style={{ 
-                      display: 'block', 
-                      padding: '15px 20px', 
-                      color: 'black', 
-                      backgroundColor: 'lightcoral',
-                      textDecoration: 'none',
-                      margin: '5px 0',
-                      borderRadius: '8px'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    💻 Playground
-                  </a>
-
-                  <a
-                    href="/hackathon"
-                    style={{ 
-                      display: 'block', 
-                      padding: '15px 20px', 
-                      color: 'white', 
-                      backgroundColor: 'orange',
-                      textDecoration: 'none',
-                      margin: '5px 0',
-                      borderRadius: '8px'
-                    }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🚀 Hackathon
-                  </a>
-                </nav>
-            </div>
-          </div>
+                {/* Sign In Button for Non-Authenticated Users */}
+                {!user && (
+                  <div className="mobile-auth-section">
+                    <Link to="/login" className="grid-signin-btn" onClick={() => setIsMobileMenuOpen(false)}>
+                      <LoginIcon />
+                      <span>Sign In</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </>
         )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
+
+export default Navbar;
 
