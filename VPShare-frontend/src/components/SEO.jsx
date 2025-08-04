@@ -1,4 +1,3 @@
-import { Helmet } from 'react-helmet';
 import PropTypes from 'prop-types';
 
 const SEO = ({
@@ -15,7 +14,8 @@ const SEO = ({
   const canonicalUrl = canonical || url;
   
   return (
-    <Helmet>
+    <>
+      {/* React 19 built-in metadata support */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
@@ -52,7 +52,7 @@ const SEO = ({
           {JSON.stringify(structuredData)}
         </script>
       )}
-    </Helmet>
+    </>
   );
 };
 
