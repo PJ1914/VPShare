@@ -44,7 +44,7 @@
     "react-confetti": "^6.4.0",
     "react-dom": "^19.1.0",
     "react-firebase-hooks": "^5.1.1",
-    "react-helmet-async": "^1.3.0",
+    "react-helmet-async": "1.3.0",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-responsive-carousel": "^3.2.23",
@@ -71,8 +71,12 @@
   },
   "overrides": {
     "react-helmet-async": {
-      "react": "$react"
+      "react": "$react",
+      "react-dom": "$react-dom"
     }
+  },
+  "resolutions": {
+    "react-helmet-async": "1.3.0"
   },
   "engines": {
     "node": ">=18.0.0",
