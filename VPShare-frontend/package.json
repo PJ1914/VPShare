@@ -66,6 +66,7 @@
     "globals": "^16.0.0",
     "postcss": "^8.5.5",
     "tailwindcss": "^4.1.10",
+    "terser": "^5.43.1",
     "vite": "^6.3.5",
     "vite-plugin-sitemap": "^0.8.2"
   },
