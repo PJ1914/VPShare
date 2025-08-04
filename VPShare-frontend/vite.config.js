@@ -31,6 +31,10 @@ export default defineConfig({
       }
     },
     // Ensure public assets are copied
-    copyPublicDir: true
+    copyPublicDir: true,
+    // Ensure proper asset handling
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser'
   }
 })
