@@ -263,7 +263,9 @@ function Home() {
                     <h3 className="modern-card-title">Coding Playground</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Test and run your code instantly with our built-in playground—perfect for experimenting and learning on the go!</p>
+                </div>
               </motion.div>
 
               <motion.div 
@@ -280,25 +282,28 @@ function Home() {
                     <h3 className="modern-card-title">GitHub Integration</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
-                <motion.div
-                  role="button"
-                  tabIndex={0}
-                  className="modern-flex modern-flex-center"
-                  style={{ marginTop: '1rem' }}
-                  variants={hoverVariants}
-                  whileHover="hover"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.currentTarget.querySelector('a').click();
-                    }
-                  }}
-                >
-                  <Link to="/github" className="modern-btn modern-btn-secondary modern-btn-sm">
-                    Connect Now
-                  </Link>
-                </motion.div>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Connect your GitHub account to import repositories and showcase your projects seamlessly.</p>
+                  <div className="modern-card-actions">
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      className="modern-flex modern-flex-center"
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.currentTarget.querySelector('a').click();
+                        }
+                      }}
+                    >
+                      <Link to="/github" className="modern-btn modern-btn-secondary modern-btn-sm">
+                        Connect Now
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div 
@@ -315,25 +320,28 @@ function Home() {
                     <h3 className="modern-card-title">Learning Courses</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
-                <motion.div
-                  role="button"
-                  tabIndex={0}
-                  className="modern-flex modern-flex-center"
-                  style={{ marginTop: '1rem' }}
-                  variants={hoverVariants}
-                  whileHover="hover"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.currentTarget.querySelector('a').click();
-                    }
-                  }}
-                >
-                  <Link to="/courses" className="modern-btn modern-btn-primary modern-btn-sm">
-                    Explore Courses
-                  </Link>
-                </motion.div>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Access a wide range of coding courses with practical projects, from Python to React, designed for all levels.</p>
+                  <div className="modern-card-actions">
+                    <motion.div
+                      role="button"
+                      tabIndex={0}
+                      className="modern-flex modern-flex-center"
+                      variants={hoverVariants}
+                      whileHover="hover"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.currentTarget.querySelector('a').click();
+                        }
+                      }}
+                    >
+                      <Link to="/courses" className="modern-btn modern-btn-primary modern-btn-sm">
+                        Explore Courses
+                      </Link>
+                    </motion.div>
+                  </div>
+                </div>
               </motion.div>
             </div>
           </motion.section>
@@ -363,7 +371,9 @@ function Home() {
                     <h3 className="modern-card-title">Frontend Development</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Learn HTML, CSS, JavaScript, and React to build stunning user interfaces.</p>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Learn HTML, CSS, JavaScript, and React to build stunning user interfaces.</p>
+                </div>
               </motion.div>
 
               <motion.div 
@@ -380,7 +390,9 @@ function Home() {
                     <h3 className="modern-card-title">Backend Development</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Master Node.js, Express, and APIs to power your applications.</p>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Master Node.js, Express, and APIs to power your applications.</p>
+                </div>
               </motion.div>
 
               <motion.div 
@@ -397,7 +409,9 @@ function Home() {
                     <h3 className="modern-card-title">Databases</h3>
                   </div>
                 </div>
-                <p className="modern-text-sm">Understand MySQL and MongoDB to manage data effectively.</p>
+                <div className="modern-card-content">
+                  <p className="modern-text-sm">Understand MySQL and MongoDB to manage data effectively.</p>
+                </div>
               </motion.div>
             </div>
           </motion.section>
@@ -666,33 +680,37 @@ function Home() {
                         </div>
                       </div>
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ Access to blogs
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ View sample projects
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
-                        ✅ Community access
-                      </li>
-                    </ul>
-                    <motion.div
-                      role="button"
-                      tabIndex={0}
-                      variants={hoverVariants}
-                      whileHover="hover"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.currentTarget.querySelector('a').click();
-                        }
-                      }}
-                    >
-                      <Link to="/courses" className="modern-btn modern-btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-                        Explore Free
-                      </Link>
-                    </motion.div>
+                    <div className="modern-card-content">
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ Access to blogs
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ View sample projects
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                          ✅ Community access
+                        </li>
+                      </ul>
+                      <div className="modern-card-actions">
+                        <motion.div
+                          role="button"
+                          tabIndex={0}
+                          variants={hoverVariants}
+                          whileHover="hover"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.currentTarget.querySelector('a').click();
+                            }
+                          }}
+                        >
+                          <Link to="/courses" className="modern-btn modern-btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                            Explore Free
+                          </Link>
+                        </motion.div>
+                      </div>
+                    </div>
                   </motion.div>
 
                   <motion.div
@@ -720,36 +738,40 @@ function Home() {
                         </div>
                       </div>
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ 30-day full access
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ All courses and projects
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ Priority support
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
-                        ✅ Monthly progress tracking
-                      </li>
-                    </ul>
-                    <motion.div
-                      role="button"
-                      tabIndex={0}
-                      variants={hoverVariants}
-                      whileHover="hover"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.currentTarget.querySelector('a').click();
-                        }
-                      }}
-                    >
-                      <Link to="/payment/monthly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                        Subscribe Now
-                      </Link>
-                    </motion.div>
+                    <div className="modern-card-content">
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ 30-day full access
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ All courses and projects
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ Priority support
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                          ✅ Monthly progress tracking
+                        </li>
+                      </ul>
+                      <div className="modern-card-actions">
+                        <motion.div
+                          role="button"
+                          tabIndex={0}
+                          variants={hoverVariants}
+                          whileHover="hover"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.currentTarget.querySelector('a').click();
+                            }
+                          }}
+                        >
+                          <Link to="/payment/monthly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                            Subscribe Now
+                          </Link>
+                        </motion.div>
+                      </div>
+                    </div>
                   </motion.div>
 
                   <motion.div
@@ -770,36 +792,40 @@ function Home() {
                         <span className="modern-badge modern-badge-success" style={{ marginTop: '0.5rem' }}>Save ₹389!</span>
                       </div>
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ 1-year full access
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ All courses and projects
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        ✅ Priority support
-                      </li>
-                      <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
-                        ✅ Early access to new courses
-                      </li>
-                    </ul>
-                    <motion.div
-                      role="button"
-                      tabIndex={0}
-                      variants={hoverVariants}
-                      whileHover="hover"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.currentTarget.querySelector('a').click();
-                        }
-                      }}
-                    >
-                      <Link to="/payment/yearly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                        Subscribe Now
-                      </Link>
-                    </motion.div>
+                    <div className="modern-card-content">
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ 1-year full access
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ All courses and projects
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          ✅ Priority support
+                        </li>
+                        <li className="modern-text-sm modern-flex" style={{ alignItems: 'center', gap: '0.5rem' }}>
+                          ✅ Early access to new courses
+                        </li>
+                      </ul>
+                      <div className="modern-card-actions">
+                        <motion.div
+                          role="button"
+                          tabIndex={0}
+                          variants={hoverVariants}
+                          whileHover="hover"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              e.currentTarget.querySelector('a').click();
+                            }
+                          }}
+                        >
+                          <Link to="/payment/yearly" className="modern-btn modern-btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                            Subscribe Now
+                          </Link>
+                        </motion.div>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
 

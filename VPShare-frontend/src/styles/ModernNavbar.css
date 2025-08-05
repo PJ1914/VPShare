@@ -522,14 +522,16 @@
 
 /* Main Navigation Grid */
 .mobile-grid-nav {
-  display: grid;
+  display: grid !important;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
   margin-bottom: 2rem;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .grid-nav-item {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
