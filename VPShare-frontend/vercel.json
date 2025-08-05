@@ -8,7 +8,25 @@
   ],
   "headers": [
     {
-      "source": "/assets/(.*).js",
+      "source": "**/*.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "**/index-*.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/assets/*.js",
       "headers": [
         {
           "key": "Content-Type",
@@ -21,7 +39,7 @@
       ]
     },
     {
-      "source": "/assets/(.*).mjs",
+      "source": "/assets/*.mjs",
       "headers": [
         {
           "key": "Content-Type", 
@@ -34,7 +52,7 @@
       ]
     },
     {
-      "source": "/assets/(.*).css",
+      "source": "/assets/*.css",
       "headers": [
         {
           "key": "Content-Type",
@@ -47,7 +65,7 @@
       ]
     },
     {
-      "source": "/(.*).js",
+      "source": "/*.js",
       "headers": [
         {
           "key": "Content-Type",
@@ -56,7 +74,7 @@
       ]
     },
     {
-      "source": "/(.*).mjs",
+      "source": "/*.mjs",
       "headers": [
         {
           "key": "Content-Type",
