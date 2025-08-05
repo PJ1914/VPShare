@@ -24,32 +24,20 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           // Core React libraries
-          if (id.includes('react')) {
+          if (id.includes('react') || id.includes('react-dom')) {
             return 'vendor';
           }
-          // Router
-          if (id.includes('react-router')) {
-            return 'router';
-          }
-          // UI components
+          // UI components - keep Material-UI together to avoid circular deps
           if (id.includes('@mui') || id.includes('@emotion')) {
-            return 'ui';
-          }
-          // Animation
-          if (id.includes('framer-motion')) {
-            return 'motion';
+            return 'mui';
           }
           // Firebase
-          if (id.includes('firebase') || id.includes('react-firebase-hooks')) {
+          if (id.includes('firebase')) {
             return 'firebase';
           }
-          // Charts and data
-          if (id.includes('@mui/x-data-grid')) {
-            return 'charts';
-          }
-          // Utilities
-          if (id.includes('axios') || id.includes('date-fns') || id.includes('lodash')) {
-            return 'utils';
+          // Large utility libraries
+          if (id.includes('framer-motion')) {
+            return 'motion';
           }
         }
       }
@@ -63,6 +51,6 @@ export default defineConfig({
     // Output to dist directory (matches vercel.json)
     outDir: 'dist',
     // Increase chunk size warning limit for large apps
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1500
   }
 })

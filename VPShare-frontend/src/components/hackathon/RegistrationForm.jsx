@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import axios from 'axios';
 import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, formatPrice, loadRazorpayScript, getHackathonPlanMapping } from '../../services/hackathonService';
 import { config, logger } from '../../config/environment';
 import DevNotice from '../DevNotice';
@@ -379,7 +380,6 @@ const RegistrationForm = () => {
       };
       
       // Use axios exactly like Payment.jsx does
-      const axios = (await import('axios')).default;
       const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/create-order`,
         orderPayload,
