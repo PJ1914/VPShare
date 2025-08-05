@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Generate a more unique timestamp for cache busting with environment-specific ID
+// Generate a completely unique build ID for NUCLEAR cache busting
 const deploymentId = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 8) || Math.random().toString(36).substr(2, 8)
-const buildId = `${Date.now()}-${deploymentId}`
+const buildId = `NUCLEAR-${Date.now()}-${deploymentId}`
 
 // https://vite.dev/config/
 export default defineConfig({
