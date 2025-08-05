@@ -13,6 +13,10 @@ export default defineConfig({
     port: 5173,
     mimeTypes: {
       'application/xml': ['xml']
+    },
+    // Additional server configuration for proper MIME types
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8'
     }
   },
   
@@ -40,7 +44,11 @@ export default defineConfig({
             // Everything else from node_modules
             return 'vendor';
           }
-        }
+        },
+        // Ensure proper file extensions for ES modules
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     // Ensure public assets are copied
@@ -52,6 +60,8 @@ export default defineConfig({
     // Output to dist directory (matches vercel.json)
     outDir: 'dist',
     // Increase chunk size warning limit for large apps
-    chunkSizeWarningLimit: 2000
+    chunkSizeWarningLimit: 2000,
+    // Target modern browsers that support ES modules
+    target: 'es2015'
   }
 })
