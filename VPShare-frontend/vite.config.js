@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Generate a more unique timestamp for cache busting
+const buildId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -45,9 +48,9 @@ export default defineConfig({
             return 'vendor';
           }
         },
-        // Force new file names with timestamp to break cache
-        entryFileNames: `assets/index-${Date.now()}-[hash].js`,
-        chunkFileNames: `assets/[name]-${Date.now()}-[hash].js`,
+        // More aggressive cache busting with unique build ID
+        entryFileNames: `assets/index-${buildId}-[hash].js`,
+        chunkFileNames: `assets/[name]-${buildId}-[hash].js`,
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
