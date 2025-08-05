@@ -82,10 +82,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "src/main.jsx": {
-      "includeFiles": "dist/**"
-    }
-  }
+  ]
 }
