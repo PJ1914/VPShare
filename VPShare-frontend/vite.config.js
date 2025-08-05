@@ -23,21 +23,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core React libraries
-          if (id.includes('react') || id.includes('react-dom')) {
+          // Node modules should be chunked together to avoid circular deps
+          if (id.includes('node_modules')) {
+            // Keep React ecosystem together
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor';
+            }
+            // Keep all UI libraries together to prevent circular dependencies
+            if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
+              return 'vendor';
+            }
+            // Firebase
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+            // Everything else from node_modules
             return 'vendor';
-          }
-          // UI components - keep Material-UI together to avoid circular deps
-          if (id.includes('@mui') || id.includes('@emotion')) {
-            return 'mui';
-          }
-          // Firebase
-          if (id.includes('firebase')) {
-            return 'firebase';
-          }
-          // Large utility libraries
-          if (id.includes('framer-motion')) {
-            return 'motion';
           }
         }
       }
@@ -51,6 +52,6 @@ export default defineConfig({
     // Output to dist directory (matches vercel.json)
     outDir: 'dist',
     // Increase chunk size warning limit for large apps
-    chunkSizeWarningLimit: 1500
+    chunkSizeWarningLimit: 2000
   }
 })
