@@ -1,7 +1,7 @@
 {
   "framework": "vite",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist", 
   "installCommand": "npm install",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
@@ -106,15 +106,6 @@
           "value": "text/plain; charset=utf-8"
         }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "Content-Type": "application/javascript; charset=utf-8"
-      }
     }
   ]
 }
