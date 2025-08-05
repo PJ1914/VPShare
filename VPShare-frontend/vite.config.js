@@ -45,9 +45,9 @@ export default defineConfig({
             return 'vendor';
           }
         },
-        // Ensure proper file extensions for ES modules
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
+        // Force new file names with timestamp to break cache
+        entryFileNames: `assets/index-${Date.now()}-[hash].js`,
+        chunkFileNames: `assets/[name]-${Date.now()}-[hash].js`,
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
