@@ -3,18 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist", 
   "installCommand": "npm install",
-  "redirects": [
-    {
-      "source": "http://codetapasya.com/(.*)",
-      "destination": "https://codetapasya.com/$1",
-      "permanent": true
-    },
-    {
-      "source": "http://www.codetapasya.com/(.*)", 
-      "destination": "https://www.codetapasya.com/$1",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
