@@ -22,11 +22,35 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['@mui/material', '@mui/icons-material'],
-          motion: ['framer-motion']
+        manualChunks(id) {
+          // Core React libraries
+          if (id.includes('react')) {
+            return 'vendor';
+          }
+          // Router
+          if (id.includes('react-router')) {
+            return 'router';
+          }
+          // UI components
+          if (id.includes('@mui') || id.includes('@emotion')) {
+            return 'ui';
+          }
+          // Animation
+          if (id.includes('framer-motion')) {
+            return 'motion';
+          }
+          // Firebase
+          if (id.includes('firebase') || id.includes('react-firebase-hooks')) {
+            return 'firebase';
+          }
+          // Charts and data
+          if (id.includes('@mui/x-data-grid')) {
+            return 'charts';
+          }
+          // Utilities
+          if (id.includes('axios') || id.includes('date-fns') || id.includes('lodash')) {
+            return 'utils';
+          }
         }
       }
     },
@@ -37,6 +61,8 @@ export default defineConfig({
     sourcemap: false,
     minify: 'terser',
     // Output to dist directory (matches vercel.json)
-    outDir: 'dist'
+    outDir: 'dist',
+    // Increase chunk size warning limit for large apps
+    chunkSizeWarningLimit: 1000
   }
 })

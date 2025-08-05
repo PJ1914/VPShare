@@ -1,4 +1,4 @@
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 /**
@@ -20,7 +20,6 @@ export const checkSubscriptionStatus = async () => {
     
     if (!userDoc.exists()) {
       // Create user document if it doesn't exist
-      const { setDoc, serverTimestamp } = await import('firebase/firestore');
       await setDoc(userDocRef, {
         email: user.email,
         displayName: user.displayName,
@@ -52,7 +51,6 @@ export const checkSubscriptionStatus = async () => {
 
     // If subscription has expired, update status
     if (expiresAt && expiresAt <= now && subscription.status === 'active') {
-      const { updateDoc } = await import('firebase/firestore');
       await updateDoc(userDocRef, {
         'subscription.status': 'expired'
       });

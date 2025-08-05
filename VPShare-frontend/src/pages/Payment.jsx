@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import axios from 'axios';
@@ -255,10 +256,8 @@ function Payment() {
 
             // 2. Update Firestore with subscription data
             try {
-              const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
               const db = getFirestore();
-              const auth = await import('firebase/auth');
-              const user = auth.getAuth().currentUser;
+              const user = auth.currentUser;
               
               if (user) {
                 // Calculate expiry date based on plan

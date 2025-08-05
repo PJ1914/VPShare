@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, formatPrice, loadRazorpayScript, getHackathonPlanMapping } from '../../services/hackathonService';
 import { config, logger } from '../../config/environment';
 import DevNotice from '../DevNotice';
@@ -104,7 +105,6 @@ const RegistrationForm = () => {
     const checkFirebaseConnection = async () => {
       try {
         // Test Firebase connection by checking auth state
-        const { auth } = await import('../../config/firebase');
         if (auth) {
           setFirebaseStatus('connected');
         }
@@ -441,7 +441,6 @@ const RegistrationForm = () => {
             );
 
             // Store hackathon registration data in Firestore (like Payment.jsx does with subscription)
-            const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
             const db = getFirestore();
             
             const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
@@ -497,7 +496,6 @@ const RegistrationForm = () => {
       if (isDevelopment && error.message.includes('Order creation failed')) {
         // Store registration data in Firebase without payment
         try {
-          const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
           const db = getFirestore();
           
           const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
