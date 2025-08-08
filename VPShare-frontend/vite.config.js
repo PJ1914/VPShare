@@ -9,7 +9,20 @@ const buildId = `NUCLEAR-${Date.now()}-${deploymentId}`
 export default defineConfig({
   plugins: [
     react(),
-    // Sitemap will be generated at build time
+    // Custom plugin to inject build timestamp into service worker
+    {
+      name: 'sw-cache-busting',
+      generateBundle(options, bundle) {
+        // Update service worker with new cache version
+        if (bundle['sw.js']) {
+          const swContent = bundle['sw.js'].source;
+          bundle['sw.js'].source = swContent.replace(
+            /const CACHE_VERSION = 'v' \+ Date\.now\(\);/,
+            `const CACHE_VERSION = 'v${Date.now()}';`
+          );
+        }
+      }
+    }
   ],
   
   // Ensure XML files are served with correct MIME type
@@ -51,7 +64,7 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
-    // Ensure public assets are copied
+    // Ensure public assets are copied (including sw.js)
     copyPublicDir: true,
     // Ensure proper asset handling
     assetsDir: 'assets',
@@ -63,5 +76,27 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     // Target modern browsers that support ES modules
     target: 'es2015'
+  },
+
+  // Development server configuration
+  server: {
+    port: 5173,
+    host: true,
+    mimeTypes: {
+      'application/xml': ['xml']
+    },
+    // Ensure service worker is served with correct headers in dev
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
+  },
+
+  // Preview server configuration (for production build testing)
+  preview: {
+    port: 4173,
+    host: true,
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
   }
 })

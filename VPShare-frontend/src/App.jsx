@@ -25,6 +25,7 @@ import AdminPanel from './pages/AdminPanel';
 import ResumeBuilder from './pages/ResumeBuilder';
 import ATSChecker from './pages/ATSChecker';
 import Hackathon from './pages/Hackathon';
+import CacheDebugPanel from './components/CacheDebugPanel';
 
 function App() {
   return (
@@ -165,6 +166,9 @@ function App() {
       </ApiErrorBoundary>
 
       <Footer />
+      
+      {/* Cache Debug Panel for development and debugging */}
+      <CacheDebugPanel />
     </>
   );
 }
