@@ -4,7 +4,7 @@ import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import axios from 'axios';
-import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, formatPrice, loadRazorpayScript, getHackathonPlanMapping } from '../../services/hackathonService';
+import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, formatPrice, loadRazorpayScript, getHackathonPlanMapping, getBackendTeamSize } from '../../services/hackathonService';
 import { config, logger } from '../../config/environment';
 import DevNotice from '../DevNotice';
 
@@ -360,22 +360,31 @@ const RegistrationForm = () => {
     setLoading(true);
     
     try {
+      // Step 1: First register the participant with the backend
+      const registrationResult = await hackathonService.register(formData);
+      
+      if (!registrationResult.success) {
+        throw new Error(registrationResult.message || 'Registration failed');
+      }
+      
+      const { registration_id, team_size } = registrationResult.data;
+      setRegistrationId(registration_id);
+      
       // Get user token for payment
       const token = await user.getIdToken();
       
-      // Calculate amount and create hackathon payment payload
-      const teamSize = formData.team_info.team_size;
+      // Calculate amount using backend-compatible pricing
+      const teamSize = team_size;
+      const backendTeamSize = getBackendTeamSize(teamSize); // Backend only supports 1 and 3
       const baseAmount = getTeamPrice(teamSize);
-      const amount = baseAmount * 100; // Convert to paise
-      
-      // Create a unique registration ID for this registration
-      const registrationId = `reg_${user.uid}_${Date.now()}`;
+      const amount = baseAmount * 100; // Convert to paise for Razorpay order creation
+      const amountInPaise = baseAmount * 100; // Lambda expects amount in paise for verification
       
       // Use hackathon payment format that the Lambda expects
       const orderPayload = { 
         payment_type: 'hackathon',
-        registration_id: registrationId,
-        team_size: teamSize,
+        registration_id: registration_id,
+        team_size: backendTeamSize, // Use backend-compatible team size
         amount: amount
       };
       
@@ -429,9 +438,9 @@ const RegistrationForm = () => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
                 payment_type: 'hackathon',
-                registration_id: registrationId,
-                team_size: teamSize,
-                amount: amount,
+                registration_id: registration_id,
+                team_size: backendTeamSize, // Use backend-compatible team size
+                amount: amountInPaise, // Send amount in paise for Lambda validation
                 email: formData.personal_info.email,
               },
               { 
@@ -461,7 +470,7 @@ const RegistrationForm = () => {
                 amount: amount,
                 actualAmount: baseAmount,
                 teamSize: teamSize,
-                registrationId: registrationId
+                registrationId: registration_id
               },
               // Metadata
               registration_date: serverTimestamp(),
@@ -475,14 +484,17 @@ const RegistrationForm = () => {
             setStep(6); // Success step
             
           } catch (error) {
+            console.error('Payment verification error:', error);
             setPaymentStatus('failed');
-            setErrors({ payment: 'Payment verification failed. Please contact support.' });
+            setErrors({ payment: `Payment verification failed: ${error.response?.data?.error || error.message || 'Please contact support.'}` });
+            setLoading(false);
           }
         },
         modal: {
           ondismiss: function () {
             setPaymentStatus('cancelled');
             setErrors({ payment: 'Payment was cancelled. Please try again.' });
+            setLoading(false);
           }
         }
       };
@@ -491,9 +503,10 @@ const RegistrationForm = () => {
       razorpay.open();
       
     } catch (error) {
+      console.error('Registration/Payment error:', error);
       
       // In development mode, provide a fallback
-      if (isDevelopment && error.message.includes('Order creation failed')) {
+      if (isDevelopment && (error.message.includes('Order creation failed') || error.message.includes('Network Error'))) {
         // Store registration data in Firebase without payment
         try {
           const db = getFirestore();
@@ -521,10 +534,11 @@ const RegistrationForm = () => {
           setErrors({});
           
         } catch (firebaseError) {
+          console.error('Firebase fallback error:', firebaseError);
           setErrors({ general: 'Registration failed. Please try again.' });
         }
       } else {
-        setErrors({ general: 'Registration failed. Please try again.' });
+        setErrors({ general: `Registration failed: ${error.message || 'Please try again.'}` });
       }
     } finally {
       setLoading(false);
@@ -667,14 +681,14 @@ const RegistrationForm = () => {
       <div className="form-group">
         <label>Team Size *</label>
         <div className="team-size-selector">
-          {[1, 2, 3, 4].map(size => (
+          {[1, 3].map(size => (
             <button
               key={size}
               type="button"
               className={`size-btn ${formData.team_info.team_size === size ? 'active' : ''}`}
               onClick={() => handleTeamSizeChange(size)}
             >
-              {size} {size === 1 ? 'Member' : 'Members'}
+              {size === 1 ? '1 Member (Individual)' : '3 Members (Team)'}
               <span className="price">{formatPrice(getTeamPrice(size))}</span>
             </button>
           ))}

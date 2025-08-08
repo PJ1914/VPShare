@@ -9,6 +9,16 @@ const urlsToCache = [
   '/manifest.json'
 ];
 
+// Add error handling for message channel issues
+self.addEventListener('error', (event) => {
+  console.log('Service Worker Error:', event.error);
+});
+
+self.addEventListener('unhandledrejection', (event) => {
+  console.log('Service Worker Unhandled Rejection:', event.reason);
+  event.preventDefault();
+});
+
 // Install event
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -21,6 +31,8 @@ self.addEventListener('install', (event) => {
         console.error('Cache install failed:', error);
       })
   );
+  // Skip waiting to activate immediately
+  self.skipWaiting();
 });
 
 // Fetch event - Cache first for assets, Network first for API calls
@@ -89,4 +101,19 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Claim clients immediately
+  return self.clients.claim();
+});
+
+// Handle message events to prevent channel closure errors
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+  
+  // Always respond to messages to prevent channel closure errors
+  if (event.ports && event.ports[0]) {
+    event.ports[0].postMessage({ success: true });
+  }
 });

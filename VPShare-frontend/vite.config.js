@@ -17,13 +17,9 @@ export default defineConfig({
     port: 5173,
     mimeTypes: {
       'application/xml': ['xml']
-    },
-    // Additional server configuration for proper MIME types
-    headers: {
-      'Content-Type': 'application/javascript; charset=utf-8'
     }
   },
-  
+
   // Make sure sitemap is included in build
   publicDir: 'public',
   
