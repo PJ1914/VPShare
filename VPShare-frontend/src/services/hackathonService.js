@@ -29,11 +29,11 @@ const isDevelopment = config.isDevelopment;
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 1; // ₹1 for individual (100 paise - Lambda expects exactly 100)
+      return 199; // ₹199 for individual (19900 paise - Lambda expects exactly 19900)
     case 3:
       return 549; // ₹549 for team (54900 paise - Lambda expects exactly 54900)
     default:
-      return 1; // Default to individual pricing
+      return 199; // Default to individual pricing
   }
 };
 

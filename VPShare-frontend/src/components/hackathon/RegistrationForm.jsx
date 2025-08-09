@@ -377,8 +377,8 @@ const RegistrationForm = () => {
       const teamSize = team_size;
       const backendTeamSize = getBackendTeamSize(teamSize); // Backend only supports 1 and 3
       const baseAmount = getTeamPrice(teamSize);
-      const amount = baseAmount * 100; // Convert to paise for Razorpay order creation
-      const amountInPaise = baseAmount * 100; // Lambda expects amount in paise for verification
+      const amount = baseAmount * 19900; // Convert to paise for Razorpay order creation
+      const amountInPaise = baseAmount * 19900; // Lambda expects amount in paise for verification
       
       // Use hackathon payment format that the Lambda expects
       const orderPayload = { 
@@ -521,7 +521,7 @@ const RegistrationForm = () => {
             payment_info: {
               payment_id: 'dev_test_payment',
               order_id: 'dev_test_order',
-              amount: getTeamPrice(formData.team_info.team_size) * 100,
+              amount: getTeamPrice(formData.team_info.team_size) * 19900,
               status: 'development_mode'
             },
             registration_date: serverTimestamp(),
