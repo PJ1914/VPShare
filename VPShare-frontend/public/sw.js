@@ -1,54 +1,116 @@
-// Dashboard Service Worker for Vercel Production
-// IMPORTANT: Update this version number with each deployment!
-const CACHE_VERSION = 'v' + Date.now(); // Auto-versioning based on deployment time
-const CACHE_NAME = `codetapasya-dashboard-${CACHE_VERSION}`;
-const STATIC_CACHE_NAME = `codetapasya-static-${CACHE_VERSION}`;
-const API_CACHE_NAME = `codetapasya-api-${CACHE_VERSION}`;
+// VPShare Service Worker - Fixed Cache Management
+// Version with proper MIME type handling and cache invalidation
+const CACHE_VERSION = 'vpshare-v' + Date.now();
+const CACHE_NAME = `vpshare-main-${CACHE_VERSION}`;
+const STATIC_CACHE_NAME = `vpshare-static-${CACHE_VERSION}`;
+const API_CACHE_NAME = `vpshare-api-${CACHE_VERSION}`;
 
-const urlsToCache = [
+// Assets that should be cached
+const STATIC_ASSETS = [
   '/',
-  '/dashboard',
-  '/courses',
   '/hackathon',
   '/manifest.json'
 ];
 
-// Add error handling for message channel issues
-self.addEventListener('error', (event) => {
-  console.log('Service Worker Error:', event.error);
-});
+// MIME types mapping for proper content type enforcement
+const MIME_TYPES = {
+  '.js': 'application/javascript',
+  '.mjs': 'application/javascript',
+  '.jsx': 'application/javascript',
+  '.ts': 'text/typescript',
+  '.tsx': 'text/typescript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.html': 'text/html',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2'
+};
 
-self.addEventListener('unhandledrejection', (event) => {
-  console.log('Service Worker Unhandled Rejection:', event.reason);
-  event.preventDefault();
-});
+// Get MIME type from URL
+function getMimeType(url) {
+  const pathname = new URL(url).pathname;
+  const ext = pathname.substring(pathname.lastIndexOf('.'));
+  return MIME_TYPES[ext] || 'text/plain';
+}
 
-// Install event - Force immediate activation
+// Check if response has correct MIME type
+function hasValidMimeType(response, expectedType) {
+  const contentType = response.headers.get('content-type');
+  if (!contentType) return false;
+  
+  if (expectedType === 'application/javascript') {
+    return contentType.includes('javascript') || contentType.includes('text/javascript');
+  }
+  
+  return contentType.includes(expectedType.split('/')[1]);
+}
+
+// Install event - minimal caching, immediate activation
 self.addEventListener('install', (event) => {
-  console.log(`Service Worker ${CACHE_VERSION} installing...`);
+  console.log(`[SW] Installing version ${CACHE_VERSION}`);
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('[SW] Opened cache');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('[SW] Assets cached successfully');
+        // Skip waiting to activate immediately
+        return self.skipWaiting();
+      })
+      .catch(error => {
+        console.error('[SW] Cache installation failed:', error);
+      })
+  );
+});
+
+// Activate event - aggressive cleanup
+self.addEventListener('activate', (event) => {
+  console.log(`[SW] Activating version ${CACHE_VERSION}`);
   
   event.waitUntil(
     Promise.all([
-      // Cache essential pages
-      caches.open(CACHE_NAME).then((cache) => {
-        console.log('Dashboard cache opened');
-        return cache.addAll(urlsToCache).catch((error) => {
-          console.warn('Some resources failed to cache:', error);
-          // Don't fail the install if some resources can't be cached
-        });
+      // Delete all old caches
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(cacheName => !cacheName.includes(CACHE_VERSION))
+            .map(cacheName => {
+              console.log(`[SW] Deleting old cache: ${cacheName}`);
+              return caches.delete(cacheName);
+            })
+        );
       }),
-      // Pre-cache static assets
-      caches.open(STATIC_CACHE_NAME)
-    ]).catch((error) => {
-      console.error('Cache install failed:', error);
+      
+      // Claim all clients immediately
+      self.clients.claim()
+    ]).then(() => {
+      console.log('[SW] Activation complete, all old caches cleared');
+      
+      // Force reload all clients
+      return self.clients.matchAll({ type: 'window' });
+    }).then(clients => {
+      clients.forEach(client => {
+        console.log('[SW] Reloading client:', client.url);
+        client.postMessage({
+          type: 'SW_ACTIVATED',
+          version: CACHE_VERSION,
+          action: 'reload'
+        });
+      });
     })
   );
-  
-  // Force immediate activation - skip waiting
-  self.skipWaiting();
 });
 
-// Fetch event - Smart caching strategy
+// Fetch event - Network-first with proper MIME type validation
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -58,48 +120,136 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip external requests (except CDN assets)
-  if (url.origin !== location.origin && !url.host.includes('cdn') && !url.host.includes('checkout.razorpay.com')) {
+  // Skip cross-origin requests except known CDNs
+  if (url.origin !== location.origin && 
+      !url.host.includes('cdn') && 
+      !url.host.includes('vercel') &&
+      !url.host.includes('checkout.razorpay.com')) {
     return;
   }
 
-  // Navigation requests (HTML pages) - Network First with fallback
-  if (request.mode === 'navigate' || request.destination === 'document') {
+  // Handle different types of requests with appropriate strategies
+
+  // 1. JavaScript modules - NETWORK FIRST with MIME validation
+  if (request.destination === 'script' || 
+      url.pathname.endsWith('.js') || 
+      url.pathname.endsWith('.mjs') || 
+      url.pathname.endsWith('.jsx')) {
+    
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Clone and cache successful responses
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
           }
+          
+          // Validate MIME type for JavaScript
+          const expectedMimeType = 'application/javascript';
+          if (!hasValidMimeType(response, expectedMimeType)) {
+            console.warn(`[SW] Invalid MIME type for ${url.pathname}:`, response.headers.get('content-type'));
+            // Don't cache responses with wrong MIME types
+            return response;
+          }
+          
+          // Cache valid JavaScript responses
+          const responseToCache = response.clone();
+          caches.open(STATIC_CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
+          
           return response;
         })
-        .catch(() => {
-          // Fallback to cache if network fails
-          console.log('Network failed, serving from cache:', request.url);
-          return caches.match(request).then((cachedResponse) => {
-            return cachedResponse || caches.match('/'); // Fallback to homepage
+        .catch(error => {
+          console.log(`[SW] Network failed for script ${url.pathname}, checking cache:`, error.message);
+          
+          return caches.match(request).then(cachedResponse => {
+            if (cachedResponse && hasValidMimeType(cachedResponse, 'application/javascript')) {
+              console.log(`[SW] Serving cached script: ${url.pathname}`);
+              return cachedResponse;
+            }
+            
+            // No valid cached version, return empty script to prevent errors
+            console.warn(`[SW] No valid cache for script: ${url.pathname}`);
+            return new Response('console.warn("Failed to load script from network and cache");', {
+              status: 200,
+              headers: { 'Content-Type': 'application/javascript' }
+            });
           });
         })
     );
     return;
   }
 
-  // API calls - Network first with short-term caching
-  if (url.pathname.includes('/api/') || url.pathname.includes('execute-api') || url.host.includes('amazonaws.com')) {
+  // 2. CSS files - Network first with validation
+  if (request.destination === 'style' || url.pathname.endsWith('.css')) {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Only cache successful API responses temporarily
-          if (response && response.status === 200) {
+        .then(response => {
+          if (response.ok && hasValidMimeType(response, 'text/css')) {
             const responseToCache = response.clone();
-            caches.open(API_CACHE_NAME).then((cache) => {
-              // Set a short expiration for API responses
+            caches.open(STATIC_CACHE_NAME).then(cache => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then(cachedResponse => {
+            return cachedResponse || new Response('/* CSS failed to load */', {
+              headers: { 'Content-Type': 'text/css' }
+            });
+          });
+        })
+    );
+    return;
+  }
+
+  // 3. HTML documents - Network first, no aggressive caching
+  if (request.mode === 'navigate' || 
+      request.destination === 'document' || 
+      url.pathname.endsWith('.html') ||
+      url.pathname === '/' ||
+      !url.pathname.includes('.')) {
+    
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            // Only cache the main pages, not all HTML responses
+            if (STATIC_ASSETS.includes(url.pathname) || url.pathname === '/') {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache);
+              });
+            }
+          }
+          return response;
+        })
+        .catch(() => {
+          console.log(`[SW] Network failed for navigation: ${url.pathname}`);
+          return caches.match(request).then(cachedResponse => {
+            return cachedResponse || caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+
+  // 4. API calls - Network only, short-term cache
+  if (url.pathname.includes('/api/') || 
+      url.pathname.includes('execute-api') || 
+      url.host.includes('amazonaws.com') ||
+      url.host.includes('razorpay.com')) {
+    
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            // Cache API responses for 30 seconds only
+            const responseToCache = response.clone();
+            caches.open(API_CACHE_NAME).then(cache => {
               const headers = new Headers(responseToCache.headers);
-              headers.set('sw-cache-expires', Date.now() + (2 * 60 * 1000)); // 2 minutes
+              headers.set('sw-cached-at', Date.now().toString());
               const cachedResponse = new Response(responseToCache.body, {
                 status: responseToCache.status,
                 statusText: responseToCache.statusText,
@@ -111,15 +261,13 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Return cached API response if network fails
-          return caches.match(request).then((cachedResponse) => {
+          return caches.match(request).then(cachedResponse => {
             if (cachedResponse) {
-              const cacheExpires = cachedResponse.headers.get('sw-cache-expires');
-              if (!cacheExpires || Date.now() < parseInt(cacheExpires)) {
+              const cachedAt = cachedResponse.headers.get('sw-cached-at');
+              if (cachedAt && (Date.now() - parseInt(cachedAt)) < 30000) { // 30 seconds
                 return cachedResponse;
               }
             }
-            // Return a network error response if cache is expired or missing
             return new Response(JSON.stringify({ error: 'Network unavailable' }), {
               status: 503,
               headers: { 'Content-Type': 'application/json' }
@@ -130,54 +278,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets (JS, CSS, images) - Cache First with network fallback
-  if (request.destination === 'script' || request.destination === 'style' || 
-      request.destination === 'image' || request.destination === 'font' ||
-      url.pathname.includes('/assets/') || url.pathname.includes('/static/')) {
+  // 5. Images and fonts - Cache first
+  if (request.destination === 'image' || 
+      request.destination === 'font' ||
+      url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|woff|woff2)$/)) {
+    
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
+      caches.match(request).then(cachedResponse => {
         if (cachedResponse) {
           return cachedResponse;
         }
         
-        // Not in cache, fetch from network
-        return fetch(request).then((response) => {
-          // Only cache successful responses
-          if (response && response.status === 200) {
+        return fetch(request).then(response => {
+          if (response.ok) {
             const responseToCache = response.clone();
-            caches.open(STATIC_CACHE_NAME).then((cache) => {
+            caches.open(STATIC_CACHE_NAME).then(cache => {
               cache.put(request, responseToCache);
             });
           }
           return response;
-        }).catch(() => {
-          // If it's a JS or CSS file and network fails, return an empty response
-          // This prevents the MIME type error
-          if (request.destination === 'script') {
-            return new Response('console.warn("Script failed to load from cache and network");', {
-              headers: { 'Content-Type': 'application/javascript' }
-            });
-          }
-          if (request.destination === 'style') {
-            return new Response('/* CSS failed to load from cache and network */', {
-              headers: { 'Content-Type': 'text/css' }
-            });
-          }
-          // For other assets, throw the error
-          throw new Error('Asset not available');
         });
       })
     );
     return;
   }
 
-  // Default: Network with cache fallback
+  // 6. Default - Network with cache fallback
   event.respondWith(
-    fetch(request).then((response) => {
-      // Cache successful responses
-      if (response && response.status === 200) {
+    fetch(request).then(response => {
+      if (response.ok) {
         const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
+        caches.open(CACHE_NAME).then(cache => {
           cache.put(request, responseToCache);
         });
       }
@@ -301,6 +432,59 @@ self.addEventListener('push', (event) => {
   }
 });
 
+// Message handling for client communication
+self.addEventListener('message', (event) => {
+  const { data } = event;
+  
+  if (!data) return;
+  
+  switch (data.type) {
+    case 'SKIP_WAITING':
+      console.log('[SW] Client requested skip waiting');
+      self.skipWaiting();
+      break;
+      
+    case 'CHECK_UPDATE':
+      console.log('[SW] Client requested update check');
+      self.registration.update();
+      break;
+      
+    case 'CLEAR_CACHE':
+      console.log('[SW] Client requested cache clear');
+      event.waitUntil(
+        caches.keys().then(cacheNames => {
+          return Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+          );
+        }).then(() => {
+          event.ports[0]?.postMessage({ success: true });
+        })
+      );
+      break;
+      
+    case 'GET_CACHE_STATUS':
+      event.waitUntil(
+        caches.keys().then(cacheNames => {
+          event.ports[0]?.postMessage({
+            caches: cacheNames,
+            version: CACHE_VERSION
+          });
+        })
+      );
+      break;
+  }
+});
+
+// Error handling
+self.addEventListener('error', (event) => {
+  console.error('[SW] Error:', event.error);
+});
+
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('[SW] Unhandled rejection:', event.reason);
+  event.preventDefault();
+});
+
 // Periodic background sync to check for updates
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'content-sync') {
@@ -309,4 +493,15 @@ self.addEventListener('periodicsync', (event) => {
       self.registration.update()
     );
   }
+  
+  if (event.tag === 'cache-cleanup') {
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        const oldCaches = cacheNames.filter(name => !name.includes(CACHE_VERSION));
+        return Promise.all(oldCaches.map(name => caches.delete(name)));
+      })
+    );
+  }
 });
+
+console.log(`[SW] Service Worker ${CACHE_VERSION} loaded and ready`);

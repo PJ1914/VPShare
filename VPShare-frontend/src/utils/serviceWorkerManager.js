@@ -3,7 +3,8 @@ class ServiceWorkerManager {
   constructor() {
     this.registration = null;
     this.showUpdateAvailable = null;
-    this.forceReload = true; // Set to true for immediate updates
+    this.forceReload = true;
+    this.updateCheckInterval = null;
   }
 
   // Initialize service worker with automatic update handling
@@ -13,13 +14,20 @@ class ServiceWorkerManager {
 
     if ('serviceWorker' in navigator) {
       try {
-        // Register service worker
+        // Unregister any existing service workers first to ensure clean slate
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of existingRegistrations) {
+          await registration.unregister();
+          console.log('[SWM] Unregistered existing service worker');
+        }
+
+        // Register new service worker
         this.registration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
           updateViaCache: 'none' // Always check for updates
         });
 
-        console.log('Service Worker registered successfully');
+        console.log('[SWM] Service Worker registered successfully');
 
         // Set up update detection
         this.setupUpdateHandling();
@@ -27,20 +35,42 @@ class ServiceWorkerManager {
         // Listen for messages from service worker
         this.setupMessageHandling();
 
-        // Check for updates every 30 seconds when page is visible
+        // Check for updates periodically
         this.setupPeriodicUpdateChecks();
 
         // Handle page visibility changes
         this.setupVisibilityHandling();
 
+        // Clear any stale caches immediately
+        await this.clearStaleCache();
+
         return this.registration;
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        console.error('[SWM] Service Worker registration failed:', error);
         return null;
       }
     } else {
-      console.log('Service Worker not supported');
+      console.log('[SWM] Service Worker not supported');
       return null;
+    }
+  }
+
+  // Clear any stale cache on initialization
+  async clearStaleCache() {
+    try {
+      const cacheNames = await caches.keys();
+      const staleCaches = cacheNames.filter(name => 
+        name.includes('codetapasya') || // Old cache names
+        name.includes('dashboard') ||
+        !name.includes('vpshare') // Keep only new vpshare caches
+      );
+      
+      for (const cacheName of staleCaches) {
+        await caches.delete(cacheName);
+        console.log(`[SWM] Deleted stale cache: ${cacheName}`);
+      }
+    } catch (error) {
+      console.error('[SWM] Failed to clear stale cache:', error);
     }
   }
 
@@ -50,18 +80,18 @@ class ServiceWorkerManager {
 
     // Handle new service worker installation
     this.registration.addEventListener('updatefound', () => {
-      console.log('New Service Worker version found');
+      console.log('[SWM] New Service Worker version found');
       const newWorker = this.registration.installing;
 
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed') {
           if (navigator.serviceWorker.controller) {
             // New version available
-            console.log('New Service Worker installed, update available');
+            console.log('[SWM] New Service Worker installed, update available');
             this.handleUpdateAvailable(newWorker);
           } else {
             // First time installation
-            console.log('Service Worker installed for the first time');
+            console.log('[SWM] Service Worker installed for the first time');
           }
         }
       });
@@ -69,19 +99,19 @@ class ServiceWorkerManager {
 
     // Handle service worker controller change
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('Service Worker controller changed');
-      if (this.forceReload) {
-        // Force reload to get new assets
-        window.location.reload();
-      }
+      console.log('[SWM] Service Worker controller changed, reloading page');
+      // Always reload when controller changes to ensure fresh content
+      window.location.reload();
     });
   }
 
   // Handle when update is available
   handleUpdateAvailable(newWorker) {
+    console.log('[SWM] Handling update available');
+    
+    // Always force update for MIME type and caching fixes
     if (this.forceReload) {
-      // Immediately update for critical fixes
-      console.log('Force updating Service Worker...');
+      console.log('[SWM] Force updating Service Worker...');
       this.skipWaiting(newWorker);
     } else {
       // Show notification to user
@@ -175,16 +205,59 @@ class ServiceWorkerManager {
   setupMessageHandling() {
     navigator.serviceWorker.addEventListener('message', (event) => {
       const { data } = event;
+      
+      console.log('[SWM] Received message from SW:', data);
 
-      if (data.type === 'SW_UPDATED') {
-        console.log('Service Worker updated:', data.version);
+      if (data.type === 'SW_ACTIVATED') {
+        console.log('[SWM] Service Worker activated with version:', data.version);
         
-        // Optional: Show notification about successful update
+        // Force reload when new SW is activated to ensure fresh content
+        if (data.action === 'reload') {
+          console.log('[SWM] Reloading page for fresh content...');
+          window.location.reload();
+        }
+      }
+      
+      if (data.type === 'SW_UPDATED') {
+        console.log('[SWM] Service Worker updated:', data.version);
+        
         if (data.message) {
-          console.log(data.message);
+          console.log('[SWM]', data.message);
         }
       }
     });
+  }
+
+  // Force refresh - clears all caches and reloads
+  async forceRefresh() {
+    console.log('[SWM] Force refresh initiated');
+    
+    try {
+      // Clear all caches
+      await this.clearAllCaches();
+      
+      // Send message to SW to clear its caches
+      if (navigator.serviceWorker.controller) {
+        const channel = new MessageChannel();
+        navigator.serviceWorker.controller.postMessage(
+          { type: 'CLEAR_CACHE' }, 
+          [channel.port2]
+        );
+      }
+      
+      // Unregister service worker
+      if (this.registration) {
+        await this.registration.unregister();
+      }
+      
+      // Force hard reload
+      window.location.reload(true);
+      
+    } catch (error) {
+      console.error('[SWM] Force refresh failed:', error);
+      // Fallback to simple reload
+      window.location.reload();
+    }
   }
 
   // Check for updates periodically

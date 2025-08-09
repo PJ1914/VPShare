@@ -48,11 +48,41 @@ root.render(
 
 // Enhanced Service Worker registration with automatic updates and cache management
 if ('serviceWorker' in navigator) {
+  // Check for module loading errors and force refresh if needed
+  const originalLoad = window.addEventListener;
+  let moduleErrorDetected = false;
+
+  window.addEventListener('error', (event) => {
+    // Detect MIME type errors for JavaScript modules
+    if (event.message && event.message.includes('MIME type') && 
+        event.message.includes('module script')) {
+      console.error('[Main] JavaScript module MIME type error detected:', event.message);
+      moduleErrorDetected = true;
+      
+      // Force refresh to clear cache and reload fresh content
+      setTimeout(() => {
+        console.log('[Main] Forcing refresh due to MIME type error...');
+        if (window.swManager) {
+          window.swManager.forceRefresh();
+        } else {
+          window.location.reload(true);
+        }
+      }, 1000);
+    }
+  });
+
   window.addEventListener('load', () => {
     // Initialize service worker manager with automatic updates
     serviceWorkerManager.init({
       forceReload: true, // Automatically reload when updates are available
       showUpdateAvailable: (callback) => {
+        // If we detected module errors, force refresh immediately
+        if (moduleErrorDetected) {
+          console.log('[Main] Forcing immediate refresh due to module errors...');
+          callback();
+          return;
+        }
+
         // Custom update notification for your app
         const updateNotification = document.createElement('div');
         updateNotification.id = 'app-update-notification';
@@ -73,10 +103,10 @@ if ('serviceWorker' in navigator) {
           ">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
               <span style="font-size: 24px;">🚀</span>
-              <span style="font-weight: 600; font-size: 16px;">Update Available!</span>
+              <span style="font-weight: 600; font-size: 16px;">Cache Update Required!</span>
             </div>
             <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.4; opacity: 0.9;">
-              A new version of VPShare is ready with latest features and improvements.
+              Fresh content is available. Click Update to reload with the latest version.
             </p>
             <div style="display: flex; gap: 8px;">
               <button id="update-now-btn" style="
@@ -90,15 +120,15 @@ if ('serviceWorker' in navigator) {
                 font-size: 14px;
                 flex: 1;
               ">Update Now</button>
-              <button id="update-later-btn" style="
-                background: transparent;
+              <button id="force-refresh-btn" style="
+                background: #ff4757;
                 color: white;
-                border: 1px solid rgba(255,255,255,0.5);
+                border: none;
                 padding: 8px 16px;
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 14px;
-              ">Later</button>
+              ">Force Refresh</button>
             </div>
           </div>
           <style>
@@ -117,30 +147,41 @@ if ('serviceWorker' in navigator) {
           callback(); // This will trigger the update
         };
 
-        // Handle later button
-        document.getElementById('update-later-btn').onclick = () => {
+        // Handle force refresh button
+        document.getElementById('force-refresh-btn').onclick = () => {
           updateNotification.remove();
+          serviceWorkerManager.forceRefresh();
         };
 
-        // Auto-dismiss after 15 seconds
+        // Auto-update after 5 seconds if user doesn't respond
         setTimeout(() => {
           if (document.getElementById('app-update-notification')) {
             updateNotification.remove();
+            callback();
           }
-        }, 15000);
+        }, 5000);
       }
     }).then((registration) => {
       if (registration) {
-        console.log('Service Worker initialized successfully');
+        console.log('[Main] Service Worker initialized successfully');
         
         // Make service worker manager available globally for debugging
         window.swManager = serviceWorkerManager;
         
+        // Add global force refresh function
+        window.forceRefresh = () => serviceWorkerManager.forceRefresh();
+        
         // Log current status
-        console.log('SW Status:', serviceWorkerManager.getStatus());
+        console.log('[Main] SW Status:', serviceWorkerManager.getStatus());
       }
     }).catch((error) => {
-      console.error('Service Worker initialization failed:', error);
+      console.error('[Main] Service Worker initialization failed:', error);
+      
+      // If SW fails, still make force refresh available
+      window.forceRefresh = () => {
+        console.log('[Main] Manual force refresh...');
+        window.location.reload(true);
+      };
     });
   });
 }
