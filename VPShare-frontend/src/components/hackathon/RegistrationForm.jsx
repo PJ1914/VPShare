@@ -959,7 +959,7 @@ const RegistrationForm = () => {
                 fontSize: '0.95rem',
                 display: 'block'
               }}>
-                I commit to completing at least 2 courses on IBM SkillsBuild platform during the 5-day bootcamp period.
+                I commit to completing at least 2 courses on IBM SkillsBuild platform during the 4-day bootcamp period.
               </p>
             </div>
           </label>
@@ -1228,7 +1228,7 @@ const RegistrationForm = () => {
             <li>All information provided is accurate and complete</li>
             <li>You will complete the IBM SkillsBuild courses during the bootcamp</li>
             <li>You will register for NASSCOM FSP platform as required</li>
-            <li>You will participate in the full 5-day bootcamp and 24-hour hackathon</li>
+            <li>You will participate in the full 4-day bootcamp and 24-hour hackathon</li>
             <li>You will follow all hackathon rules and guidelines</li>
             <li>You understand the refund policy as outlined in the hackathon guidelines</li>
           </ul>
@@ -1314,7 +1314,7 @@ const RegistrationForm = () => {
               <strong>Bootcamp:</strong> 5 days of intensive learning and preparation
             </div>
             <div className="date-item">
-              <strong>Hackathon:</strong> 24-hour continuous coding challenge
+              <strong>Hackathon:</strong> 2-day continuous coding challenge
             </div>
             <div className="date-item">
               <strong>Problem Statement:</strong> {formData.technical_info.problem_statement || 'Will be revealed during bootcamp'}

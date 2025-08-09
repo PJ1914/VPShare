@@ -38,7 +38,7 @@ const Timeline = () => {
     },
     {
       day: 'Day 5',
-      title: '24-Hour Hackathon Challenge',
+      title: '2-Day Hackathon Challenge',
       description: 'Team formation, development sprint, and final presentations',
       duration: '24 hours',
       icon: '🏆',
@@ -112,7 +112,7 @@ const Timeline = () => {
             </div>
             <div className="summary-card">
               <h3>Development</h3>
-              <div className="summary-value">24 Hours</div>
+              <div className="summary-value">College Hours</div>
               <p>Hackathon coding period</p>
             </div>
             <div className="summary-card">

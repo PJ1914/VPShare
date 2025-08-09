@@ -50,12 +50,12 @@ const HackathonHero = () => {
           
           <div className="hero-highlights">
             <div className="highlight">
-              <span className="highlight-number">5</span>
+              <span className="highlight-number">4</span>
               <span className="highlight-text">Day Bootcamp</span>
             </div>
             <div className="highlight">
-              <span className="highlight-number">24</span>
-              <span className="highlight-text">Hour Hackathon</span>
+              <span className="highlight-number">2</span>
+              <span className="highlight-text">Day Challenge</span>
             </div>
             <div className="highlight">
               <span className="highlight-number">∞</span>

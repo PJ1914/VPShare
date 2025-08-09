@@ -463,7 +463,7 @@ function Home() {
                     <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>⚡</span>
                       <div>
-                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>24-Hour Hackathon Challenge</h4>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>2-Day Hackathon Challenge</h4>
                         <p className="modern-text-sm">Build innovative solutions with cutting-edge AI technologies</p>
                       </div>
                     </div>
@@ -509,7 +509,7 @@ function Home() {
                   {[
                     { number: '1', title: 'Registration', subtitle: 'Open Now' },
                     { number: '2', title: 'Bootcamp', subtitle: '4 Days Training' },
-                    { number: '3', title: 'Hackathon', subtitle: '24 Hour Challenge' },
+                    { number: '3', title: 'Hackathon', subtitle: '2 Days Challenge' },
                     { number: '4', title: 'Results', subtitle: 'Awards Ceremony' }
                   ].map((step, index) => (
                     <div key={index} className="modern-flex" style={{ alignItems: 'center', flex: '1', minWidth: '200px' }}>

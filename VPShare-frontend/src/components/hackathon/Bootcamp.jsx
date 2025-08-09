@@ -51,7 +51,7 @@ const Bootcamp = () => {
     },
     {
       day: 5,
-      title: '24-Hour Hackathon Challenge',
+      title: '2-Day Hackathon Challenge',
       topics: [
         'Team Formation & Problem Statement Selection',
         'Solution Design & Architecture Planning',
@@ -107,7 +107,7 @@ const Bootcamp = () => {
       <div className="container">
         <div className="bootcamp-header">
           <h2>4-Day Comprehensive Bootcamp + Hackathon</h2>
-          <p>Master Generative AI concepts with hands-on experience using IBM tools, culminating in a 24-hour hackathon challenge</p>
+          <p>Master Generative AI concepts with hands-on experience using IBM tools, culminating in a 2-day hackathon challenge</p>
         </div>
 
         <div className="bootcamp-nav">
@@ -188,7 +188,7 @@ const Bootcamp = () => {
                   <div className="hackathon-requirements">
                     <h6>Hackathon Guidelines:</h6>
                     <p>
-                      Teams will have 24 hours to develop innovative AI solutions. Mentors will be available 
+                      Teams will have College hours to develop innovative AI solutions. Mentors will be available 
                       throughout the hackathon to provide guidance. All submissions must be completed within 
                       the designated time frame for judging consideration.
                     </p>

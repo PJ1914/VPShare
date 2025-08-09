@@ -17,7 +17,7 @@ const slides = [
   {
     title: 'TKR College Hackathon - CognitiveX',
     subtitle: 'Powered by SmartBridge & IBM',
-    description: '5-Day Bootcamp + 24-Hour Challenge • GenAI Development • Industry Mentorship',
+    description: '4-Day Bootcamp + 2-Day- Challenge • GenAI Development • Industry Mentorship',
     cta: 'Register Now',
     type: 'hackathon',
     features: ['₹50,000 Prize Pool', 'IBM Certification', 'Industry Exposure']

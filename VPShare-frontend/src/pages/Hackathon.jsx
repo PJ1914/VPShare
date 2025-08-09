@@ -288,7 +288,7 @@ const Hackathon = () => {
                   <h2>What is CognitiveX?</h2>
                   <p>
                     CognitiveX is an initiative by SmartBridge, launched in collaboration with 
-                    IBM SkillsBuild. The program features a 5-day bootcamp followed by a 24-hour 
+                    IBM SkillsBuild. The program features a 4-day bootcamp followed by a 2-day 
                     hackathon, offering students a unique opportunity to work on real-world 
                     challenges while gaining hands-on experience with IBM tools.
                   </p>
