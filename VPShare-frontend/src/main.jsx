@@ -5,6 +5,7 @@ import './config/console-suppressor';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import serviceWorkerManager from './utils/serviceWorkerManager';
@@ -37,9 +38,11 @@ root.render(
     <GoogleOAuthProvider>
       <BrowserRouter>
         <NotificationProvider>
-          <SubscriptionProvider>
-            <App />
-          </SubscriptionProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
+              <App />
+            </SubscriptionProvider>
+          </AuthProvider>
         </NotificationProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>

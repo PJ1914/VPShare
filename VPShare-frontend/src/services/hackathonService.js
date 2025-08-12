@@ -17,7 +17,7 @@ import { config, logger } from '../config/environment';
 
 // API endpoint configurations from environment variables
 const HACKATHON_API_URL = import.meta.env.VITE_HACKATHON_API_URL;
-const ADMIN_API_URL = import.meta.env.VITE_HACKATHON_ADMIN_API_URL;
+const ADMIN_API_URL = import.meta.env.VITE_HACKATHON_ADMIN_API_URL || 'https://your-admin-api-gateway-url.com/admin';
 const UTILS_API_URL = import.meta.env.VITE_HACKATHON_UTILS_API_URL;
 const PAYMENT_API_URL = import.meta.env.VITE_API_BASE_URL; // General payment API
 const HACKATHON_PAYMENT_API_URL = import.meta.env.VITE_HACKATHON_PAYMENT_API_URL || import.meta.env.VITE_API_BASE_URL; 
@@ -146,6 +146,15 @@ addAuthInterceptor(hackathonPaymentAPI);
 
 // Hackathon Service
 const hackathonService = {
+  // Helper method to ensure authentication
+  async ensureAuth() {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    return user;
+  },
+
   // Firebase Firestore Operations
   async saveUserProfile(personalInfo) {
     try {
@@ -1175,18 +1184,47 @@ const hackathonService = {
     }
   },
 
+  // Helper method to ensure authentication
+  async ensureAuth() {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    return user;
+  },
+
   // Admin APIs
   async getAllRegistrations(limit = 50, status = null) {
     try {
-      const params = { limit };
-      if (status) params.status = status;
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
       
-      const response = await adminAPI.get('/registrations', { params });
-      return {
-        success: true,
-        data: response.data
-      };
+      const params = { limit };
+      if (status && status !== 'all') params.status = status;
+      
+      const response = await axios.get(`${ADMIN_API_URL}/registrations`, { 
+        params,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      // Handle the Lambda response structure
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data || response.data
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to fetch registrations'
+        };
+      }
     } catch (error) {
+      console.error('Error fetching registrations:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to fetch registrations',
@@ -1197,12 +1235,31 @@ const hackathonService = {
 
   async getRegistrationStats() {
     try {
-      const response = await adminAPI.get('/status');
-      return {
-        success: true,
-        data: response.data
-      };
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.get(`${ADMIN_API_URL}/status`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      // Handle the Lambda response structure
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data || response.data
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to fetch stats'
+        };
+      }
     } catch (error) {
+      console.error('Error fetching stats:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to fetch stats',
@@ -1213,13 +1270,22 @@ const hackathonService = {
 
   async updateRegistrationStatus(registrationId, newStatus, adminNotes = '') {
     try {
-      const response = await adminAPI.put('/status', {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.put(`${ADMIN_API_URL}/status`, {
         registration_id: registrationId,
         status: newStatus,
         admin_notes: adminNotes
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
       });
       
-      // Handle the response based on your Lambda structure
+      // Handle the Lambda response structure
       if (response.data?.success) {
         return {
           success: true,
@@ -1234,9 +1300,66 @@ const hackathonService = {
       }
     } catch (error) {
       console.error('Error updating registration status:', error);
+      
+      // Handle specific error cases from your Lambda
+      if (error.response?.status === 404) {
+        return {
+          success: false,
+          message: 'Registration not found'
+        };
+      } else if (error.response?.status === 400) {
+        return {
+          success: false,
+          message: error.response.data?.message || 'Invalid request data'
+        };
+      }
+      
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to update registration status',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Get individual registration details
+  async getRegistrationDetails(registrationId) {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.get(`${ADMIN_API_URL}/${registrationId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data || response.data
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Registration not found'
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching registration details:', error);
+      
+      if (error.response?.status === 404) {
+        return {
+          success: false,
+          message: 'Registration not found'
+        };
+      }
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to fetch registration details',
         error: error.response?.data
       };
     }
@@ -1282,17 +1405,112 @@ const hackathonService = {
 
   async exportData(format = 'csv', type = 'registrations') {
     try {
-      const response = await utilsAPI.get(`/export`, {
-        params: { format, type }
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.get(`${UTILS_API_URL}/export`, {
+        params: { format, type },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000 // Longer timeout for export operations
       });
-      return {
-        success: true,
-        data: response.data
-      };
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to export data'
+        };
+      }
     } catch (error) {
+      console.error('Export data error:', error);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to export data',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Bulk operations for admin
+  async bulkUpdateRegistrations(updates) {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.put(`${ADMIN_API_URL}/bulk-update`, {
+        updates: updates
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000
+      });
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: response.data.message || 'Bulk update completed successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to perform bulk update'
+        };
+      }
+    } catch (error) {
+      console.error('Bulk update error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to perform bulk update',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // Send notifications to participants
+  async sendNotification(notificationData) {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.post(`${UTILS_API_URL}/send-notification`, {
+        ...notificationData,
+        sender_id: user.uid,
+        sent_at: new Date().toISOString()
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: response.data.message || 'Notification sent successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to send notification'
+        };
+      }
+    } catch (error) {
+      console.error('Send notification error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to send notification',
         error: error.response?.data
       };
     }

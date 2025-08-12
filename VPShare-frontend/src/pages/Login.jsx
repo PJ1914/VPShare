@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { auth } from '../config/firebase'; 
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { Box, Button, Typography, Paper, TextField, Alert, InputAdornment, IconButton, Divider } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/SEO';
+import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 import GoogleIcon from '@mui/icons-material/Google';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -72,7 +74,12 @@ function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [authCancelTimeout, setAuthCancelTimeout] = useState(null);
+  
   const navigate = useNavigate();
+  const location = useLocation();
+  const { getAndClearReturnPath } = useAuth();
+  const { showNotification } = useNotification();
 
   // Reset scroll position to top on mount
   useEffect(() => {
@@ -80,7 +87,16 @@ function Login() {
     
     // Set page title
     document.title = isLogin ? 'Login - CodeTapasya' : 'Register - CodeTapasya';
-  }, [isLogin]);
+    
+    // Store return path from URL params or current location state
+    const returnPath = location.state?.from || 
+                      new URLSearchParams(location.search).get('returnTo') || 
+                      '/dashboard';
+    
+    if (returnPath !== '/dashboard') {
+      sessionStorage.setItem('loginReturnPath', returnPath);
+    }
+  }, [isLogin, location]);
   // Validate form
   const validateForm = () => {
     const errors = {};
@@ -99,7 +115,7 @@ function Login() {
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  };  // Handle Google Auth
+  };  // Enhanced Google Auth with timeout handling
   const handleGoogleSuccess = async () => {
     if (isLoading) return;
     
@@ -107,22 +123,63 @@ function Login() {
     setError('');
     setValidationErrors({});
     
+    // Set timeout for auth cancellation (5 seconds instead of 15)
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      setError('Authentication timed out. Please try again.');
+      showNotification({
+        type: 'warning',
+        title: 'Authentication Timeout',
+        message: 'Google sign-in took too long. Please try again.',
+        duration: 4000
+      });
+    }, 5000);
+    
+    setAuthCancelTimeout(timeoutId);
+    
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: 'select_account', // Force account selection for faster UX
+        access_type: 'online' // Faster auth without offline access
       });
-      await signInWithPopup(auth, provider);
-      navigate('/dashboard');
+      
+      const result = await signInWithPopup(auth, provider);
+      
+      clearTimeout(timeoutId);
+      setAuthCancelTimeout(null);
+      
+      if (result.user) {
+        const returnPath = getAndClearReturnPath();
+        showNotification({
+          type: 'success',
+          title: '🎉 Welcome back!',
+          message: `Successfully signed in with Google.`,
+          duration: 3000
+        });
+        navigate(returnPath);
+      }
     } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user') {
+      clearTimeout(timeoutId);
+      setAuthCancelTimeout(null);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        showNotification({
+          type: 'info',
+          title: 'Sign-in Cancelled',
+          message: 'Google sign-in was cancelled. Try again when ready.',
+          duration: 3000
+        });
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Pop-up blocked. Please allow pop-ups and try again.');
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         setError(error.message || 'Failed to sign in with Google');
       }
     } finally {
       setIsLoading(false);
     }
   };
-  // Handle GitHub Auth
+  // Enhanced GitHub Auth with timeout handling
   const handleGitHubSuccess = async () => {
     if (isLoading) return;
     
@@ -130,26 +187,65 @@ function Login() {
     setError('');
     setValidationErrors({});
     
+    // Set timeout for auth cancellation (5 seconds)
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      setError('GitHub authentication timed out. Please try again.');
+      showNotification({
+        type: 'warning',
+        title: 'Authentication Timeout',
+        message: 'GitHub sign-in took too long. Please try again.',
+        duration: 4000
+      });
+    }, 5000);
+    
+    setAuthCancelTimeout(timeoutId);
+    
     try {
       const provider = new GithubAuthProvider();
-      provider.addScope('repo');
+      provider.setCustomParameters({
+        allow_signup: 'true'
+      });
+      
       const result = await signInWithPopup(auth, provider);
       
-      // Extract the GitHub access token and store it in sessionStorage
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-      if (token) {
-        sessionStorage.setItem('githubAccessToken', token);
+      clearTimeout(timeoutId);
+      setAuthCancelTimeout(null);
+      
+      if (result.user) {
+        const returnPath = getAndClearReturnPath();
+        showNotification({
+          type: 'success',
+          title: '🎉 Welcome!',
+          message: `Successfully signed in with GitHub.`,
+          duration: 3000
+        });
+        navigate(returnPath);
       }
-      navigate('/dashboard');
     } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user') {
+      clearTimeout(timeoutId);
+      setAuthCancelTimeout(null);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        showNotification({
+          type: 'info',
+          title: 'Sign-in Cancelled',
+          message: 'GitHub sign-in was cancelled. Try again when ready.',
+          duration: 3000
+        });
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Pop-up blocked. Please allow pop-ups and try again.');
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        setError('An account with this email already exists. Try signing in with a different method.');
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         setError(error.message || 'Failed to sign in with GitHub');
       }
     } finally {
       setIsLoading(false);
     }
-  };  // Handle manual login/register
+  };
+
+  // Handle manual login/register
   const handleManualSubmit = async (e) => {
     e.preventDefault();
     
@@ -168,7 +264,15 @@ function Login() {
       } else {
         await createUserWithEmailAndPassword(auth, trimmedEmail, password);
       }
-      navigate('/dashboard');
+      
+      const returnPath = getAndClearReturnPath();
+      showNotification({
+        type: 'success',
+        title: `🎉 ${isLogin ? 'Welcome back!' : 'Account created!'}`,
+        message: `Successfully ${isLogin ? 'signed in' : 'registered'}.`,
+        duration: 3000
+      });
+      navigate(returnPath);
     } catch (error) {
       let errorMessage = 'An error occurred. Please try again.';
       

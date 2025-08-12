@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import axios from 'axios';
 import '../styles/AdminPanel.css';
+import HackathonAdmin from '../components/admin/HackathonAdmin';
+import '../components/admin/HackathonAdmin.css';
 
 function AdminPanel() {
   const [user, setUser] = useState(null);
@@ -789,6 +791,12 @@ function AdminPanel() {
         >
           Contents
         </button>
+        <button 
+          className={activeTab === 'hackathon' ? 'active' : ''} 
+          onClick={() => setActiveTab('hackathon')}
+        >
+          🚀 Hackathon
+        </button>
       </div>
 
       {activeTab === 'courses' && (
@@ -1498,6 +1506,12 @@ function AdminPanel() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'hackathon' && (
+        <div className="admin-section hackathon-section">
+          <HackathonAdmin />
         </div>
       )}
     </div>

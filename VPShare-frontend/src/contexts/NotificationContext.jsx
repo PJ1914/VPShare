@@ -173,7 +173,9 @@ export const NotificationProvider = ({ children }) => {
     });
   }, [showNotification]);
 
-  const showLoginPrompt = useCallback(() => {
+  const showLoginPrompt = useCallback((context = 'general') => {
+    // Don't show login prompts if user is already logged in
+    // This will be checked by the component using this function
     showNotification({
       type: 'info',
       title: 'Login Required',

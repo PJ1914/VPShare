@@ -1413,7 +1413,11 @@ const RegistrationForm = () => {
             </ul>
           </div>
           <button 
-            onClick={() => window.location.href = '/login'}
+            onClick={() => {
+              // Set return path to hackathon registration
+              sessionStorage.setItem('loginReturnPath', '/hackathon#register');
+              window.location.href = '/login?returnTo=' + encodeURIComponent('/hackathon#register');
+            }}
             style={{
               background: 'white',
               color: '#ee5a52',

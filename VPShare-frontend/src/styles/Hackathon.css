@@ -27,7 +27,48 @@
   padding: 0 2rem;
 }
 
-.nav-logo h2 {
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.home-icon-btn {
+  background: none;
+  border: none;
+  color: #00d4ff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-icon-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  transform: scale(1.1);
+  color: #ffffff;
+}
+
+.home-icon-btn:active {
+  transform: scale(0.95);
+}
+
+.home-icon-btn svg {
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-text h2 {
   margin: 0;
   font-size: 1.5rem;
   background: linear-gradient(45deg, #00d4ff, #5865f2);
@@ -36,7 +77,7 @@
   -webkit-text-fill-color: transparent;
 }
 
-.nav-logo span {
+.logo-text span {
   font-size: 0.8rem;
   color: #ccc;
   display: block;
@@ -3610,12 +3651,16 @@
     gap: 0.8rem;
   }
   
-  .nav-logo h2 {
+  .logo-text h2 {
     font-size: 1.2rem;
   }
   
-  .nav-logo span {
+  .logo-text span {
     font-size: 0.7rem;
+  }
+  
+  .home-icon-btn svg {
+    font-size: 1.3rem;
   }
   
   .nav-links {
@@ -3802,12 +3847,20 @@
     gap: 0.5rem;
   }
   
-  .nav-logo h2 {
+  .logo-text h2 {
     font-size: 1.1rem;
   }
   
-  .nav-logo span {
+  .logo-text span {
     font-size: 0.65rem;
+  }
+  
+  .home-icon-btn {
+    padding: 0.4rem;
+  }
+  
+  .home-icon-btn svg {
+    font-size: 1.2rem;
   }
   
   .nav-links {

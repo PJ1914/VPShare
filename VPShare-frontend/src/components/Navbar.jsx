@@ -77,15 +77,34 @@ const navItemVariants = {
   }
 };
 
-// Helper component for the dropdown menu
-const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, onClose }) => (
-  <motion.div
-    className="dropdown-menu"
-    variants={dropdownVariants}
-    initial="hidden"
-    animate="visible"
-    exit="hidden"
-  >
+// Helper component for the dropdown menu with improved link handling
+const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, onClose }) => {
+  const navigate = useNavigate();
+  
+  const handleLinkClick = (path, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('Profile dropdown link clicked:', path);
+    
+    // Close the dropdown first
+    onClose();
+    
+    // Navigate after a small delay to ensure dropdown closes
+    setTimeout(() => {
+      navigate(path);
+    }, 100);
+  };
+
+  return (
+    <motion.div
+      className="dropdown-menu"
+      variants={dropdownVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      onClick={(e) => e.stopPropagation()} // Prevent event bubbling
+    >
     {/* Header */}
     <div className="dropdown-header">
       <img
@@ -103,39 +122,74 @@ const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, o
 
     {/* Main Links */}
     <div className="dropdown-section">
-      <Link to="/profile" className="dropdown-item" onClick={onClose}>
+      <a 
+        href="/profile" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/profile', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <PersonIcon />
         <span>Profile Settings</span>
-      </Link>
-      <Link to="/assignments" className="dropdown-item" onClick={onClose}>
+      </a>
+      <a 
+        href="/assignments" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/assignments', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <AssignmentIcon />
         <span>Assignments</span>
-      </Link>
-      <Link to="/projects" className="dropdown-item" onClick={onClose}>
+      </a>
+      <a 
+        href="/projects" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/projects', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <FolderIcon />
         <span>Projects</span>
-      </Link>
-      <Link to="/quizzes" className="dropdown-item" onClick={onClose}>
+      </a>
+      <a 
+        href="/quizzes" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/quizzes', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <QuizIcon />
         <span>Quizzes</span>
-      </Link>
+      </a>
     </div>
     <div className="dropdown-divider"></div>
 
     {/* Tools */}
     <div className="dropdown-section">
-      <Link to="/resume-builder" className="dropdown-item" onClick={onClose}>
+      <a 
+        href="/resume-builder" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/resume-builder', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <AssignmentIndIcon />
         <span>Resume Builder</span>
-      </Link>
-      <Link to="/ats-checker" className="dropdown-item" onClick={onClose}>
+      </a>
+      <a 
+        href="/ats-checker" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/ats-checker', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <FindInPageIcon />
         <span>ATS Checker</span>
-      </Link>
-      <Link to="/github" className="dropdown-item" onClick={onClose}>
+      </a>
+      <a 
+        href="/github" 
+        className="dropdown-item" 
+        onClick={(e) => handleLinkClick('/github', e)}
+        style={{ cursor: 'pointer' }}
+      >
         <GitHubIcon />
         <span>GitHub Integration</span>
-      </Link>
+      </a>
     </div>
     <div className="dropdown-divider"></div>
 
@@ -148,10 +202,15 @@ const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, o
           {plan && <span className="plan-badge">{plan.toUpperCase()}</span>}
         </div>
       ) : (
-        <Link to="/payment/monthly" className="upgrade-btn" onClick={onClose}>
+        <a 
+          href="/payment/monthly" 
+          className="upgrade-btn" 
+          onClick={(e) => handleLinkClick('/payment/monthly', e)}
+          style={{ cursor: 'pointer' }}
+        >
           <WorkspacePremiumIcon />
           <span>Upgrade to Premium</span>
-        </Link>
+        </a>
       )}
     </div>
 
@@ -159,10 +218,15 @@ const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, o
     {isAdmin && (
       <>
         <div className="dropdown-divider"></div>
-        <Link to="/admin" className="dropdown-item admin" onClick={onClose}>
+        <a 
+          href="/admin" 
+          className="dropdown-item admin" 
+          onClick={(e) => handleLinkClick('/admin', e)}
+          style={{ cursor: 'pointer' }}
+        >
           <AdminPanelSettingsIcon />
           <span>Admin Panel</span>
-        </Link>
+        </a>
       </>
     )}
     
@@ -172,7 +236,8 @@ const ProfileDropdownMenu = ({ user, isAdmin, hasSubscription, plan, onLogout, o
       <span>Sign Out</span>
     </button>
   </motion.div>
-);
+  );
+};
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -181,6 +246,8 @@ function Navbar() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [profilePicture, setProfilePicture] = useState('/default-avatar.jpg');
+  const [isToggling, setIsToggling] = useState(false); // Prevent double clicks
+  const [isProfileToggling, setIsProfileToggling] = useState(false); // Prevent profile double clicks
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -234,29 +301,49 @@ function Navbar() {
 
     return () => unsubscribe();
   }, []);
-  // Enhanced click outside handler
+  // Enhanced click outside handler with better event management
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Handle profile dropdown - be more careful about profile trigger and dropdown links
       if (
         isProfileDropdownOpen &&
         profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target)
       ) {
-        setIsProfileDropdownOpen(false);
+        // Check if it's a profile trigger button click
+        const isProfileTrigger = event.target.closest('.profile-trigger') || 
+                                event.target.closest('.mobile-profile-trigger');
+        // Check if it's a dropdown link click
+        const isDropdownLink = event.target.closest('.dropdown-item');
+        
+        if (!isProfileTrigger && !isDropdownLink) {
+          console.log('Closing profile dropdown due to outside click');
+          setIsProfileDropdownOpen(false);
+        }
       }
       
+      // Handle mobile menu - be more careful about the hamburger button
       if (
         isMobileMenuOpen &&
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target) &&
-        !hamburgerRef.current?.contains(event.target)
+        hamburgerRef.current &&
+        !hamburgerRef.current.contains(event.target)
       ) {
+        console.log('Closing mobile menu due to outside click');
         setIsMobileMenuOpen(false);
       }
     };
     
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // Use a slight delay to avoid conflicts with button clicks
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [isProfileDropdownOpen, isMobileMenuOpen]);
 
   // Keyboard navigation
@@ -272,18 +359,58 @@ function Navbar() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Prevent rapid clicking
+    if (isToggling) {
+      console.log('Toggle blocked - already toggling');
+      return;
+    }
+    
+    setIsToggling(true);
     console.log('Toggle mobile menu clicked, current state:', isMobileMenuOpen);
+    
     const newState = !isMobileMenuOpen;
     setIsMobileMenuOpen(newState);
     setIsProfileDropdownOpen(false);
     console.log('New mobile menu state:', newState);
+    
+    // Add haptic feedback
     if (navigator.vibrate) navigator.vibrate(50);
+    
+    // Reset toggle flag after a short delay
+    setTimeout(() => {
+      setIsToggling(false);
+    }, 300);
   };
 
-  const toggleProfileDropdown = () => {
+  const toggleProfileDropdown = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Prevent rapid clicking
+    if (isProfileToggling) {
+      console.log('Profile toggle blocked - already toggling');
+      return;
+    }
+    
+    setIsProfileToggling(true);
+    console.log('Toggle profile dropdown clicked, current state:', isProfileDropdownOpen);
+    
     setIsProfileDropdownOpen(prev => !prev);
+    console.log('New profile dropdown state:', !isProfileDropdownOpen);
+    
+    // Add haptic feedback
     if (navigator.vibrate) navigator.vibrate(50);
+    
+    // Reset toggle flag after a short delay
+    setTimeout(() => {
+      setIsProfileToggling(false);
+    }, 300);
   };
 
   const handleLogout = async () => {
@@ -306,14 +433,16 @@ function Navbar() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="navbar-container">
-        {/* Mobile Menu Button - Left Side - FORCE VISIBLE */}
+        {/* Mobile Menu Button - Left Side - IMPROVED EVENT HANDLING */}
         <motion.button
           className="vp-navbar-grid-menu-btn"
           onClick={toggleMobileMenu}
+          onMouseDown={(e) => e.preventDefault()} // Prevent double-click issues
           ref={hamburgerRef}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Toggle mobile menu"
+          aria-expanded={isMobileMenuOpen}
           style={{
             display: 'flex !important',
             alignItems: 'center',
@@ -331,7 +460,8 @@ function Navbar() {
             transition: 'all 0.2s ease',
             zIndex: 1001,
             visibility: 'visible !important',
-            opacity: '1 !important'
+            opacity: '1 !important',
+            userSelect: 'none'
           }}
         >
           <motion.div
@@ -425,8 +555,16 @@ function Navbar() {
                   <motion.button
                     className="profile-trigger"
                     onClick={toggleProfileDropdown}
+                    onMouseDown={(e) => e.preventDefault()} // Prevent double-click issues
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    aria-label="Toggle profile menu"
+                    aria-expanded={isProfileDropdownOpen}
+                    style={{
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      touchAction: 'manipulation'
+                    }}
                   >
                     <img
                       src={profilePicture}
@@ -476,8 +614,16 @@ function Navbar() {
                 <motion.button
                   className="mobile-profile-trigger"
                   onClick={toggleProfileDropdown}
+                  onMouseDown={(e) => e.preventDefault()} // Prevent double-click issues
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  aria-label="Toggle profile menu"
+                  aria-expanded={isProfileDropdownOpen}
+                  style={{
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    touchAction: 'manipulation'
+                  }}
                 >
                   <img
                     src={profilePicture}
@@ -513,12 +659,12 @@ function Navbar() {
         {/* Mobile Menu Button - Remove from here */}
       </div>
 
-        {/* Mobile Navigation - MODERN BEAUTIFUL DESIGN - MOBILE ONLY */}
+        {/* Mobile Navigation - RESPONSIVE DESIGN FOR ALL SCREEN SIZES */}
         {isMobileMenuOpen && (
           <>
-            {console.log('Mobile menu is rendering with beautiful design')}
+            {console.log('Mobile menu is rendering with responsive design')}
             
-            {/* Mobile Grid Menu - FULL SCREEN OVERLAY - MOBILE ONLY */}
+            {/* Mobile Grid Menu - ADAPTIVE OVERLAY */}
             <div
               ref={mobileMenuRef}
               className="mobile-menu-overlay"
@@ -546,7 +692,7 @@ function Navbar() {
                 display: 'flex',
                 justifyContent: 'flex-end',
                 alignItems: 'center',
-                padding: '1.5rem 2rem',
+                padding: window.innerWidth > 768 ? '2rem 3rem' : '1.5rem 2rem',
                 background: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(20px)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.2)'
@@ -584,11 +730,11 @@ function Navbar() {
               {/* Header */}
               <div style={{
                 textAlign: 'center',
-                padding: '2rem',
+                padding: window.innerWidth > 768 ? '3rem 2rem' : '2rem',
                 color: 'white'
               }}>
                 <h2 style={{
-                  fontSize: '2.5rem',
+                  fontSize: window.innerWidth > 768 ? '3rem' : '2.5rem',
                   fontWeight: '700',
                   margin: 0,
                   marginBottom: '0.5rem',
@@ -601,7 +747,7 @@ function Navbar() {
                   Navigation
                 </h2>
                 <p style={{
-                  fontSize: '1.1rem',
+                  fontSize: window.innerWidth > 768 ? '1.2rem' : '1.1rem',
                   margin: 0,
                   opacity: 0.9,
                   fontWeight: '300'
@@ -610,17 +756,17 @@ function Navbar() {
                 </p>
               </div>
               
-              {/* Navigation Grid - Scrollable Content */}
+              {/* Navigation Grid - Responsive Layout */}
               <div style={{
                 flex: 1,
-                padding: '1rem 2rem 2rem 2rem',
+                padding: window.innerWidth > 768 ? '1rem 3rem 3rem 3rem' : '1rem 2rem 2rem 2rem',
                 overflowY: 'auto'
               }}>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1.5rem',
-                  maxWidth: '500px',
+                  gridTemplateColumns: window.innerWidth > 1024 ? 'repeat(4, 1fr)' : window.innerWidth > 768 ? 'repeat(3, 1fr)' : '1fr 1fr',
+                  gap: window.innerWidth > 768 ? '2rem' : '1.5rem',
+                  maxWidth: window.innerWidth > 768 ? '800px' : '500px',
                   margin: '0 auto'
                 }}>
                   {/* Home */}
@@ -635,16 +781,16 @@ function Navbar() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '2rem 1rem',
+                      padding: window.innerWidth > 768 ? '2.5rem 1.5rem' : '2rem 1rem',
                       background: 'rgba(255, 255, 255, 0.15)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '20px',
                       textDecoration: 'none',
                       color: 'white',
-                      fontSize: '1rem',
+                      fontSize: window.innerWidth > 768 ? '1.1rem' : '1rem',
                       fontWeight: '600',
-                      minHeight: '120px',
+                      minHeight: window.innerWidth > 768 ? '140px' : '120px',
                       boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                       transition: 'all 0.3s ease',
                       cursor: 'pointer'
@@ -660,7 +806,11 @@ function Navbar() {
                       e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
                     }}
                   >
-                    <HomeIcon style={{ fontSize: '2.5rem', marginBottom: '0.8rem', opacity: 0.9 }} />
+                    <HomeIcon style={{ 
+                      fontSize: window.innerWidth > 768 ? '2.8rem' : '2.5rem', 
+                      marginBottom: '0.8rem', 
+                      opacity: 0.9 
+                    }} />
                     Home
                   </Link>
                   
@@ -676,16 +826,16 @@ function Navbar() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      padding: '2rem 1rem',
+                      padding: window.innerWidth > 768 ? '2.5rem 1.5rem' : '2rem 1rem',
                       background: 'rgba(255, 255, 255, 0.15)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
                       borderRadius: '20px',
                       textDecoration: 'none',
                       color: 'white',
-                      fontSize: '1rem',
+                      fontSize: window.innerWidth > 768 ? '1.1rem' : '1rem',
                       fontWeight: '600',
-                      minHeight: '120px',
+                      minHeight: window.innerWidth > 768 ? '140px' : '120px',
                       boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                       transition: 'all 0.3s ease'
                     }}
@@ -700,7 +850,11 @@ function Navbar() {
                       e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
                     }}
                   >
-                    <DashboardIcon style={{ fontSize: '2.5rem', marginBottom: '0.8rem', opacity: 0.9 }} />
+                    <DashboardIcon style={{ 
+                      fontSize: window.innerWidth > 768 ? '2.8rem' : '2.5rem', 
+                      marginBottom: '0.8rem', 
+                      opacity: 0.9 
+                    }} />
                     Dashboard
                   </Link>
                   

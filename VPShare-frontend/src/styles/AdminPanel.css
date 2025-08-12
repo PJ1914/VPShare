@@ -1064,3 +1064,31 @@ button:disabled {
     opacity: 1;
   }
 }
+
+/* Hackathon Section Styles */
+.hackathon-section {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.admin-tabs button:nth-child(4) {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  font-weight: 600;
+}
+
+.admin-tabs button:nth-child(4):hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.admin-tabs button:nth-child(4).active {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.4);
+}

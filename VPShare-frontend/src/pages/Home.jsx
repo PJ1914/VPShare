@@ -7,6 +7,7 @@ import HeroCarousel from '../components/HeroCarousel';
 import SEO from '../components/SEO';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
 import CodeIcon from '@mui/icons-material/Code';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import SchoolIcon from '@mui/icons-material/School';
@@ -30,6 +31,9 @@ const hoverVariants = {
 function Home() {
   // Get subscription context
   const { hasSubscription, plan, expiresAt, loading: subscriptionLoading } = useSubscription();
+  
+  // Get auth context
+  const { user, loading: authLoading } = useAuth();
   
   // Get notification context
   const { showHackathonNotification, showLoginPrompt } = useNotification();
@@ -60,7 +64,8 @@ function Home() {
 
   // Show login prompt for unauthenticated users after some time
   useEffect(() => {
-    if (!hasSubscription && !subscriptionLoading) {
+    // Only show login prompt if user is not authenticated and doesn't have subscription
+    if (!user && !authLoading && !hasSubscription && !subscriptionLoading) {
       const timer = setTimeout(() => {
         const lastLoginPrompt = localStorage.getItem('last-login-prompt');
         const now = Date.now();
@@ -74,7 +79,7 @@ function Home() {
 
       return () => clearTimeout(timer);
     }
-  }, [hasSubscription, subscriptionLoading, showLoginPrompt]);
+  }, [user, authLoading, hasSubscription, subscriptionLoading, showLoginPrompt]);
 
   // Define plan hierarchy for upgrade suggestions
   const planHierarchy = {

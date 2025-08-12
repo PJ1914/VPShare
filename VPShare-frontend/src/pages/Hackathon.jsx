@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import HomeIcon from '@mui/icons-material/Home';
 import HackathonHero from '../components/hackathon/HackathonHero';
 import RegistrationForm from '../components/hackathon/RegistrationForm';
 import Timeline from '../components/hackathon/Timeline';
@@ -17,6 +19,7 @@ import '../styles/MobileUtils.css';
 import '../styles/MobileLoadingSpinner.css';
 
 const Hackathon = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('about');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,6 +157,11 @@ const Hackathon = () => {
     }
   };
 
+  // Handle home navigation
+  const handleHomeNavigation = () => {
+    navigate('/');
+  };
+
   // Toggle mobile sidebar
   const toggleMobileSidebar = () => {
     setMobileSidebarOpen(!mobileSidebarOpen);
@@ -216,8 +224,18 @@ const Hackathon = () => {
       <nav className="hackathon-nav">
         <div className="nav-container">
           <div className="nav-logo">
-            <h2>CognitiveX</h2>
-            <span>GenAI Hackathon</span>
+            <button 
+              className="home-icon-btn"
+              onClick={handleHomeNavigation}
+              aria-label="Navigate to home page"
+              title="Go to Home"
+            >
+              <HomeIcon />
+            </button>
+            <div className="logo-text">
+              <h2>CognitiveX</h2>
+              <span>GenAI Hackathon</span>
+            </div>
           </div>
           {/* Desktop Navigation - Hidden on Mobile */}
           {!isMobile && !isTablet && (

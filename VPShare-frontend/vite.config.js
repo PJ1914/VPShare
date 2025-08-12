@@ -28,8 +28,13 @@ export default defineConfig({
   // Ensure XML files are served with correct MIME type
   server: {
     port: 5173,
+    host: true,
     mimeTypes: {
       'application/xml': ['xml']
+    },
+    // Ensure service worker is served with correct headers in dev
+    headers: {
+      'Service-Worker-Allowed': '/'
     }
   },
 
@@ -40,55 +45,38 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Node modules should be chunked together to avoid circular deps
+          // Vendor libraries optimization (improves caching)
           if (id.includes('node_modules')) {
-            // Keep React ecosystem together
+            // React ecosystem
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor';
             }
-            // Keep all UI libraries together to prevent circular dependencies
-            if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
-              return 'vendor';
-            }
-            // Firebase
+            // Firebase libraries  
             if (id.includes('firebase')) {
               return 'firebase';
+            }
+            // UI libraries
+            if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
+              return 'ui-libs';
             }
             // Everything else from node_modules
             return 'vendor';
           }
         },
-        // More aggressive cache busting with unique build ID
+        // Enhanced chunk naming for better performance
         entryFileNames: `assets/index-${buildId}-[hash].js`,
         chunkFileNames: `assets/[name]-${buildId}-[hash].js`,
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
-    // Ensure public assets are copied (including sw.js)
+    // Performance optimizations without affecting styling
     copyPublicDir: true,
-    // Ensure proper asset handling
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'terser',
-    // Output to dist directory (matches vercel.json)
     outDir: 'dist',
-    // Increase chunk size warning limit for large apps
     chunkSizeWarningLimit: 2000,
-    // Target modern browsers that support ES modules
     target: 'es2015'
-  },
-
-  // Development server configuration
-  server: {
-    port: 5173,
-    host: true,
-    mimeTypes: {
-      'application/xml': ['xml']
-    },
-    // Ensure service worker is served with correct headers in dev
-    headers: {
-      'Service-Worker-Allowed': '/'
-    }
   },
 
   // Preview server configuration (for production build testing)

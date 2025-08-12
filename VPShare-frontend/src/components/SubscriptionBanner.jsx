@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import StarIcon from '@mui/icons-material/Star';
+import CloseIcon from '@mui/icons-material/Close';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import '../styles/SubscriptionBanner.css';
 
@@ -32,14 +33,22 @@ function SubscriptionBanner() {
   if (!visible || hasSubscription) return null;
   return (
     <div className="subscription-banner">
-      <span className="banner-icon"><StarIcon /></span>
+      <span className="banner-icon">
+        <StarIcon />
+      </span>
       <span className="banner-message">
-        🔓 Unlock full access to all course modules and premium features!
+        � Unlock premium features and accelerate your learning journey!
       </span>
       <Link to="/payment/monthly" className="banner-subscribe-btn">
-        Subscribe
+        Upgrade Now
       </Link>
-      <button className="banner-close-btn" onClick={handleClose} aria-label="Close subscription reminder">×</button>
+      <button 
+        className="banner-close-btn" 
+        onClick={handleClose} 
+        aria-label="Close subscription reminder"
+      >
+        <CloseIcon />
+      </button>
     </div>
   );
 }
