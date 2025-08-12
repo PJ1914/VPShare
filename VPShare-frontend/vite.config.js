@@ -9,20 +9,7 @@ const buildId = `NUCLEAR-${Date.now()}-${deploymentId}`
 export default defineConfig({
   plugins: [
     react(),
-    // Custom plugin to inject build timestamp into service worker
-    {
-      name: 'sw-cache-busting',
-      generateBundle(options, bundle) {
-        // Update service worker with new cache version
-        if (bundle['sw.js']) {
-          const swContent = bundle['sw.js'].source;
-          bundle['sw.js'].source = swContent.replace(
-            /const CACHE_VERSION = 'v' \+ Date\.now\(\);/,
-            `const CACHE_VERSION = 'v${Date.now()}';`
-          );
-        }
-      }
-    }
+  // Keep plugins minimal while debugging chunking issues
   ],
   
   // Ensure React is properly resolved
@@ -70,9 +57,9 @@ export default defineConfig({
             if (id.includes('firebase')) {
               return 'firebase';
             }
-            // UI libraries (but ensure React is loaded first)
+            // UI libraries - co-locate with React to avoid runtime import issues
             if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
-              return 'ui-libs';
+              return 'react-vendor';
             }
             // Everything else from node_modules
             return 'vendor';
@@ -95,7 +82,19 @@ export default defineConfig({
     minify: 'terser',
     outDir: 'dist',
     chunkSizeWarningLimit: 2000,
-    target: 'es2015'
+    target: 'es2020'
+  },
+
+  // Pre-bundle deps to ensure stable module graph
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion'
+    ]
   },
 
   // Preview server configuration (for production build testing)
