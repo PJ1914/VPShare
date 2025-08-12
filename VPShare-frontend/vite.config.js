@@ -25,6 +25,14 @@ export default defineConfig({
     }
   ],
   
+  // Ensure React is properly resolved
+  resolve: {
+    alias: {
+      'react': 'react',
+      'react-dom': 'react-dom'
+    }
+  },
+
   // Ensure XML files are served with correct MIME type
   server: {
     port: 5173,
@@ -43,24 +51,35 @@ export default defineConfig({
   
   build: {
     rollupOptions: {
+      external: [],
       output: {
+        // Ensure proper order of chunk loading
+        inlineDynamicImports: false,
         manualChunks(id) {
           // Vendor libraries optimization (improves caching)
           if (id.includes('node_modules')) {
-            // React ecosystem
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor';
+            // React ecosystem - keep React core together
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            // React router in separate chunk
+            if (id.includes('react-router')) {
+              return 'react-router';
             }
             // Firebase libraries  
             if (id.includes('firebase')) {
               return 'firebase';
             }
-            // UI libraries
+            // UI libraries (but ensure React is loaded first)
             if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
               return 'ui-libs';
             }
             // Everything else from node_modules
             return 'vendor';
+          }
+          // Keep all context files with the main app chunk to ensure React is available
+          if (id.includes('/contexts/') || id.includes('\\contexts\\')) {
+            return undefined; // Let Vite handle this automatically
           }
         },
         // Enhanced chunk naming for better performance
