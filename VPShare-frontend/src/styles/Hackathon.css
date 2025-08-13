@@ -2367,6 +2367,9 @@
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
   padding-right: 2.5rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .form-row {
@@ -2638,11 +2641,16 @@
   box-shadow: 0 0 20px rgba(33, 150, 243, 0.3);
 }
 
+.size-btn.active .price {
+  color: #ffffff;
+}
+
 .size-btn .price {
   display: block;
   font-weight: bold;
   margin-top: 0.25rem;
-  color: #4CAF50;
+  color: #2196F3;
+  font-size: 1.1rem;
 }
 
 .team-members {
@@ -2803,15 +2811,22 @@
 }
 
 .terms-acceptance {
-  background: rgba(33, 150, 243, 0.1);
-  border: 1px solid rgba(33, 150, 243, 0.3);
+  background: rgba(33, 150, 243, 0.05);
+  border: 2px solid rgba(33, 150, 243, 0.2);
   border-radius: 12px;
   padding: 1.5rem;
   margin-top: 2rem;
 }
 
+.terms-acceptance .terms-header {
+  color: #2196F3;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
 .terms-acceptance p {
-  color: white;
+  color: #2c3e50;
   margin-bottom: 1rem;
   font-weight: 500;
 }
@@ -2823,7 +2838,7 @@
 }
 
 .terms-acceptance li {
-  color: rgba(255, 255, 255, 0.9);
+  color: #34495e;
   padding: 0.25rem 0;
   position: relative;
   padding-left: 1.5rem;
@@ -2833,7 +2848,7 @@
   content: "✓";
   position: absolute;
   left: 0;
-  color: #4CAF50;
+  color: #27ae60;
   font-weight: bold;
 }
 
@@ -3228,12 +3243,13 @@
 
 .terms-header {
   font-size: 1.1rem;
-  color: #856404;
+  color: #2196F3;
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .terms-content {
-  color: #856404;
+  color: #2c3e50;
 }
 
 .terms-content ul {
@@ -4337,4 +4353,42 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Custom Restore Modal Styles */
+.modal-overlay {
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Auto-save status styles */
+.auto-save-status {
+  transition: opacity 0.3s ease;
+}
+
+.auto-save-status:hover {
+  opacity: 1 !important;
 }

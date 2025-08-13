@@ -635,11 +635,13 @@ function Payment() {
         }}
       >
         {loading ? (
-          <span className="loading-spinner">
-            <AccessTimeIcon />
-            {loading === 'creating-order' ? 'Creating Order...' : 
-             loading === 'processing-payment' ? 'Processing Payment...' : 
-             'Processing Payment...'}
+          <span className="loading-state">
+            <div className="payment-loader">
+              <div className="loader-dot"></div>
+              <div className="loader-dot"></div>
+              <div className="loader-dot"></div>
+            </div>
+            Processing...
           </span>
         ) : (
           <span className="pay-button-content">

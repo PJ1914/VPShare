@@ -29,7 +29,10 @@ const ExperienceSection = ({ data, updateData, onAIOptimize }) => {
     current: false
   });
 
-  const experiences = data.experiences || [];
+  const experiences = (data && data.experiences) ? data.experiences : [];
+  
+  console.log('ExperienceSection - data:', data); // Debug log
+  console.log('ExperienceSection - experiences:', experiences); // Debug log
 
   const handleAddExperience = () => {
     const updatedExperiences = [...experiences, { ...newExperience, id: Date.now() }];

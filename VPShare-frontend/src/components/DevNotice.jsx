@@ -1,52 +1,28 @@
 import React from 'react';
-import { config } from '../config/environment';
+import { Alert, Box, IconButton, Collapse } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
-const DevNotice = ({ show, onDismiss, message }) => {
-  // Only show in development mode
-  if (!config.isDevelopment || !show) return null;
-
+const DevNotice = ({ show, onDismiss, message, severity = 'info' }) => {
   return (
-    <div style={{
-      position: 'fixed',
-      top: '10px',
-      right: '10px',
-      backgroundColor: '#fff3cd',
-      border: '1px solid #ffeaa7',
-      borderRadius: '8px',
-      padding: '12px 16px',
-      maxWidth: '300px',
-      zIndex: 1000,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      fontSize: '14px'
-    }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start',
-        gap: '8px'
-      }}>
-        <div>
-          <strong style={{ color: '#856404' }}>Development Mode</strong>
-          <p style={{ margin: '4px 0 0 0', color: '#856404' }}>
-            {message || 'Some APIs are not available. Using local fallback data.'}
-          </p>
-        </div>
-        <button
-          onClick={onDismiss}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '16px',
-            cursor: 'pointer',
-            color: '#856404',
-            padding: '0',
-            lineHeight: '1'
-          }}
+    <Collapse in={show}>
+      <Box sx={{ mb: 2 }}>
+        <Alert 
+          severity={severity}
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={onDismiss}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
         >
-          ×
-        </button>
-      </div>
-    </div>
+          {message || 'Development notice: Some features may be temporarily unavailable.'}
+        </Alert>
+      </Box>
+    </Collapse>
   );
 };
 

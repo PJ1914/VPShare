@@ -27,7 +27,7 @@ export const optimizeImports = {
 
 // Bundle analyzer configuration (for development only)
 export const bundleAnalysis = {
-  enabled: process.env.NODE_ENV === 'development',
+  enabled: import.meta.env.VITE_NODE_ENV === 'development' || import.meta.env.DEV,
   reportPath: './bundle-analysis.html'
 };
 

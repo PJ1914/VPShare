@@ -21,12 +21,20 @@ export const generateAiResume = async (formData) => {
   };
 
   // Use environment variable for API endpoint with fallback
-  const API_ENDPOINT = process.env.REACT_APP_RESUME_API_URL || 'http://127.0.0.1:8000/resume/generate';
+  const API_ENDPOINT = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/resume/generate';
+
+  // Get auth token from localStorage
+  const token = localStorage.getItem('authToken');
+  
+  if (!token) {
+    throw new Error('Authentication required. Please log in to use AI features.');
+  }
 
   try {
     const response = await axios.post(API_ENDPOINT, payload, {
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       timeout: 30000, // 30 second timeout
     });
@@ -42,6 +50,11 @@ export const generateAiResume = async (formData) => {
     
     if (error.response) {
       // Server responded with error status
+      if (error.response.status === 401) {
+        // Authentication failed
+        localStorage.removeItem('authToken'); // Clear invalid token
+        throw new Error('Authentication failed. Please log in again.');
+      }
       const errorMessage = error.response.data?.detail || error.response.data?.message || 'Server error occurred';
       throw new Error(errorMessage);
     } else if (error.request) {

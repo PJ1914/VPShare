@@ -5,6 +5,9 @@ const CACHE_NAME = `vpshare-main-${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `vpshare-static-${CACHE_VERSION}`;
 const API_CACHE_NAME = `vpshare-api-${CACHE_VERSION}`;
 
+// Detect development mode
+const isDevelopment = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
 // Assets that should be cached
 const STATIC_ASSETS = [
   '/',
@@ -120,11 +123,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip cross-origin requests except known CDNs
+  // Skip cross-origin requests except known CDNs and payment gateways
   if (url.origin !== location.origin && 
       !url.host.includes('cdn') && 
       !url.host.includes('vercel') &&
-      !url.host.includes('checkout.razorpay.com')) {
+      !url.host.includes('checkout.razorpay.com') &&
+      !url.host.includes('razorpay.com')) {
+    return;
+  }
+
+  // Skip Razorpay scripts entirely - let them load directly
+  if (url.host.includes('razorpay.com') || url.pathname.includes('checkout.js')) {
     return;
   }
 
@@ -135,6 +144,12 @@ self.addEventListener('fetch', (event) => {
       url.pathname.endsWith('.js') || 
       url.pathname.endsWith('.mjs') || 
       url.pathname.endsWith('.jsx')) {
+    
+    // In development, skip caching for JSX files to avoid MIME type issues
+    if (isDevelopment && url.pathname.endsWith('.jsx')) {
+      event.respondWith(fetch(request));
+      return;
+    }
     
     event.respondWith(
       fetch(request)

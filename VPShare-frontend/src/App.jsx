@@ -22,7 +22,7 @@ import TermsConditions from './pages/TermsConditions';
 import RefundPolicy from './pages/RefundPolicy';
 import ShippingPolicy from './pages/ShippingPolicy';
 import AdminPanel from './pages/AdminPanel';
-import ResumeBuilder from './pages/ResumeBuilder';
+import ResumeBuilderEnhanced from './pages/ResumeBuilderEnhanced';
 import ATSChecker from './pages/ATSChecker';
 import Hackathon from './pages/Hackathon';
 import CacheDebugPanel from './components/CacheDebugPanel';
@@ -95,7 +95,7 @@ function App() {
           path="/resume-builder"
           element={
             <PrivateRoute>
-              <ResumeBuilder />
+              <ResumeBuilderEnhanced />
             </PrivateRoute>
           }
         />

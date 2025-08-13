@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '../../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import axios from 'axios';
-import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, formatPrice, loadRazorpayScript, getHackathonPlanMapping, getBackendTeamSize } from '../../services/hackathonService';
+import hackathonService, { initiateRazorpayPayment, validateRegistrationData, getTeamPrice, getTeamPriceInPaise, formatPrice, loadRazorpayScript, getHackathonPlanMapping, getBackendTeamSize } from '../../services/hackathonService';
 import { config, logger } from '../../config/environment';
 import DevNotice from '../DevNotice';
+import '../../styles/Hackathon.css';
 
 // Helper function for ordinal numbers
 const getOrdinalSuffix = (num) => {
@@ -29,6 +30,10 @@ const RegistrationForm = () => {
   const [firebaseStatus, setFirebaseStatus] = useState('checking');
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [pendingRestoreData, setPendingRestoreData] = useState(null);
   
   // Development mode check
   const isDevelopment = config.isDevelopment;
@@ -173,6 +178,132 @@ const RegistrationForm = () => {
     'Advanced (3+ years)',
     'Expert (5+ years)'
   ];
+
+  // Auto-save functionality
+  const saveFormDataToFirestore = useCallback(async (dataToSave, currentStep) => {
+    if (!user || !user.uid) return;
+    
+    try {
+      setIsAutoSaving(true);
+      const db = getFirestore();
+      const draftDoc = doc(db, 'hackathon_form_drafts', user.uid);
+      
+      await setDoc(draftDoc, {
+        formData: dataToSave,
+        currentStep: currentStep,
+        lastSaved: serverTimestamp(),
+        lastModified: Date.now() // Client timestamp for immediate feedback
+      }, { merge: true });
+      
+      setLastSaved(new Date().toLocaleTimeString());
+      console.log('Form data auto-saved successfully');
+    } catch (error) {
+      console.error('Failed to auto-save form data:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [user]);
+
+  // Auto-restore functionality
+  const restoreFormDataFromFirestore = useCallback(async () => {
+    if (!user || !user.uid) return false;
+    
+    try {
+      const db = getFirestore();
+      const draftDoc = doc(db, 'hackathon_form_drafts', user.uid);
+      const draftSnapshot = await getDoc(draftDoc);
+      
+      if (draftSnapshot.exists()) {
+        const savedData = draftSnapshot.data();
+        const { formData: savedFormData, currentStep } = savedData;
+        
+        // Check if this is a recent draft (within last 7 days)
+        const lastModified = savedData.lastModified || 0;
+        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        
+        if (lastModified > sevenDaysAgo && !savedData.cleared) {
+          // Show custom modal instead of browser confirm
+          setPendingRestoreData({ formData: savedFormData, step: currentStep || 1 });
+          setShowRestoreModal(true);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to restore form data:', error);
+      return false;
+    }
+  }, [user]);
+
+  // Handle restore confirmation
+  const handleRestoreConfirm = useCallback(() => {
+    if (pendingRestoreData) {
+      setFormData(pendingRestoreData.formData);
+      setStep(pendingRestoreData.step);
+      console.log('Form data restored successfully');
+    }
+    setShowRestoreModal(false);
+    setPendingRestoreData(null);
+  }, [pendingRestoreData]);
+
+  // Handle restore cancellation
+  const handleRestoreCancel = useCallback(() => {
+    setShowRestoreModal(false);
+    setPendingRestoreData(null);
+  }, []);
+
+  // Clear draft after successful registration
+  const clearFormDraft = useCallback(async () => {
+    if (!user || !user.uid) return;
+    
+    try {
+      const db = getFirestore();
+      const draftDoc = doc(db, 'hackathon_form_drafts', user.uid);
+      await setDoc(draftDoc, { cleared: true, clearedAt: serverTimestamp() });
+      console.log('Form draft cleared after successful registration');
+    } catch (error) {
+      console.error('Failed to clear form draft:', error);
+    }
+  }, [user]);
+
+  // Auto-restore on user authentication
+  useEffect(() => {
+    if (user && !authLoading) {
+      restoreFormDataFromFirestore();
+    }
+  }, [user, authLoading, restoreFormDataFromFirestore]);
+
+  // Auto-save when form data changes (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (user && formData.personal_info.full_name) { // Only save if there's actual data
+        saveFormDataToFirestore(formData, step);
+      }
+    }, 2000); // Save 2 seconds after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [formData, step, user, saveFormDataToFirestore]);
+
+  // Auto-save when step changes
+  useEffect(() => {
+    if (user && step > 1) {
+      saveFormDataToFirestore(formData, step);
+    }
+  }, [step, formData, user, saveFormDataToFirestore]);
+
+  // Warn user before leaving if they have unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (user && formData.personal_info.full_name && !success) {
+        e.preventDefault();
+        e.returnValue = 'Your registration progress will be automatically saved, but you may lose any unsaved changes. Are you sure you want to leave?';
+        return 'Your registration progress will be automatically saved, but you may lose any unsaved changes. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [user, formData.personal_info.full_name, success]);
 
   const handleInputChange = (e, section = null) => {
     const { name, value, type, checked } = e.target;
@@ -360,35 +491,27 @@ const RegistrationForm = () => {
     setLoading(true);
     
     try {
-      // Step 1: First register the participant with the backend
-      const registrationResult = await hackathonService.register(formData);
-      
-      if (!registrationResult.success) {
-        throw new Error(registrationResult.message || 'Registration failed');
-      }
-      
-      const { registration_id, team_size } = registrationResult.data;
-      setRegistrationId(registration_id);
-      
       // Get user token for payment
       const token = await user.getIdToken();
       
       // Calculate amount using backend-compatible pricing
-      const teamSize = team_size;
+      const teamSize = formData.team_info.team_size;
       const backendTeamSize = getBackendTeamSize(teamSize); // Backend only supports 1 and 3
       const baseAmount = getTeamPrice(teamSize);
-      const amount = baseAmount * 19900; // Convert to paise for Razorpay order creation
-      const amountInPaise = baseAmount * 19900; // Lambda expects amount in paise for verification
+      const amountInPaise = getTeamPriceInPaise(teamSize); // Get exact amount in paise (19900 or 54900)
+      const amount = amountInPaise; // Use the paise amount directly
       
-      // Use hackathon payment format that the Lambda expects
+      // Step 1: Create payment order using user email as temporary identifier
+      const tempRegistrationId = `temp_${user.uid}_${Date.now()}`;
+      
       const orderPayload = { 
         payment_type: 'hackathon',
-        registration_id: registration_id,
+        registration_id: tempRegistrationId, // Use temporary ID for payment order
         team_size: backendTeamSize, // Use backend-compatible team size
         amount: amount
       };
       
-      // Use axios exactly like Payment.jsx does
+      // Create payment order
       const orderResponse = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/create-order`,
         orderPayload,
@@ -427,10 +550,46 @@ const RegistrationForm = () => {
         },
         handler: async function (response) {
           try {
-            // Get a fresh token for payment verification (in case Razorpay modal took time)
+            // Payment successful, now register the user
+            console.log('Payment successful, proceeding with registration...');
+            
+            // Register the participant with the backend
+            const registrationData = {
+              personal_info: formData.personal_info,
+              academic_info: formData.academic_info,
+              team_info: {
+                ...formData.team_info,
+                team_size: backendTeamSize
+              },
+              experience_info: formData.experience_info,
+              contact_info: formData.contact_info,
+              user_id: user.uid,
+              payment_info: {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: amount,
+                temp_registration_id: tempRegistrationId
+              }
+            };
+
+            const registrationResult = await hackathonService.register(registrationData);
+            
+            if (!registrationResult.success) {
+              if (registrationResult.statusCode === 409 || 
+                  (registrationResult.message && registrationResult.message.includes('already registered'))) {
+                throw new Error('You have already registered for this hackathon. Please contact support for assistance.');
+              }
+              throw new Error(registrationResult.message || 'Registration failed after payment');
+            }
+            
+            const { registration_id } = registrationResult.data;
+            setRegistrationId(registration_id);
+            
+            // Get a fresh token for payment verification
             const freshToken = await user.getIdToken();
             
-            // Verify payment using hackathon format
+            // Verify payment with the actual registration_id
             const verifyResponse = await axios.post(
               `${import.meta.env.VITE_API_BASE_URL}/verify-payment`,
               {
@@ -439,28 +598,25 @@ const RegistrationForm = () => {
                 razorpay_signature: response.razorpay_signature,
                 payment_type: 'hackathon',
                 registration_id: registration_id,
-                team_size: backendTeamSize, // Use backend-compatible team size
-                amount: amountInPaise, // Send amount in paise for Lambda validation
+                team_size: backendTeamSize,
+                amount: amountInPaise,
                 email: formData.personal_info.email,
               },
               { 
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${freshToken}` },
-                timeout: 15000 // 15 second timeout for payment verification
+                timeout: 15000
               }
             );
 
-            // Store hackathon registration data in Firestore (like Payment.jsx does with subscription)
+            // Store registration data in Firestore
             const db = getFirestore();
-            
             const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
             await setDoc(registrationDoc, {
-              // Registration details
               personal_info: formData.personal_info,
               team_info: formData.team_info,
               technical_info: formData.technical_info,
               commitments: formData.commitments,
               additional_info: formData.additional_info,
-              // Payment details
               payment: {
                 plan: `hackathon_team_${teamSize}`,
                 status: 'active',
@@ -472,28 +628,29 @@ const RegistrationForm = () => {
                 teamSize: teamSize,
                 registrationId: registration_id
               },
-              // Metadata
               registration_date: serverTimestamp(),
               user_id: user.uid,
               status: 'active'
             }, { merge: true });
             
-            // Success - redirect to success step
+            // Clear the draft after successful registration
+            await clearFormDraft();
+            
             setPaymentStatus('success');
             setSuccess(true);
-            setStep(6); // Success step
+            setStep(6);
             
           } catch (error) {
-            console.error('Payment verification error:', error);
+            console.error('Post-payment registration error:', error);
             setPaymentStatus('failed');
-            setErrors({ payment: `Payment verification failed: ${error.response?.data?.error || error.message || 'Please contact support.'}` });
+            setErrors({ payment: `Registration failed after payment: ${error.response?.data?.error || error.message || 'Please contact support with your payment ID: ' + response.razorpay_payment_id}` });
             setLoading(false);
           }
         },
         modal: {
           ondismiss: function () {
             setPaymentStatus('cancelled');
-            setErrors({ payment: 'Payment was cancelled. Please try again.' });
+            setErrors({ payment: 'Payment was cancelled. No registration has been created. You can try again anytime.' });
             setLoading(false);
           }
         }
@@ -505,40 +662,59 @@ const RegistrationForm = () => {
     } catch (error) {
       console.error('Registration/Payment error:', error);
       
-      // In development mode, provide a fallback
-      if (isDevelopment && (error.message.includes('Order creation failed') || error.message.includes('Network Error'))) {
-        // Store registration data in Firebase without payment
+      // Handle specific HTTP errors
+      if (error.response?.status === 409) {
+        setErrors({ 
+          general: 'You have already registered for this hackathon. Please check your email for registration details.' 
+        });
+      } else if (error.response?.status === 400) {
+        setErrors({ 
+          payment: 'Payment order creation failed. No registration has been created. Please try again.' 
+        });
+      } else if (isDevelopment && (error.message.includes('Order creation failed') || error.message.includes('Network Error'))) {
+        // Development mode: Register directly without payment
         try {
-          const db = getFirestore();
+          const registrationResult = await hackathonService.register(formData);
           
-          const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
-          await setDoc(registrationDoc, {
-            personal_info: formData.personal_info,
-            team_info: formData.team_info,
-            technical_info: formData.technical_info,
-            commitments: formData.commitments,
-            additional_info: formData.additional_info,
-            payment_info: {
-              payment_id: 'dev_test_payment',
-              order_id: 'dev_test_order',
-              amount: getTeamPrice(formData.team_info.team_size) * 19900,
-              status: 'development_mode'
-            },
-            registration_date: serverTimestamp(),
-            user_id: user.uid,
-            status: 'active'
-          });
-          
-          setSuccess(true);
-          setStep(6); // Success step
-          setErrors({});
+          if (registrationResult.success) {
+            const { registration_id } = registrationResult.data;
+            setRegistrationId(registration_id);
+            
+            const db = getFirestore();
+            const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
+            await setDoc(registrationDoc, {
+              personal_info: formData.personal_info,
+              team_info: formData.team_info,
+              technical_info: formData.technical_info,
+              commitments: formData.commitments,
+              additional_info: formData.additional_info,
+              payment_info: {
+                payment_id: 'dev_test_payment',
+                order_id: 'dev_test_order',
+                amount: getTeamPriceInPaise(formData.team_info.team_size),
+                status: 'development_mode'
+              },
+              registration_date: serverTimestamp(),
+              user_id: user.uid,
+              status: 'active'
+            });
+            
+            // Clear the draft after successful registration
+            await clearFormDraft();
+            
+            setSuccess(true);
+            setStep(6); // Success step
+            setErrors({});
+          } else {
+            throw new Error(registrationResult.message);
+          }
           
         } catch (firebaseError) {
-          console.error('Firebase fallback error:', firebaseError);
-          setErrors({ general: 'Registration failed. Please try again.' });
+          console.error('Development registration error:', firebaseError);
+          setErrors({ general: 'Development registration failed. Please try again.' });
         }
       } else {
-        setErrors({ general: `Registration failed: ${error.message || 'Please try again.'}` });
+        setErrors({ general: `Payment setup failed: ${error.message || 'No registration has been created. Please try again.'}` });
       }
     } finally {
       setLoading(false);
@@ -1076,7 +1252,7 @@ const RegistrationForm = () => {
               <strong>Department:</strong> {formData.personal_info.department || 'Not provided'}
             </div>
             <div className="summary-item">
-              <strong>Year:</strong> {formData.personal_info.year ? `${formData.personal_info.year}${formData.personal_info.year === 'graduate' ? '' : getOrdinalSuffix(formData.personal_info.year)} Year` : 'Not provided'}
+              <strong>Year:</strong> {formData.personal_info.year ? (formData.personal_info.year === 'graduate' ? 'Graduate' : `${getOrdinalSuffix(formData.personal_info.year)} Year`) : 'Not provided'}
             </div>
             <div className="summary-item">
               <strong>Roll Number:</strong> {formData.personal_info.roll_number || 'Not provided'}
@@ -1489,6 +1665,31 @@ const RegistrationForm = () => {
         <span className={step >= 5 ? 'active' : ''}>Review</span>
       </div>
 
+      {/* Auto-save Status Indicator */}
+      {user && (
+        <div className="auto-save-status" style={{
+          textAlign: 'center',
+          margin: '10px 0',
+          fontSize: '11px',
+          color: '#888',
+          opacity: isAutoSaving ? 1 : 0.7
+        }}>
+          {isAutoSaving ? (
+            <span style={{ color: '#2196F3' }}>
+              💾 Saving your progress...
+            </span>
+          ) : lastSaved ? (
+            <span style={{ color: '#4caf50' }}>
+              ✅ Auto-saved at {lastSaved}
+            </span>
+          ) : (
+            <span style={{ color: '#999' }}>
+              📝 Your progress will be automatically saved
+            </span>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="registration-form">
         <AnimatePresence mode="wait">
           {renderStepContent()}
@@ -1534,6 +1735,145 @@ const RegistrationForm = () => {
           )}
         </div>
       </form>
+
+      {/* Custom Restore Modal */}
+      {showRestoreModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div className="modal-content" style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            padding: '32px',
+            maxWidth: '520px',
+            width: '90%',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            border: '1px solid #e0e0e0'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2196F3, #1976D2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '16px',
+                boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)'
+              }}>
+                <span style={{ color: 'white', fontSize: '24px' }}>💾</span>
+              </div>
+              <div>
+                <h3 style={{ 
+                  margin: 0, 
+                  color: '#1a1a1a',
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  letterSpacing: '-0.5px'
+                }}>
+                  CognitiveX GenAI Hackathon
+                </h3>
+                <p style={{ 
+                  margin: 0, 
+                  color: '#666',
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}>
+                  Resume Your Registration
+                </p>
+              </div>
+            </div>
+            
+            <div style={{
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              padding: '16px',
+              marginBottom: '24px',
+              border: '1px solid #e9ecef'
+            }}>
+              <p style={{
+                color: '#495057',
+                lineHeight: '1.6',
+                margin: 0,
+                fontSize: '15px'
+              }}>
+                📝 We found a previously saved draft of your registration form. You can continue where you left off or start fresh.
+              </p>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={handleRestoreCancel}
+                style={{
+                  padding: '12px 24px',
+                  border: '2px solid #e0e0e0',
+                  backgroundColor: 'white',
+                  color: '#666',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = '#f5f5f5';
+                  e.target.style.borderColor = '#ccc';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'white';
+                  e.target.style.borderColor = '#e0e0e0';
+                }}
+              >
+                Start Fresh
+              </button>
+              <button
+                onClick={handleRestoreConfirm}
+                style={{
+                  padding: '12px 24px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #2196F3, #1976D2)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 4px 12px rgba(33, 150, 243, 0.3)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(33, 150, 243, 0.4)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.3)';
+                }}
+              >
+                Continue Registration →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

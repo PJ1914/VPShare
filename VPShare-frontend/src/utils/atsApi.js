@@ -34,7 +34,7 @@ export const analyzeResumeWithATS = async (resumeFile, jobDescription) => {
   formData.append('jobDescription', jobDescription.trim());
 
   // Use environment variable for API endpoint with fallback
-  const API_ENDPOINT = process.env.REACT_APP_ATS_API_URL || 'http://127.0.0.1:8000/ats/score';
+  const API_ENDPOINT = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/ats/score';
 
   try {
     // Make the POST request using axios

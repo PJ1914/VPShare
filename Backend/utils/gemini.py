@@ -254,6 +254,170 @@ async def get_gemini_reply(message, user_id, language="en", chat_id="default"):
         
         return error_message
 
+async def generate_ai_resume_content(resume_data: Dict[str, Any], target_role: Optional[str] = None, industry: Optional[str] = None) -> Dict[str, Any]:
+    """Generate AI-enhanced resume content"""
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+        
+        # Create prompt for resume enhancement
+        prompt = f"""
+You are a professional resume writing expert. Help enhance this resume content to make it more compelling and ATS-friendly.
+
+Resume Data:
+- Name: {resume_data.get('name', 'N/A')}
+- Title: {resume_data.get('title', 'N/A')}
+- Email: {resume_data.get('email', 'N/A')}
+- Phone: {resume_data.get('phone', 'N/A')}
+- Location: {resume_data.get('location', 'N/A')}
+- LinkedIn: {resume_data.get('linkedin', 'N/A')}
+- GitHub: {resume_data.get('github', 'N/A')}
+- Website: {resume_data.get('website', 'N/A')}
+- Current Objective: {resume_data.get('objective', 'N/A')}
+- Skills: {resume_data.get('skills', 'N/A')}
+- Experience: {resume_data.get('experience', 'N/A')}
+- Education: {resume_data.get('education', 'N/A')}
+
+Target Role: {target_role or 'General'}
+Industry: {industry or 'General'}
+
+Please provide:
+1. An improved professional summary (2-3 sentences)
+2. Enhanced skills section with relevant keywords
+3. Improved experience descriptions with quantified achievements
+4. General suggestions for improvement
+5. A complete resume in markdown format
+
+Format your response as JSON with these keys:
+- "summary": improved professional summary
+- "skills": enhanced skills list
+- "experience": improved experience descriptions
+- "suggestions": list of improvement suggestions
+- "markdown": complete resume in markdown format
+"""
+
+        response = model.generate_content(prompt)
+        
+        if response and response.text:
+            try:
+                # Try to parse as JSON
+                result = json.loads(response.text)
+                return {
+                    "success": True,
+                    "summary": result.get("summary", ""),
+                    "skills": result.get("skills", ""),
+                    "experience": result.get("experience", ""),
+                    "suggestions": result.get("suggestions", []),
+                    "markdown": result.get("markdown", ""),
+                    "sections": {
+                        "summary": result.get("summary", ""),
+                        "skills": result.get("skills", ""),
+                        "experience": result.get("experience", "")
+                    }
+                }
+            except json.JSONDecodeError:
+                # If JSON parsing fails, return text response
+                return {
+                    "success": True,
+                    "markdown": response.text,
+                    "suggestions": ["Resume content has been enhanced with AI optimization"],
+                    "sections": {}
+                }
+        else:
+            return {
+                "success": False,
+                "error": "No response from AI model",
+                "markdown": "",
+                "suggestions": []
+            }
+            
+    except Exception as e:
+        logger.error(f"Error generating AI resume content: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "markdown": "",
+            "suggestions": []
+        }
+
+async def analyze_resume_for_improvements(content: str, section_name: str, target_role: Optional[str] = None, industry: Optional[str] = None) -> Dict[str, Any]:
+    """Analyze and improve a specific resume section"""
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+        
+        prompt = f"""
+You are a professional resume writing expert. Analyze and improve the following resume section.
+
+Section: {section_name}
+Current Content: {content}
+Target Role: {target_role or 'General'}
+Industry: {industry or 'General'}
+
+Please provide:
+1. Improved version of this section
+2. Specific suggestions for enhancement
+3. Changes made and reasoning
+4. Impact score (1-10) for the improvements
+
+Focus on:
+- ATS optimization with relevant keywords
+- Quantified achievements where possible
+- Action verbs and power words
+- Industry-specific terminology
+- Clear, concise language
+
+Format your response as JSON with these keys:
+- "improved_content": the enhanced section content
+- "suggestions": list of specific suggestions
+- "changes_made": list of changes made with reasoning
+- "impact_score": numerical score (1-10)
+- "keywords_added": list of relevant keywords added
+"""
+
+        response = model.generate_content(prompt)
+        
+        if response and response.text:
+            try:
+                result = json.loads(response.text)
+                return {
+                    "success": True,
+                    "improved_content": result.get("improved_content", content),
+                    "suggestions": result.get("suggestions", []),
+                    "changes_made": result.get("changes_made", []),
+                    "impact_score": result.get("impact_score", 5),
+                    "keywords_added": result.get("keywords_added", [])
+                }
+            except json.JSONDecodeError:
+                return {
+                    "success": True,
+                    "improved_content": response.text,
+                    "suggestions": ["Content has been improved with AI optimization"],
+                    "changes_made": ["General AI improvements applied"],
+                    "impact_score": 7
+                }
+        else:
+            return {
+                "success": False,
+                "error": "No response from AI model",
+                "improved_content": content
+            }
+            
+    except Exception as e:
+        logger.error(f"Error analyzing resume section: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "improved_content": content,
+            "suggestions": []
+        }
+
 def get_enhanced_contextual_prompt(message, recent_messages, language, intent, user_profile, rag_context):
     """Create enhanced contextual prompt with Firebase RAG data"""
     

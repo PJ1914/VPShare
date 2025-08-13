@@ -17,9 +17,8 @@ import { config, logger } from '../config/environment';
 
 // API endpoint configurations from environment variables
 const HACKATHON_API_URL = import.meta.env.VITE_HACKATHON_API_URL;
-const ADMIN_API_URL = import.meta.env.VITE_HACKATHON_ADMIN_API_URL || 'https://your-admin-api-gateway-url.com/admin';
+const ADMIN_API_URL = import.meta.env.VITE_HACKATHON_ADMIN_API_URL;
 const UTILS_API_URL = import.meta.env.VITE_HACKATHON_UTILS_API_URL;
-const PAYMENT_API_URL = import.meta.env.VITE_API_BASE_URL; // General payment API
 const HACKATHON_PAYMENT_API_URL = import.meta.env.VITE_HACKATHON_PAYMENT_API_URL || import.meta.env.VITE_API_BASE_URL; 
 
 // Development mode check
@@ -29,11 +28,23 @@ const isDevelopment = config.isDevelopment;
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 199; // ₹199 for individual (19900 paise - Lambda expects exactly 19900)
+      return 199; // ₹199 for individual
     case 3:
-      return 549; // ₹549 for team (54900 paise - Lambda expects exactly 54900)
+      return 549; // ₹549 for team of 3
     default:
       return 199; // Default to individual pricing
+  }
+};
+
+// Get exact amount in paise as expected by Lambda
+const getTeamPriceInPaise = (teamSize) => {
+  switch (teamSize) {
+    case 1:
+      return 19900; // ₹199 = 19900 paise (Individual)
+    case 3:
+      return 54900; // ₹549 = 54900 paise (Team of 3)
+    default:
+      return 19900; // Default to individual pricing
   }
 };
 
@@ -74,14 +85,6 @@ const adminAPI = axios.create({
 
 const utilsAPI = axios.create({
   baseURL: UTILS_API_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-const paymentAPI = axios.create({
-  baseURL: PAYMENT_API_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -141,7 +144,6 @@ const addAuthInterceptor = (apiInstance) => {
 addAuthInterceptor(hackathonAPI);
 addAuthInterceptor(adminAPI);
 addAuthInterceptor(utilsAPI);
-addAuthInterceptor(paymentAPI);
 addAuthInterceptor(hackathonPaymentAPI);
 
 // Hackathon Service
@@ -590,6 +592,17 @@ const hackathonService = {
       };
     } catch (error) {
       console.error('Registration error:', error);
+      
+      // Handle specific HTTP error codes
+      if (error.response?.status === 409) {
+        return {
+          success: false,
+          message: 'You have already registered for this hackathon. Please check your email for registration details.',
+          error: error,
+          statusCode: 409
+        };
+      }
+      
       // Enhanced error handling for development
       if (isDevelopment || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
         logger.info('Registration API not available, using development mode');
@@ -751,7 +764,7 @@ const hackathonService = {
         team_size: teamSize
       };
       
-      const response = await paymentAPI.post('/create-order', paymentData, {
+      const response = await hackathonPaymentAPI.post('/create-order', paymentData, {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -770,7 +783,7 @@ const hackathonService = {
           success: true,
           data: {
             order_id: `order_dev_${Date.now()}`,
-            amount: amount * 19900, 
+            amount: amount, // Amount is already in correct format 
             currency: 'INR',
             key_id: 'rzp_test_demo',
             registration_id: registrationId
@@ -805,7 +818,7 @@ const hackathonService = {
         email: user.email
       };
       
-      const response = await paymentAPI.post('/verify-payment', verificationData, {
+      const response = await hackathonPaymentAPI.post('/verify-payment', verificationData, {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -1048,7 +1061,7 @@ const hackathonService = {
   // Payment APIs - Using existing payment system
   async createPaymentOrder(registrationId, teamSize) {
     try {
-      const amount = getTeamPrice(teamSize) * 19900; 
+      const amount = getTeamPriceInPaise(teamSize); // Get exact amount in paise
 
       const response = await paymentAPI.post('/create-order', {
         payment_type: 'hackathon',
@@ -1071,7 +1084,7 @@ const hackathonService = {
       // Development mode fallback for payment order creation
       if (isDevelopment || registrationId?.startsWith('reg_dev_')) {
         console.log('Development mode: Creating mock payment order');
-        const amount = getTeamPrice(teamSize) * 19900; // Convert to paise for Razorpay
+        const amount = getTeamPriceInPaise(teamSize); // Get exact amount in paise
         
         return {
           success: true,
@@ -1154,7 +1167,7 @@ const hackathonService = {
         
         // Fallback: try the general payment API as a last resort
         try {
-          const paymentVerification = await paymentAPI.post('/verify-payment', {
+          const paymentVerification = await hackathonPaymentAPI.post('/verify-payment', {
             payment_type: 'hackathon',
             razorpay_payment_id: paymentData.razorpay_payment_id,
             razorpay_order_id: paymentData.razorpay_order_id,
@@ -1732,4 +1745,4 @@ export const validateRegistrationData = (data) => {
 };
 
 export default hackathonService;
-export { getTeamPrice, getHackathonPlanMapping, getBackendTeamSize };
+export { getTeamPrice, getTeamPriceInPaise, getHackathonPlanMapping, getBackendTeamSize };
