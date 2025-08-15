@@ -371,8 +371,46 @@
   padding: 4rem 2rem;
 }
 
+/* Optimize container for mobile to prevent layer conflicts */
+@media (max-width: 768px) {
+  .container {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem 0.5rem;
+  }
+}
+
 .section {
   margin-bottom: 4rem;
+}
+
+/* Special handling for registration section */
+section#register {
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .section {
+    margin-bottom: 2rem;
+  }
+  
+  section#register {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    margin-bottom: 1rem;
+  }
+  
+  section#register {
+    margin-bottom: 0.5rem;
+  }
 }
 
 /* About Section */
@@ -2247,11 +2285,78 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Fix layering issues for mobile - remove excessive container nesting */
+@media (max-width: 768px) {
+  /* Reduce main container padding on mobile */
+  .hackathon-main .container {
+    padding: 1rem;
+  }
+  
+  /* Make registration section full-width on mobile */
+  section#register {
+    padding: 0;
+    margin: 0;
+  }
+  
+  .registration-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+    border-radius: 15px;
+    /* Remove backdrop blur on mobile for better performance */
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  /* Mobile optimized registration container */
+  .registration-container.mobile-optimized {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Further optimize for small screens */
+  .hackathon-main .container {
+    padding: 0.5rem;
+  }
+  
+  .registration-container {
+    padding: 0.75rem;
+    border-radius: 12px;
+    /* Use solid background on very small screens */
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Enhanced mobile optimization for very small screens */
+  .registration-container.mobile-optimized {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
 .progress-indicator {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .progress-indicator {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-indicator {
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+  }
 }
 
 .progress-step {
@@ -2266,6 +2371,23 @@
   font-weight: bold;
   border: 2px solid #e1e8ed;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .progress-step {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-step {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    border-width: 1px;
+  }
 }
 
 .progress-step.active {
@@ -2318,6 +2440,18 @@
   margin-bottom: 1.5rem;
 }
 
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 1rem;
+  }
+}
+
 .form-group label {
   display: block;
   color: #2c3e50;
@@ -2338,6 +2472,27 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.75rem 0.9rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.7rem 0.8rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 6px;
+    border-width: 1px;
+  }
 }
 
 .form-group input:focus,
@@ -2376,6 +2531,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    gap: 0.75rem;
+  }
 }
 
 .error-message {
@@ -3021,23 +3189,27 @@
   font-weight: 500;
 }
 
-/* Responsive Design for Multi-step Form */
+/* Enhanced Responsive Design for Multi-step Form */
 @media (max-width: 768px) {
   .registration-container {
     padding: 1rem;
-    margin: 1rem;
+    margin: 0.5rem auto;
+    max-width: 95%;
   }
   
   .form-row {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .team-size-selector {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
   
   .checkbox-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
   .step-labels {
@@ -3046,6 +3218,7 @@
   
   .progress-indicator {
     gap: 0.5rem;
+    margin-bottom: 1.5rem;
   }
   
   .progress-step {
@@ -3057,26 +3230,79 @@
   .form-navigation {
     flex-direction: column;
     gap: 1rem;
+    padding: 1rem 0;
   }
   
   .btn-primary,
   .btn-secondary {
     width: 100%;
     padding: 1rem;
+    font-size: 1rem;
+  }
+  
+  .registration-step h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .registration-step p {
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
+  .registration-container {
+    padding: 0.75rem;
+    margin: 0.25rem auto;
+    max-width: 98%;
+    border-radius: 12px;
+  }
+  
   .registration-step h3 {
     font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .registration-step p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
   }
   
   .team-size-selector {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
   
   .size-btn {
     padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+  
+  .progress-indicator {
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+  }
+  
+  .progress-step {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    border-width: 1px;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+  
+  .form-navigation {
+    gap: 0.75rem;
+    padding: 0.75rem 0;
   }
 }
 
@@ -3088,6 +3314,20 @@
   text-align: center;
 }
 
+@media (max-width: 768px) {
+  .review-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -3095,11 +3335,39 @@
   margin-bottom: 1rem;
 }
 
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-grid {
+    gap: 0.5rem;
+  }
+}
+
 .summary-item {
   padding: 0.75rem;
   background: #f8f9fa;
   border-radius: 8px;
   border-left: 4px solid #007bff;
+}
+
+@media (max-width: 768px) {
+  .summary-item {
+    padding: 0.7rem;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-item {
+    padding: 0.6rem;
+    border-radius: 4px;
+    border-left-width: 3px;
+  }
 }
 
 .summary-item strong {

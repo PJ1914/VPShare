@@ -137,6 +137,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Monaco Editor resources entirely - they have complex loading patterns
+  if (url.pathname.includes('monaco-editor') || 
+      url.pathname.includes('/vs/') ||
+      url.pathname.includes('/npm/monaco-editor') ||
+      url.href.includes('monaco-editor')) {
+    console.log(`[SW] Bypassing service worker for Monaco Editor: ${url.pathname}`);
+    return;
+  }
+
   // Handle different types of requests with appropriate strategies
 
   // 1. JavaScript modules - NETWORK FIRST with MIME validation
@@ -183,12 +192,10 @@ self.addEventListener('fetch', (event) => {
               return cachedResponse;
             }
             
-            // No valid cached version, return empty script to prevent errors
+            // No valid cached version - let the browser handle the error properly
             console.warn(`[SW] No valid cache for script: ${url.pathname}`);
-            return new Response('console.warn("Failed to load script from network and cache");', {
-              status: 200,
-              headers: { 'Content-Type': 'application/javascript' }
-            });
+            // Re-throw the error so the browser can handle script loading failures appropriately
+            throw error;
           });
         })
     );

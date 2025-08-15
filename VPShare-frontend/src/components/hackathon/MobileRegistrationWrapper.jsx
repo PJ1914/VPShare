@@ -54,13 +54,18 @@ const MobileRegistrationWrapper = ({ children }) => {
     }
   }, [isMobile, isTablet]);
 
-  // Mobile-specific props and classes
-  const mobileProps = (isMobile || isTablet) ? {
-    className: `mobile-registration-wrapper ${children.props.className || ''}`,
-    'data-mobile': 'true'
-  } : {};
+  // Don't add extra wrapper div - just enhance existing children
+  // This prevents additional layering issues
+  if (isMobile || isTablet) {
+    // Add mobile-specific data attribute without extra wrapper
+    return React.cloneElement(children, {
+      ...children.props,
+      'data-mobile-optimized': 'true',
+      className: `${children.props.className || ''} mobile-optimized`.trim()
+    });
+  }
 
-  return React.cloneElement(children, mobileProps);
+  return children;
 };
 
 export default MobileRegistrationWrapper;

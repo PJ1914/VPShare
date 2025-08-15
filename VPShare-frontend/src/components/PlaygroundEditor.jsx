@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Editor from '@monaco-editor/react';
+import Editor, { loader } from '@monaco-editor/react';
 import { Octokit } from '@octokit/rest';
 import MenuIcon from '@mui/icons-material/Menu';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -34,6 +34,13 @@ import '../styles/PlaygroundEditor.css';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, updateDoc, getDoc, increment, onSnapshot, serverTimestamp, deleteField } from 'firebase/firestore';
 import LogoCT from '../assets/CT Logo.png';
+
+// Configure Monaco Editor to load from CDN
+loader.config({
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs'
+  }
+});
 
 // Piston API language mapping
 const pistonLanguages = {

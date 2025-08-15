@@ -819,12 +819,9 @@ function ResumeBuilderEnhanced() {
                     return <FallbackSection dataKey={tabsData[activeTab].dataKey} />;
                   }
 
-                  const sectionData = getSectionData(tabsData[activeTab].dataKey);
-                  console.log(`Rendering ${tabsData[activeTab].dataKey} with data:`, sectionData);
-
                   return React.createElement(ActiveComponent, {
                     // Standard props for all components
-                    data: sectionData,
+                    data: getSectionData(tabsData[activeTab].dataKey),
                     updateData: (fieldOrData, value) => {
                       console.log('updateData called with:', fieldOrData, value); // Debug log
                       
@@ -866,17 +863,6 @@ function ResumeBuilderEnhanced() {
                         updateSectionData(tabsData[activeTab].dataKey, updatedData);
                       } else {
                         // Handle full data updates
-                        updateSectionData(tabsData[activeTab].dataKey, field);
-                      }
-                    },
-                    updateData: (field, value) => {
-                      if (typeof field === 'string') {
-                        // Single field update - this is what ContactSectionEnhanced needs
-                        const currentData = getSectionData(tabsData[activeTab].dataKey);
-                        const updatedData = { ...currentData, [field]: value };
-                        updateSectionData(tabsData[activeTab].dataKey, updatedData);
-                      } else {
-                        // Full object update
                         updateSectionData(tabsData[activeTab].dataKey, field);
                       }
                     },
