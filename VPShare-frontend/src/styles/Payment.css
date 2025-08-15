@@ -14,8 +14,17 @@
   --glass-border: rgba(139, 92, 246, 0.2);
   --card-bg-light: rgba(255, 255, 255, 0.95);
   --card-bg-dark: rgba(30, 41, 59, 0.9);
-  --accent-purple: #7c3aed;
+  --accent-purple: #8b5cf6;
   --accent-indigo: #6366f1;
+  
+  /* Theme-aware background colors */
+  --payment-bg-primary: #ffffff;
+  --payment-bg-secondary: #f8fafc;
+  --payment-text-primary: #1f2937;
+  --payment-text-secondary: #4b5563;
+  --payment-text-inverse: #ffffff;
+  --payment-border: #e5e7eb;
+  --payment-shadow: rgba(0, 0, 0, 0.1);
 }
 
 .payment-page {
@@ -311,6 +320,7 @@
   font-weight: 800;
   color: var(--accent-purple);
   margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
 }
 
 .per-period {
@@ -354,7 +364,7 @@
   font-weight: 500;
 }
 
-/* Plan summary section */
+/* Plan summary section - Using website color palette */
 .selected-plan-details {
   background: var(--card-bg-light);
   padding: 2rem;
@@ -366,7 +376,8 @@
   position: relative;
   z-index: 1;
   backdrop-filter: blur(10px);
-  border: 2px solid transparent;
+  border: 2px solid var(--glass-border);
+  transition: all 0.3s ease;
 }
 
 .plan-summary-header {
@@ -392,9 +403,10 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: rgba(139, 92, 246, 0.05);
+  background: var(--glass-bg);
   border-radius: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
 }
 
 .price-display {
@@ -414,6 +426,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--accent-purple);
+  text-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
 }
 
 .duration-label {
@@ -1421,5 +1434,233 @@
   .selected-plan-details {
     width: 100%;
     max-width: 100%;
+  }
+}
+
+/* Light/Dark Theme Support using Website Color Palette */
+@media (prefers-color-scheme: light) {
+  :root {
+    --text-primary: #1f2937 !important;
+    --text-secondary: #4b5563 !important;
+    --text-light: #6b7280 !important;
+    --card-bg-light: rgba(255, 255, 255, 0.95) !important;
+    --glass-bg: rgba(139, 92, 246, 0.08) !important;
+    --glass-border: rgba(139, 92, 246, 0.2) !important;
+    --accent-purple: #8b5cf6 !important;
+  }
+  
+  /* Force dark text in light mode */
+  /* Fix plan cards for light mode */
+  .plan-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #1f2937 !important;
+    border: 2px solid rgba(139, 92, 246, 0.15) !important;
+  }
+  
+  .plan-card.selected {
+    background: rgba(255, 255, 255, 0.98) !important;
+    color: #1f2937 !important;
+    border: 2px solid #8b5cf6 !important;
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25) !important;
+  }
+  
+  .plan-card h3 {
+    color: #1f2937 !important;
+  }
+  
+  .plan-card .plan-info h3 {
+    color: #1f2937 !important;
+  }
+  
+  .plan-card .feature-item {
+    color: #374151 !important;
+  }
+  
+  .selected-plan-details {
+    background: rgba(255, 255, 255, 0.98) !important;
+    color: #1f2937 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    border: 2px solid rgba(139, 92, 246, 0.2) !important;
+  }
+  
+  .plan-summary-header h2 {
+    color: #1f2937 !important;
+  }
+  
+  .total-price,
+  .current-price,
+  .price {
+    color: #8b5cf6 !important;
+  }
+  
+  .total-label,
+  .duration-label,
+  .per-period {
+    color: #4b5563 !important;
+  }
+  
+  /* Force dark text for feature items */
+  .feature-list .feature-item,
+  .feature-list .feature-item span,
+  .feature-item {
+    color: #1f2937 !important;
+    font-weight: 500 !important;
+  }
+  
+  .feature-check,
+  .feature-icon {
+    color: #8b5cf6 !important;
+  }
+  
+  /* What's Included section text */
+  h3, h4, h5, h6 {
+    color: #1f2937 !important;
+  }
+  
+  .features-included h3 {
+    color: #1f2937 !important;
+  }
+  
+  .feature-highlight {
+    color: #1f2937 !important;
+  }
+  
+  .feature-highlight span {
+    color: #1f2937 !important;
+  }
+  
+  /* All paragraph and span text should be dark */
+  p, span, div:not(.feature-check):not(.feature-icon) {
+    color: #374151 !important;
+  }
+  
+  /* Security info text */
+  .security-info {
+    color: #4b5563 !important;
+  }
+  
+  .security-info span {
+    color: #4b5563 !important;
+  }
+  
+  /* Legal notice text */
+  .legal-notice {
+    color: #6b7280 !important;
+  }
+  
+  .legal-notice a {
+    color: #8b5cf6 !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f9fafb !important;
+    --text-secondary: #d1d5db !important;
+    --text-light: #9ca3af !important;
+    --card-bg-light: rgba(30, 41, 59, 0.95) !important;
+    --glass-bg: rgba(139, 92, 246, 0.15) !important;
+    --glass-border: rgba(139, 92, 246, 0.3) !important;
+    --accent-purple: #a78bfa !important;
+  }
+  
+  /* Fix plan cards for dark mode */
+  .plan-card {
+    background: rgba(30, 41, 59, 0.9) !important;
+    color: #f9fafb !important;
+    border: 2px solid rgba(139, 92, 246, 0.2) !important;
+  }
+  
+  .plan-card.selected {
+    background: rgba(30, 41, 59, 0.95) !important;
+    color: #f9fafb !important;
+    border: 2px solid #a78bfa !important;
+    box-shadow: 0 8px 32px rgba(167, 139, 250, 0.4) !important;
+  }
+  
+  .plan-card h3 {
+    color: #f9fafb !important;
+  }
+  
+  .plan-card .plan-info h3 {
+    color: #f9fafb !important;
+  }
+  
+  .plan-card .feature-item {
+    color: #e5e7eb !important;
+  }
+  
+  .selected-plan-details {
+    background: rgba(30, 41, 59, 0.98) !important;
+    color: #f9fafb !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid rgba(139, 92, 246, 0.3) !important;
+  }
+  
+  .plan-summary-header h2 {
+    color: #f9fafb !important;
+  }
+  
+  .total-price,
+  .current-price,
+  .price {
+    color: #a78bfa !important;
+  }
+  
+  .total-label,
+  .duration-label,
+  .per-period {
+    color: #d1d5db !important;
+  }
+  
+  .feature-list .feature-item,
+  .feature-list .feature-item span,
+  .feature-item {
+    color: #e5e7eb !important;
+  }
+  
+  .feature-check,
+  .feature-icon {
+    color: #a78bfa !important;
+  }
+  
+  /* What's Included section text */
+  h3, h4, h5, h6 {
+    color: #f9fafb !important;
+  }
+  
+  .features-included h3 {
+    color: #f9fafb !important;
+  }
+  
+  .feature-highlight {
+    color: #e5e7eb !important;
+  }
+  
+  .feature-highlight span {
+    color: #e5e7eb !important;
+  }
+  
+  /* All paragraph and span text should be light */
+  p, span, div:not(.feature-check):not(.feature-icon) {
+    color: #e5e7eb !important;
+  }
+  
+  /* Security info text */
+  .security-info {
+    color: #d1d5db !important;
+  }
+  
+  .security-info span {
+    color: #d1d5db !important;
+  }
+  
+  /* Legal notice text */
+  .legal-notice {
+    color: #d1d5db !important;
+  }
+  
+  .legal-notice a {
+    color: #a78bfa !important;
   }
 }

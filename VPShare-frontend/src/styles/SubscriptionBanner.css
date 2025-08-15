@@ -1,8 +1,9 @@
 .subscription-banner {
   position: fixed;
   bottom: clamp(16px, 4vw, 32px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   color: var(--text-primary, #1f2937);
   padding: clamp(0.8rem, 2.5vw, 1.2rem) clamp(1rem, 3vw, 2.2rem) clamp(0.8rem, 2.5vw, 1.2rem) clamp(0.8rem, 2.5vw, 1.2rem);
@@ -14,32 +15,27 @@
   z-index: 999;
   font-family: var(--font-family, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: clamp(0.9rem, 2.5vw, 1.13rem);
-  animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) 1;
   border: 1.5px solid rgba(255, 221, 87, 0.3);
   min-width: clamp(280px, 85vw, 320px);
   max-width: clamp(320px, 95vw, 600px);
   width: fit-content;
   box-sizing: border-box;
-  transition: var(--transition-normal, 300ms cubic-bezier(0.4, 0, 0.2, 1));
   touch-action: manipulation;
+  /* Remove the old CSS animation since we're using framer-motion */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  will-change: transform, opacity;
 }
+
+/* Enhanced hover effects that work with framer-motion */
 .subscription-banner:hover {
   box-shadow: var(--shadow-2xl, 0 25px 50px -12px rgba(0, 0, 0, 0.25));
   border: 1.5px solid #ffdd57;
-  transform: translateX(-50%) translateY(-2px);
   background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
 }
 
-@keyframes fadeInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(40px) translateX(-50%); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) translateX(-50%); 
-  }
-}
+/* Remove the old fadeInUp animation */
+/* @keyframes fadeInUp - REMOVED */
 
 .banner-icon {
   background: linear-gradient(135deg, #ff9500 0%, #ffdd57 100%);
@@ -54,6 +50,25 @@
   margin-right: clamp(0.3rem, 1vw, 0.5rem);
   box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
   flex-shrink: 0;
+  /* Enhanced for framer-motion animations */
+  will-change: transform;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Add subtle pulse effect for the star icon */
+.banner-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, transparent 50%);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.banner-icon:hover::before {
+  opacity: 1;
 }
 
 .banner-message {
@@ -67,6 +82,8 @@
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Enhanced for smooth text animations */
+  will-change: transform, opacity;
 }
 
 .banner-subscribe-btn {
@@ -79,19 +96,46 @@
   font-size: clamp(0.85rem, 2vw, 1.05rem);
   margin-left: clamp(0.3rem, 1vw, 0.5rem);
   text-decoration: none;
-  transition: var(--transition-normal, 300ms cubic-bezier(0.4, 0, 0.2, 1));
   box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
   outline: none;
   white-space: nowrap;
   flex-shrink: 0;
   touch-action: manipulation;
   min-height: 44px; /* WCAG touch target minimum */
+  /* Enhanced for framer-motion */
+  will-change: transform;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.banner-subscribe-btn:hover, .banner-subscribe-btn:focus {
+
+/* Enhanced hover effect with framer-motion support */
+.banner-subscribe-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(90deg, #ffdd57 0%, #ff9500 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.banner-subscribe-btn:hover::before {
+  opacity: 1;
+}
+
+.banner-subscribe-btn:hover {
   color: #1f2937;
   box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
-  transform: translateY(-1px);
+}
+
+/* Ensure text stays above background */
+.banner-subscribe-btn > * {
+  position: relative;
+  z-index: 1;
 }
 
 .banner-close-btn {
@@ -109,17 +153,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-normal, 300ms cubic-bezier(0.4, 0, 0.2, 1));
   box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
   flex-shrink: 0;
   touch-action: manipulation;
   min-width: 44px; /* WCAG touch target minimum */
   min-height: 44px;
+  /* Enhanced for framer-motion */
+  will-change: transform;
+  position: relative;
+  overflow: hidden;
 }
-.banner-close-btn:hover, .banner-close-btn:focus {
+
+.banner-close-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: #ffe4e1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.banner-close-btn:hover::before {
+  opacity: 1;
+}
+
+.banner-close-btn:hover {
   color: #dc2626;
-  transform: scale(1.05);
 }
 
 /* Enhanced Mobile-First Responsive Design */
@@ -130,7 +190,7 @@
     bottom: 12px;
     left: 8px;
     right: 8px;
-    transform: none;
+    margin: 0 auto;
     width: calc(100vw - 16px);
     max-width: none;
     min-width: 0;
@@ -179,7 +239,7 @@
     bottom: 16px;
     left: 12px;
     right: 12px;
-    transform: none;
+    margin: 0 auto;
     width: calc(100vw - 24px);
     max-width: none;
     padding: 0.9rem;
@@ -283,15 +343,35 @@
   }
 }
 
-/* Reduced motion support */
+/* Reduced motion support - Enhanced for framer-motion */
 @media (prefers-reduced-motion: reduce) {
   .subscription-banner {
-    animation: none;
+    /* Framer-motion will handle reduced motion automatically */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  
+  .banner-icon::before,
+  .banner-subscribe-btn::before,
+  .banner-close-btn::before {
     transition: none;
   }
   
-  @keyframes fadeInUp {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  .banner-icon:hover::before,
+  .banner-subscribe-btn:hover::before,
+  .banner-close-btn:hover::before {
+    opacity: 0.5; /* Reduce effect intensity */
+  }
+  
+  /* Disable complex visual effects for users with motion sensitivity */
+  .subscription-banner {
+    will-change: auto;
+  }
+  
+  .banner-icon,
+  .banner-message,
+  .banner-subscribe-btn,
+  .banner-close-btn {
+    will-change: auto;
   }
 }

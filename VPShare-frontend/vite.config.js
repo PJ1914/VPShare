@@ -82,7 +82,12 @@ export default defineConfig({
     minify: 'terser',
     outDir: 'dist',
     chunkSizeWarningLimit: 2000,
-    target: 'es2020'
+    // Updated browser targets for cross-browser compatibility
+    target: ['es2018', 'chrome70', 'firefox78', 'safari12', 'edge79'],
+    // Polyfill configuration for older browsers
+    polyfillModulePreload: true,
+    // CSS target for better browser support
+    cssTarget: ['chrome70', 'firefox78', 'safari12', 'edge79']
   },
 
   // Pre-bundle deps to ensure stable module graph

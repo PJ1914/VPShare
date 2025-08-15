@@ -817,3 +817,336 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  /* Dashboard Container */
+  .dashboard-container {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    color: #f9fafb;
+  }
+  
+  /* Loading Skeleton - Dark Mode */
+  .skeleton-welcome,
+  .skeleton-progress,
+  .skeleton-card {
+    background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+  }
+  
+  /* Dashboard Hero - Dark Mode */
+  .dashboard-hero {
+    background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%);
+    box-shadow: 0 20px 40px rgba(76, 29, 149, 0.4);
+  }
+  
+  .dashboard-hero::before {
+    background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  }
+  
+  .user-name {
+    background: linear-gradient(45deg, #fbbf24, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .cta-btn.primary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+  
+  .cta-btn.primary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  /* Cache Status - Dark Mode */
+  .cache-status {
+    background: rgba(55, 65, 81, 0.9);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  
+  .cache-status small {
+    color: #9ca3af;
+  }
+  
+  /* Progress Circle - Dark Mode */
+  .progress-circle {
+    background: linear-gradient(135deg, rgba(55, 65, 81, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .progress-circle:hover {
+    background: linear-gradient(135deg, rgba(75, 85, 99, 0.95) 0%, rgba(55, 65, 81, 0.95) 100%);
+    box-shadow: 
+      0 15px 40px rgba(0, 0, 0, 0.5),
+      0 8px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  
+  .progress-number {
+    color: #f9fafb;
+    background: linear-gradient(135deg, #f9fafb 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .progress-label {
+    color: #d1d5db;
+  }
+  
+  /* Stats Grid - Dark Mode */
+  .stat-card {
+    background: rgba(31, 41, 55, 0.9) !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(15px) !important;
+  }
+  
+  .stat-card:hover {
+    background: rgba(55, 65, 81, 0.95) !important;
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 30px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    transform: translateY(-6px) !important;
+  }
+  
+  .stat-content h3 {
+    color: #f9fafb !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    font-weight: 800 !important;
+  }
+  
+  .stat-content p {
+    color: #d1d5db !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Stat Icons - Enhanced visibility */
+  .stat-icon {
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  /* Course Progress Section - Dark Mode */
+  .course-progress-section {
+    background: rgba(55, 65, 81, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+  }
+  
+  .course-progress-section h2 {
+    color: #f9fafb;
+  }
+  
+  .course-progress-card {
+    background: linear-gradient(135deg, rgba(75, 85, 99, 0.6) 0%, rgba(55, 65, 81, 0.6) 100%);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    backdrop-filter: blur(5px);
+  }
+  
+  .course-progress-card:hover {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.7) 0%, rgba(75, 85, 99, 0.7) 100%);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(139, 92, 246, 0.1);
+  }
+  
+  .course-header h3 {
+    color: #f9fafb;
+  }
+  
+  .progress-percentage {
+    color: #d1d5db;
+  }
+  
+  .progress-bar {
+    background: rgba(75, 85, 99, 0.6);
+  }
+  
+  .course-stats {
+    color: #d1d5db;
+  }
+  
+  .continue-btn {
+    background: linear-gradient(135deg, #059669, #047857);
+  }
+  
+  .continue-btn:hover {
+    background: linear-gradient(135deg, #047857, #065f46);
+  }
+  
+  /* Quick Actions Section - Dark Mode */
+  .quick-actions-section {
+    background: rgba(55, 65, 81, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+  }
+  
+  .quick-actions-section h2 {
+    color: #f9fafb;
+  }
+  
+  .quick-action-card:hover {
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Activity Section - Dark Mode */
+  .activity-section {
+    background: rgba(55, 65, 81, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+  }
+  
+  .activity-section h2 {
+    color: #f9fafb;
+  }
+  
+  .activity-item {
+    background: linear-gradient(135deg, rgba(75, 85, 99, 0.6) 0%, rgba(55, 65, 81, 0.6) 100%);
+    border: 1px solid rgba(107, 114, 128, 0.3);
+    backdrop-filter: blur(5px);
+  }
+  
+  .activity-item:hover {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.7) 0%, rgba(75, 85, 99, 0.7) 100%);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 
+      0 4px 15px rgba(0, 0, 0, 0.3),
+      0 0 10px rgba(139, 92, 246, 0.1);
+  }
+  
+  .activity-content h4 {
+    color: #f9fafb;
+  }
+  
+  .activity-content p {
+    color: #d1d5db;
+  }
+  
+  .activity-date {
+    color: #9ca3af;
+  }
+  
+  /* Quote Section - Dark Mode Enhanced */
+  .quote-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    box-shadow: 
+      0 4px 20px rgba(15, 23, 42, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Empty State - Dark Mode */
+  .empty-state {
+    color: #9ca3af;
+  }
+  
+  .empty-state h3 {
+    color: #d1d5db;
+  }
+  
+  .empty-cta {
+    background: linear-gradient(45deg, #4c1d95, #5b21b6);
+  }
+  
+  .empty-cta:hover {
+    background: linear-gradient(45deg, #5b21b6, #6d28d9);
+    box-shadow: 0 8px 25px rgba(76, 29, 149, 0.4);
+  }
+}
+
+/* Light Mode Enhancements */
+@media (prefers-color-scheme: light) {
+  /* Enhanced shadows and contrast for light mode */
+  .dashboard-container {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .stat-card {
+    background: white;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-card:hover {
+    box-shadow: 
+      0 8px 30px rgba(0, 0, 0, 0.12),
+      0 0 20px rgba(99, 102, 241, 0.05);
+  }
+  
+  .course-progress-section,
+  .quick-actions-section,
+  .activity-section {
+    background: white;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Quote Section - Light Mode */
+  .quote-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .quote-card blockquote p {
+    color: #334155 !important;
+    font-weight: 600 !important;
+  }
+  
+  .quote-card blockquote footer {
+    color: #64748b !important;
+    font-weight: 600 !important;
+  }
+  
+  .quote-icon {
+    color: #94a3b8 !important;
+  }
+  
+  .progress-circle {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  
+  .progress-circle:hover {
+    box-shadow: 
+      0 15px 40px rgba(0, 0, 0, 0.12),
+      0 8px 20px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+}

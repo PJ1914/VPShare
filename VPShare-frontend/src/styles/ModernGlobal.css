@@ -761,15 +761,410 @@ main, .main-content, .dashboard-main, .page-content {
     --glass-bg: rgba(31, 41, 55, 0.95);
   }
   
+  /* Modern Cards - Enhanced for Dark Mode */
   .modern-card {
-    background: var(--glass-bg);
-    border-color: var(--border-light);
+    background: var(--glass-bg) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.3),
+      0 1px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   }
   
+  .modern-card::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent) !important;
+  }
+  
+  .modern-card:hover {
+    background: rgba(55, 65, 81, 0.8) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 
+      0 20px 50px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(99, 102, 241, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .modern-card-title {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-card-subtitle {
+    color: var(--text-secondary) !important;
+  }
+  
+  .modern-card-content {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-card-content p {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Professional Hero Carousel - Dark Mode */
+  .professional-hero-carousel {
+    background: rgba(31, 41, 55, 0.95) !important;
+    border: 1px solid var(--border-light) !important;
+    box-shadow: 
+      0 25px 50px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .professional-carousel-slide {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%) !important;
+  }
+  
+  .professional-carousel-slide.hackathon-slide {
+    background: linear-gradient(135deg, #4c1d95 0%, #2d1b69 100%) !important;
+  }
+  
+  .carousel-title {
+    color: var(--text-primary) !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .hackathon-slide .carousel-title {
+    color: #a78bfa !important;
+    text-shadow: 0 2px 8px rgba(124, 58, 237, 0.3) !important;
+  }
+  
+  .carousel-subtitle {
+    color: var(--text-secondary) !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .hackathon-slide .carousel-subtitle {
+    color: #c4b5fd !important;
+  }
+  
+  .carousel-description {
+    color: var(--text-secondary) !important;
+  }
+  
+  .feature-pill {
+    background: rgba(55, 65, 81, 0.8) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-medium) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .hackathon-slide .feature-pill {
+    background: rgba(139, 92, 246, 0.2) !important;
+    color: #e0e7ff !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+  }
+  
+  /* Carousel Navigation - Dark Mode */
+  .carousel-arrow {
+    background: rgba(55, 65, 81, 0.9) !important;
+    border-color: var(--border-medium) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 
+      0 8px 25px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .carousel-arrow:hover {
+    background: rgba(75, 85, 99, 0.9) !important;
+    border-color: var(--border-dark) !important;
+    color: white !important;
+    box-shadow: 
+      0 12px 35px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(99, 102, 241, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  /* Carousel Indicators - Dark Mode */
+  .professional-hero-carousel .control-dots .dot {
+    background: rgba(156, 163, 175, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot:hover {
+    background: rgba(156, 163, 175, 0.5) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot.selected {
+    background: #6366f1 !important;
+    box-shadow: 
+      0 0 20px rgba(99, 102, 241, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .hackathon-slide ~ .control-dots .dot.selected {
+    background: #8b5cf6 !important;
+    box-shadow: 
+      0 0 20px rgba(139, 92, 246, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Modern Hero Carousel - Dark Mode */
+  .modern-hero-carousel .carousel .control-dots {
+    background: rgba(31, 41, 55, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(20px) !important;
+  }
+  
+  .modern-hero-carousel .carousel .control-arrow {
+    background: rgba(31, 41, 55, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .modern-hero-carousel .carousel .control-arrow:hover {
+    background: rgba(55, 65, 81, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(99, 102, 241, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  /* Button Enhancements - Dark Mode */
   .modern-btn-secondary {
-    background: var(--bg-secondary);
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-medium) !important;
+  }
+  
+  .modern-btn-primary {
+    background: var(--primary) !important;
+    color: white !important;
+  }
+  
+  /* Fix hero section and other text elements */
+  .modern-hero-title,
+  .modern-heading-lg,
+  .modern-heading-md,
+  .modern-heading-sm {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-hero-subtitle,
+  .modern-text-lg,
+  .modern-text-md,
+  .modern-text-sm {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Fix section backgrounds */
+  .modern-section {
+    background: var(--bg-primary) !important;
+  }
+  
+  .modern-section-alt {
+    background: var(--bg-secondary) !important;
+  }
+  
+  /* Global body background for dark mode */
+  body {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* Page background pattern enhancement */
+  .modern-page::before {
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 50%) !important;
+  }
+  
+  .modern-page {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  }
+  
+  /* Fix any remaining text elements */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+  }
+  
+  p, span, div {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Fix hero carousel text */
+  .hero-content h1,
+  .hero-content h2,
+  .hero-content h3 {
+    color: var(--text-primary) !important;
+  }
+  
+  .hero-content p,
+  .hero-content span {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Learning Paths Section - Dark Mode */
+  .modern-section h2,
+  .modern-section h3 {
+    color: var(--text-primary) !important;
+  }
+  
+  /* Featured Tools Section - Dark Mode */
+  .modern-grid .modern-card .modern-card-header h3 {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-grid .modern-card .modern-card-content p {
+    color: var(--text-secondary) !important;
+  }
+}
+
+/* Light Mode Support */
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Light mode specific footer colors */
+    --bg-dark: #f8fafc;
+    --bg-darker: #f1f5f9;
+    --text-inverse: #1f2937;
+    --glass-bg: rgba(248, 250, 252, 0.95);
+    --glass-border: rgba(148, 163, 184, 0.2);
+    
+    /* Ensure proper light mode colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+  }
+  
+  /* Modern Cards - Enhanced for Light Mode */
+  .modern-card {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-light) !important;
+    box-shadow: 
+      0 10px 25px rgba(0, 0, 0, 0.08),
+      0 4px 10px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  .modern-card:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.12),
+      0 0 20px rgba(99, 102, 241, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  }
+  
+  .modern-card-title {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-card-subtitle {
+    color: var(--text-secondary) !important;
+  }
+  
+  .modern-card-content {
+    color: var(--text-primary) !important;
+  }
+  
+  .modern-card-content p {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Professional Hero Carousel - Light Mode */
+  .professional-hero-carousel {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.08),
+      0 8px 16px rgba(0, 0, 0, 0.04) !important;
+  }
+  
+  .carousel-title {
+    color: #1f2937 !important;
+    text-shadow: none !important;
+  }
+  
+  .hackathon-slide .carousel-title {
+    color: #7c3aed !important;
+  }
+  
+  .carousel-subtitle {
+    color: #4b5563 !important;
+  }
+  
+  .hackathon-slide .carousel-subtitle {
+    color: #8b5cf6 !important;
+  }
+  
+  .carousel-description {
+    color: #6b7280 !important;
+  }
+  
+  /* Page background for light mode */
+  .modern-page {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  }
+  
+  .modern-page::before {
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 158, 158, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.04) 0%, transparent 50%) !important;
+  }
+  
+  /* Global body background for light mode */
+  body {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  /* Fix any remaining text elements */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+  }
+  
+  p, span, div {
+    color: var(--text-secondary) !important;
+  }
+  
+  /* Footer Light Mode */
+  .modern-footer {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     color: var(--text-primary);
-    border-color: var(--border-medium);
+  }
+  
+  .modern-footer::before {
+    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.1), transparent);
+  }
+  
+  .modern-footer-heading {
+    color: var(--text-primary);
+  }
+  
+  .modern-footer-link {
+    color: var(--text-secondary);
+  }
+  
+  .modern-footer-link:hover {
+    color: var(--text-primary);
+    background: rgba(99, 102, 241, 0.05);
+  }
+  
+  .modern-social-link {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+    color: var(--text-primary);
+  }
+  
+  .modern-social-link:hover {
+    background: var(--primary);
+    color: var(--text-inverse);
+  }
+  
+  .modern-footer-bottom {
+    border-top: 1px solid var(--border-light);
+  }
+  
+  .modern-footer-bottom p {
+    color: var(--text-secondary);
   }
 }
 
@@ -806,14 +1201,15 @@ main, .main-content, .dashboard-main, .page-content {
   }
 }
 
-/* Modern Footer Styles */
+/* Modern Footer Styles - Theme Aware */
 .modern-footer {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
   color: var(--text-inverse);
   padding: 4rem 0 2rem;
   margin-top: 4rem;
   position: relative;
   overflow: hidden;
+  transition: all var(--transition-normal);
 }
 
 .modern-footer::before {
@@ -861,7 +1257,7 @@ main, .main-content, .dashboard-main, .page-content {
 }
 
 .modern-footer-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -873,9 +1269,9 @@ main, .main-content, .dashboard-main, .page-content {
 }
 
 .modern-footer-link:hover {
-  color: var(--text-inverse);
+  color: var(--text-primary);
   transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
   padding-left: 0.5rem;
 }
 
@@ -907,11 +1303,11 @@ main, .main-content, .dashboard-main, .page-content {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  color: var(--text-inverse);
+  color: var(--text-primary);
   text-decoration: none;
   transition: all 0.3s ease;
   position: relative;
@@ -925,7 +1321,7 @@ main, .main-content, .dashboard-main, .page-content {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
   transition: left 0.5s ease;
 }
 
@@ -934,20 +1330,21 @@ main, .main-content, .dashboard-main, .page-content {
 }
 
 .modern-social-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--primary);
+  border-color: var(--primary-light);
+  color: var(--text-inverse);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .modern-footer-bottom {
   margin-top: 3rem;
   padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-light);
 }
 
 .modern-footer-bottom p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin: 0;
 }
 

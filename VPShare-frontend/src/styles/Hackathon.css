@@ -4660,3 +4660,492 @@ html {
 .auto-save-status:hover {
   opacity: 1 !important;
 }
+
+/* Force Light Mode for All Hackathon Content */
+/* This ensures content is visible in both light and dark system themes */
+
+/* Timeline Section - Force visibility */
+.timeline-section {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.timeline-section h2,
+.timeline-header h2 {
+  color: #2196F3 !important;
+}
+
+.timeline-section p,
+.timeline-description {
+  color: #666 !important;
+}
+
+.timeline-card,
+.timeline-event .event-content {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.timeline-day,
+.timeline-title {
+  color: #333 !important;
+}
+
+.timeline-duration {
+  color: #666 !important;
+}
+
+/* Timeline Summary Cards */
+.timeline-summary,
+.summary-cards {
+  background: #fff !important;
+}
+
+.summary-card {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.summary-card h3 {
+  color: #2196F3 !important;
+}
+
+.summary-card .summary-value {
+  color: #333 !important;
+  font-weight: bold !important;
+}
+
+.summary-card p {
+  color: #666 !important;
+}
+
+/* About Section - Force visibility */
+.about-section {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.about-smartbridge,
+.about-cognitivex {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.about-smartbridge h2,
+.about-cognitivex h2 {
+  color: #2196F3 !important;
+}
+
+.about-smartbridge p,
+.about-cognitivex p {
+  color: #666 !important;
+}
+
+/* Impact Stats - Force visibility */
+.impact-stats {
+  background: #fff !important;
+}
+
+.impact-stats .stat {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.impact-stats .stat h3 {
+  color: #2196F3 !important;
+}
+
+.impact-stats .stat p {
+  color: #666 !important;
+}
+
+/* Hackathon Journey - Force visibility */
+.hackathon-journey {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.hackathon-journey h3 {
+  color: #2196F3 !important;
+}
+
+.journey-steps .step {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.step-content h4 {
+  color: #2196F3 !important;
+}
+
+.step-content p {
+  color: #666 !important;
+}
+
+/* Bootcamp Section - Force visibility */
+.bootcamp-section {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.bootcamp-header h2 {
+  color: #2196F3 !important;
+}
+
+.bootcamp-header p {
+  color: #666 !important;
+}
+
+.day-content {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.day-info h3,
+.day-info h4 {
+  color: #2196F3 !important;
+}
+
+.day-topics h5 {
+  color: #2196F3 !important;
+}
+
+.day-topics li {
+  background: #f8f9fa !important;
+  color: #666 !important;
+  border-left-color: #2196F3 !important;
+}
+
+/* Feature Cards - Force visibility */
+.feature-cards .feature-card,
+.bootcamp-features .feature-card {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.feature-card h4 {
+  color: #2196F3 !important;
+}
+
+.feature-card p {
+  color: #666 !important;
+}
+
+/* Requirements Section - Force visibility */
+.bootcamp-requirements {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.bootcamp-requirements h3 {
+  color: #2196F3 !important;
+}
+
+.requirement {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.requirement span {
+  color: #666 !important;
+}
+
+/* Partners Section - Force visibility */
+.partners-section {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.partners-section h2,
+.partners-section h3 {
+  color: #2196F3 !important;
+}
+
+.partners-section p {
+  color: #666 !important;
+}
+
+.organizer-card,
+.partner-card {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.organizer-card h4,
+.partner-card h3 {
+  color: #333 !important;
+}
+
+.organizer-card p,
+.partner-card p {
+  color: #666 !important;
+}
+
+.organizer-stats span {
+  color: #666 !important;
+}
+
+/* Form Elements - Force visibility */
+.registration-section {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.form-section {
+  background: #fff !important;
+  color: #333 !important;
+  border-bottom-color: #e0e0e0 !important;
+}
+
+.form-section h3 {
+  color: #2196F3 !important;
+}
+
+.form-group label {
+  color: #333 !important;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  color: #333 !important;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #999 !important;
+}
+
+/* Ensure all text is visible */
+.hackathon-page * {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Override any dark theme colors */
+.hackathon-page *[style*="color: white"],
+.hackathon-page *[style*="color: #fff"],
+.hackathon-page *[style*="color: transparent"] {
+  color: #333 !important;
+}
+
+/* Contact Information Section - Force visibility */
+.contact-info {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.contact-info h3 {
+  color: #2196F3 !important;
+}
+
+.contact-details {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.contact-item {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.contact-label {
+  color: #333 !important;
+  font-weight: bold !important;
+}
+
+.contact-value {
+  color: #666 !important;
+}
+
+/* Partnership Contact Details - Specific targeting */
+.partners-section .contact-info,
+.partners-section .contact-details,
+.partners-section .contact-item {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.partners-section .contact-label,
+.partners-section .contact-value {
+  color: #333 !important;
+}
+
+/* Ensure all partnership text is visible */
+.partners-section * {
+  color: inherit !important;
+  background: inherit !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Force specific contact information visibility */
+.contact-details .contact-item:contains("Website"),
+.contact-details .contact-item:contains("Email"),
+.contact-details .contact-item:contains("Contact Person"),
+.contact-details .contact-item:contains("Phone") {
+  background: #fff !important;
+  color: #333 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure contact information text is dark and readable */
+.contact-info p,
+.contact-info span,
+.contact-info div {
+  color: #333 !important;
+  text-shadow: none !important;
+}
+
+/* Partnership section comprehensive fix */
+.partners-section,
+.partners-section * {
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+.partners-section h2,
+.partners-section h3 {
+  color: #2196F3 !important;
+}
+
+.partners-section p,
+.partners-section span,
+.partners-section div {
+  color: #666 !important;
+}
+
+/* Timeline Events - Comprehensive Fix */
+.timeline-event {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.timeline-event .event-content {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.timeline-event .timeline-day {
+  color: #333 !important;
+  font-weight: bold !important;
+}
+
+.timeline-event .timeline-title,
+.timeline-event h3 {
+  color: #2196F3 !important;
+}
+
+.timeline-event .timeline-description,
+.timeline-event p {
+  color: #666 !important;
+}
+
+.timeline-event .timeline-duration {
+  color: #999 !important;
+  font-style: italic !important;
+}
+
+/* Specific Day 5 and Day 6 Timeline Events */
+.timeline-event:nth-child(5),
+.timeline-event:nth-child(6) {
+  background: #fff !important;
+  color: #333 !important;
+}
+
+.timeline-event:nth-child(5) .event-content,
+.timeline-event:nth-child(6) .event-content {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+/* Timeline Icons */
+.timeline-icon {
+  background: #fff !important;
+  color: #333 !important;
+  border: 2px solid #2196F3 !important;
+}
+
+/* Timeline Line */
+.timeline-line {
+  background: #e0e0e0 !important;
+}
+
+/* Timeline Item Specific Fixes */
+.timeline-item {
+  background: transparent !important;
+}
+
+.timeline-item .timeline-content {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.timeline-item h3 {
+  color: #2196F3 !important;
+}
+
+.timeline-item p {
+  color: #666 !important;
+}
+
+.timeline-item .duration {
+  color: #999 !important;
+}
+
+/* Force visibility for all timeline text content */
+.timeline-section * {
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow: none !important;
+}
+
+/* Specific targeting for duration text */
+.timeline-event .timeline-duration,
+.timeline-item .duration,
+.timeline-content .duration {
+  color: #999 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Additional timeline content fixes */
+.timeline-wrapper,
+.timeline-container {
+  background: #fff !important;
+}
+
+/* Timeline card variations */
+.timeline-card.left,
+.timeline-card.right {
+  background: #fff !important;
+  color: #333 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.timeline-card.left .timeline-title,
+.timeline-card.right .timeline-title {
+  color: #2196F3 !important;
+}
+
+.timeline-card.left .timeline-description,
+.timeline-card.right .timeline-description {
+  color: #666 !important;
+}
