@@ -19,6 +19,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Logo from '../assets/CT Logo.png';
 import LoginImg from '../assets/Login-Img.png';
+import HackathonLogo from '../assets/Hackathon Logo.png';
 import '../styles/Login.css';
 
 // Professional animation variants
@@ -75,6 +76,7 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [authCancelTimeout, setAuthCancelTimeout] = useState(null);
+  const [isHackathonContext, setIsHackathonContext] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -85,14 +87,24 @@ function Login() {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Set page title
-    document.title = isLogin ? 'Login - CodeTapasya' : 'Register - CodeTapasya';
-    
-    // Store return path from URL params or current location state
+    // Check if user is coming from hackathon context
     const returnPath = location.state?.from || 
                       new URLSearchParams(location.search).get('returnTo') || 
+                      sessionStorage.getItem('loginReturnPath') || 
                       '/dashboard';
     
+    const isFromHackathon = returnPath.includes('hackathon') || 
+                           location.pathname.includes('hackathon') ||
+                           new URLSearchParams(location.search).get('context') === 'hackathon';
+    
+    setIsHackathonContext(isFromHackathon);
+    
+    // Set page title based on context
+    document.title = isFromHackathon 
+      ? (isLogin ? 'Join CognitiveX Hackathon - Sign In' : 'Join CognitiveX Hackathon - Register')
+      : (isLogin ? 'Login - CodeTapasya' : 'Register - CodeTapasya');
+    
+    // Store return path from URL params or current location state
     if (returnPath !== '/dashboard') {
       sessionStorage.setItem('loginReturnPath', returnPath);
     }
@@ -308,30 +320,50 @@ function Login() {
   return (
     <Box className="login-container">
       <SEO 
-        title={`${isLogin ? 'Sign In' : 'Create Account'} - CodeTapasya | Professional Development Platform`}
-        description={isLogin 
-          ? "Sign in to your CodeTapasya account to access premium programming courses, track your progress, and continue your coding journey." 
-          : "Create your CodeTapasya account to start learning programming with expert-led courses, hands-on projects, and career guidance."
+        title={isHackathonContext 
+          ? `${isLogin ? 'Join CognitiveX Hackathon - Sign In' : 'Join CognitiveX Hackathon - Register'} | GenAI Competition`
+          : `${isLogin ? 'Sign In' : 'Create Account'} - CodeTapasya | Professional Development Platform`
         }
-        canonical={`https://codetapasya.com/login${!isLogin ? '?mode=register' : ''}`}
-        ogImage="https://codetapasya.com/og-login.jpg"
-        keywords={isLogin 
-          ? "login, sign in, CodeTapasya login, programming courses access, student portal, developer login"
-          : "register, sign up, create account, CodeTapasya registration, programming courses, learn coding"
+        description={isHackathonContext
+          ? (isLogin 
+              ? "Sign in to register for CognitiveX GenAI Hackathon. Join the ultimate AI competition and showcase your skills with industry experts."
+              : "Create your account to participate in CognitiveX GenAI Hackathon. Learn, compete, and win amazing prizes in this AI challenge."
+            )
+          : (isLogin 
+              ? "Sign in to your CodeTapasya account to access premium programming courses, track your progress, and continue your coding journey." 
+              : "Create your CodeTapasya account to start learning programming with expert-led courses, hands-on projects, and career guidance."
+            )
+        }
+        canonical={`https://codetapasya.com/login${!isLogin ? '?mode=register' : ''}${isHackathonContext ? '&context=hackathon' : ''}`}
+        ogImage={isHackathonContext ? "https://codetapasya.com/og-hackathon.jpg" : "https://codetapasya.com/og-login.jpg"}
+        keywords={isHackathonContext
+          ? (isLogin 
+              ? "hackathon login, CognitiveX sign in, GenAI competition, AI hackathon registration"
+              : "hackathon register, CognitiveX signup, GenAI competition registration, AI hackathon join"
+            )
+          : (isLogin 
+              ? "login, sign in, CodeTapasya login, programming courses access, student portal, developer login"
+              : "register, sign up, create account, CodeTapasya registration, programming courses, learn coding"
+            )
         }
         noIndex={true}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": isLogin ? "Sign In" : "Create Account",
-          "description": isLogin 
-            ? "Sign in to your CodeTapasya account to access courses and track your learning progress."
-            : "Create your CodeTapasya account to start your programming journey.",
+          "name": isHackathonContext 
+            ? (isLogin ? "Join CognitiveX Hackathon" : "Register for CognitiveX")
+            : (isLogin ? "Sign In" : "Create Account"),
+          "description": isHackathonContext
+            ? "Join the CognitiveX GenAI Hackathon and compete with AI experts"
+            : (isLogin 
+                ? "Sign in to your CodeTapasya account to access courses and track your learning progress."
+                : "Create your CodeTapasya account to start your programming journey."
+              ),
           "url": `https://codetapasya.com/login${!isLogin ? '?mode=register' : ''}`,
           "isPartOf": {
             "@type": "WebSite",
-            "name": "CodeTapasya",
-            "url": "https://codetapasya.com"
+            "name": isHackathonContext ? "CognitiveX Hackathon" : "CodeTapasya",
+            "url": isHackathonContext ? "https://codetapasya.com/hackathon" : "https://codetapasya.com"
           }
         }}
       />
@@ -347,22 +379,56 @@ function Login() {
             <Paper className="login-card" elevation={0}>
               {/* Brand Section */}
               <motion.div className="brand-section" variants={itemVariants}>
-                <img src={Logo} alt="CodeTapasya" className="brand-logo" />
-                <Typography className="brand-name">CodeTapasya</Typography>
+                <img 
+                  src={isHackathonContext ? HackathonLogo : Logo} 
+                  alt={isHackathonContext ? "CognitiveX Hackathon" : "CodeTapasya"} 
+                  className="brand-logo" 
+                  style={{ 
+                    height: isHackathonContext ? '60px' : '50px',
+                    width: 'auto',
+                    objectFit: 'contain'
+                  }}
+                />
+                <Typography className="brand-name">
+                  {isHackathonContext ? "CognitiveX" : "CodeTapasya"}
+                </Typography>
+                {isHackathonContext && (
+                  <Typography 
+                    variant="caption" 
+                    className="brand-subtitle"
+                    style={{ 
+                      color: '#666', 
+                      fontSize: '0.85rem',
+                      textAlign: 'center',
+                      marginTop: '4px'
+                    }}
+                  >
+                    GenAI Hackathon
+                  </Typography>
+                )}
               </motion.div>
 
               {/* Header */}
               <motion.div variants={itemVariants}>
                 <Typography className="login-title">
-                  {isLogin ? 'Welcome Back' : 'Join CodeTapasya'}
+                  {isHackathonContext 
+                    ? (isLogin ? 'Welcome to CognitiveX!' : 'Join CognitiveX!')
+                    : (isLogin ? 'Welcome Back' : 'Join CodeTapasya')
+                  }
                 </Typography>
-            <Typography className="login-subtitle">
-              {isLogin 
-                ? 'Sign in to continue your professional development journey' 
-                : 'Create your account and start building your career in tech'
-              }
-            </Typography>
-          </motion.div>
+                <Typography className="login-subtitle">
+                  {isHackathonContext
+                    ? (isLogin 
+                        ? 'Where Ideas Evolve into AI - Sign in to register for the ultimate GenAI hackathon experience'
+                        : 'Where Ideas Evolve into AI - Create your account to participate in the GenAI revolution'
+                      )
+                    : (isLogin 
+                        ? 'Sign in to continue your professional development journey' 
+                        : 'Create your account and start building your career in tech'
+                      )
+                  }
+                </Typography>
+              </motion.div>
 
           {/* Error Message */}
           <AnimatePresence>
@@ -391,7 +457,10 @@ function Login() {
           {/* Social Authentication */}
           <motion.div className="auth-section" variants={itemVariants}>
             <Typography className="auth-label">
-              Sign {isLogin ? 'in' : 'up'} with
+              {isHackathonContext 
+                ? `${isLogin ? 'Sign in' : 'Sign up'} for hackathon with`
+                : `Sign ${isLogin ? 'in' : 'up'} with`
+              }
             </Typography>
             <div className="auth-buttons">
               <motion.div
@@ -564,7 +633,7 @@ function Login() {
             
             <Link to="/" className="home-link">
               <HomeIcon />
-              <span>Back to Home</span>
+              <span>{isHackathonContext ? 'Back to Hackathon' : 'Back to Home'}</span>
             </Link>
           </motion.div>
         </Paper>
@@ -611,9 +680,15 @@ function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          {isLogin 
-            ? 'Continue Your Journey' 
-            : 'Start Your Tech Career'
+          {isHackathonContext
+            ? (isLogin 
+                ? 'Join the AI Revolution' 
+                : 'Start Your AI Journey'
+              )
+            : (isLogin 
+                ? 'Continue Your Journey' 
+                : 'Start Your Tech Career'
+              )
           }
         </motion.h2>
         
@@ -623,9 +698,15 @@ function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
-          {isLogin 
-            ? 'Access your personalized learning dashboard, track progress, and continue building your programming skills with expert guidance.'
-            : 'Join thousands of developers who started their journey with CodeTapasya. Learn from industry experts and build real-world projects.'
+          {isHackathonContext
+            ? (isLogin 
+                ? 'Access the CognitiveX GenAI Hackathon platform, register your team, and compete with the best AI innovators in a 4-day intensive bootcamp and 2-day challenge.'
+                : 'Join CognitiveX GenAI Hackathon and transform your ideas into AI reality. Learn from IBM experts, compete for amazing prizes, and build the future of artificial intelligence.'
+              )
+            : (isLogin 
+                ? 'Access your personalized learning dashboard, track progress, and continue building your programming skills with expert guidance.'
+                : 'Join thousands of developers who started their journey with CodeTapasya. Learn from industry experts and build real-world projects.'
+              )
           }
         </motion.p>
       </motion.div>

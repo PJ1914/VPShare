@@ -20,7 +20,7 @@ const slides = [
     description: '4-Day Bootcamp + 2-Day- Challenge • GenAI Development • Industry Mentorship',
     cta: 'Register Now',
     type: 'hackathon',
-    features: ['₹50,000 Prize Pool', 'IBM Certification', 'Industry Exposure']
+    features: ['₹30,000 Prize Pool', 'IBM Certification', 'Industry Exposure']
   },
   {
     title: 'Full-Stack Development',

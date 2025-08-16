@@ -117,7 +117,7 @@ const Timeline = () => {
             </div>
             <div className="summary-card">
               <h3>Team Size</h3>
-              <div className="summary-value">1-4</div>
+              <div className="summary-value">1 or 3</div>
               <p>Members per team</p>
             </div>
           </div>

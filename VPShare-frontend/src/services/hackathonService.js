@@ -1697,7 +1697,7 @@ export const validateRegistrationData = (data) => {
   // Team info validation
   if (!data.team_info?.team_name?.trim()) errors.teamName = 'Team name is required';
   if (!data.team_info?.team_size || data.team_info.team_size < 1 || data.team_info.team_size > 4) {
-    errors.teamSize = 'Team size must be between 1-4 members';
+    errors.teamSize = 'Team size must be between 1 or 3 members';
   }
 
   // Team members validation

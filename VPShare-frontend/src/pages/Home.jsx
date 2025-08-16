@@ -493,15 +493,15 @@ function Home() {
                   <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>Event Statistics</h3>
                   <div className="modern-grid modern-grid-3">
                     <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>1000+</div>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>100+</div>
                       <div className="modern-text-sm">Participants</div>
                     </div>
                     <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>50+</div>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>5+</div>
                       <div className="modern-text-sm">Problem Statements</div>
                     </div>
                     <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>₹5L+</div>
+                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>₹30k</div>
                       <div className="modern-text-sm">Prize Pool</div>
                     </div>
                   </div>

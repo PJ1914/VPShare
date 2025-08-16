@@ -371,6 +371,7 @@
 /* Brand Section */
 .brand-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   margin-bottom: var(--login-space-8);
@@ -378,10 +379,12 @@
 }
 
 .brand-logo {
-  width: 40px;
-  height: 40px;
+  width: auto;
+  height: 50px;
+  max-width: 200px;
   border-radius: var(--login-radius-md);
   box-shadow: var(--login-shadow-sm);
+  object-fit: contain;
 }
 
 .brand-name {
@@ -389,6 +392,15 @@
   font-weight: 700;
   color: var(--login-text-primary);
   letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.brand-subtitle {
+  font-size: 0.85rem;
+  color: var(--login-text-secondary);
+  text-align: center;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Social Authentication */

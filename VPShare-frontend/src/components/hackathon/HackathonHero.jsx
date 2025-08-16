@@ -1,8 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 const HackathonHero = () => {
+  const { user, showContextualLoginPrompt } = useAuth();
+
   const handleRegisterClick = () => {
+    // Check if user is logged in
+    if (!user) {
+      // User not logged in - redirect to login page with return path
+      sessionStorage.setItem('loginReturnPath', '/hackathon#register');
+      window.location.href = '/login?returnTo=' + encodeURIComponent('/hackathon#register');
+      return;
+    }
+
+    // User is logged in - scroll to registration section
     const registerSection = document.getElementById('register');
     if (registerSection) {
       registerSection.scrollIntoView({ 
