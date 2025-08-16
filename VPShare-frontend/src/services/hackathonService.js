@@ -524,7 +524,7 @@ const hackathonService = {
         phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''),
         college: registrationData.personal_info.college,
         department: registrationData.personal_info.department,
-        yearOfStudy: registrationData.personal_info.year,
+        year: registrationData.personal_info.year, // Changed from yearOfStudy to year
         rollNumber: registrationData.personal_info.roll_number,
         teamSize: registrationData.team_info.team_size,
         teamName: registrationData.team_info.team_name || '',
@@ -536,29 +536,7 @@ const hackathonService = {
         })),
         problemStatement: registrationData.technical_info.problem_statement,
         programmingLanguages: registrationData.technical_info.programming_languages || [],
-        frameworks: [],
-        aiExperience: registrationData.technical_info.ai_experience || 'beginner',
-        previousHackathons: registrationData.technical_info.previous_hackathons || 'none',
-        projectExperience: '',
-        ibmSkillsBuild: false,
-        nascomRegistration: false,
-        specialAccommodations: '',
-        dietaryRestrictions: '',
-        emergencyContact: {},
-        commitments: {
-          fullParticipation: true,
-          codeOfConduct: true,
-          teamCommitment: true,
-          submissionDeadline: true,
-          intellectualProperty: true
-        },
-        termsAccepted: true,
-        motivation: '',
-        expectations: '',
-        learningGoals: '',
-        howDidYouHear: '',
-        suggestions: '',
-        discountCode: ''
+        aiExperience: registrationData.technical_info.ai_experience || 'beginner'
       };
 
       console.log('Making API call to:', `${HACKATHON_API_URL}/register`);
