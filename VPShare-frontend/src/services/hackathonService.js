@@ -537,7 +537,7 @@ const hackathonService = {
         
         // Team Information
         teamName: registrationData.team_info.team_name || '',
-        teamSize: getBackendTeamSize(registrationData.team_info.team_size),
+        teamSize: registrationData.team_info.team_size, // Send the actual team size to registration Lambda
         teamMembers: (registrationData.team_info.team_members || []).map(member => ({
           ...member,
           phone: member.phone?.replace(/[\s\-\(\)]/g, '') // Clean team member phone numbers too
@@ -788,7 +788,7 @@ const hackathonService = {
         payment_type: 'hackathon', // Add payment_type to match Lambda expectations
         registration_id: registrationId,
         amount: amount, // Amount should already be in paise (19900, 54900)
-        team_size: teamSize
+        team_size: getBackendTeamSize(teamSize) // Map to backend expected values (1 or 3)
       };
       
       const response = await hackathonPaymentAPI.post('/create-order', paymentData, {
@@ -840,7 +840,7 @@ const hackathonService = {
         razorpay_order_id: paymentData.order_id,
         razorpay_signature: paymentData.signature,
         registration_id: paymentData.registration_id,
-        plan: `hackathon_${paymentData.team_size === 1 ? 'individual' : 'team'}`,
+        plan: `hackathon_${getBackendTeamSize(paymentData.team_size) === 1 ? 'individual' : 'team'}`,
         amount: paymentData.amount,
         email: user.email
       };
@@ -1232,7 +1232,7 @@ const hackathonService = {
             razorpay_order_id: paymentData.razorpay_order_id,
             razorpay_signature: paymentData.razorpay_signature,
             registration_id: paymentData.registration_id,
-            team_size: paymentData.team_size,
+            team_size: getBackendTeamSize(paymentData.team_size),
             amount: paymentData.amount
           });
 
@@ -1800,7 +1800,7 @@ export const initiateRazorpayPayment = async (paymentData, onSuccess, onFailure)
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
             registration_id: paymentData.registration_details.registration_id,
-            team_size: paymentData.registration_details.team_size,
+            team_size: getBackendTeamSize(paymentData.registration_details.team_size),
             amount: paymentData.amount
           });
 
