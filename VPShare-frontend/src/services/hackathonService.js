@@ -515,52 +515,36 @@ const hackathonService = {
   // Enhanced registration flow using Firebase + DynamoDB
   async register(registrationData) {
     try {
-      const user = auth.currentUser;
+      console.log('Starting registration process...');
       
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Step 1: Call the backend registration API directly
-      const token = await user.getIdToken();
-      
-      // Transform the form data to match what your Lambda expects exactly
-      const backendRegistrationData = {
-        // Personal Information - match your backend validation
+      // Transform the form data to match your Lambda EXACTLY
+      const backendData = {
         fullName: registrationData.personal_info.full_name,
         email: registrationData.personal_info.email,
-        phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''), // Clean phone number
+        phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''),
         college: registrationData.personal_info.college,
         department: registrationData.personal_info.department,
-        yearOfStudy: registrationData.personal_info.year, // Backend expects yearOfStudy
+        yearOfStudy: registrationData.personal_info.year,
         rollNumber: registrationData.personal_info.roll_number,
-        
-        // Team Information
+        teamSize: registrationData.team_info.team_size,
         teamName: registrationData.team_info.team_name || '',
-        teamSize: registrationData.team_info.team_size, // Send the actual team size to registration Lambda
         teamMembers: (registrationData.team_info.team_members || []).map(member => ({
-          ...member,
-          phone: member.phone?.replace(/[\s\-\(\)]/g, '') // Clean team member phone numbers too
+          name: member.name,
+          email: member.email,
+          phone: member.phone?.replace(/[\s\-\(\)]/g, ''),
+          rollNumber: member.roll_number || member.rollNumber
         })),
-        
-        // Technical Information
         problemStatement: registrationData.technical_info.problem_statement,
         programmingLanguages: registrationData.technical_info.programming_languages || [],
+        frameworks: [],
         aiExperience: registrationData.technical_info.ai_experience || 'beginner',
         previousHackathons: registrationData.technical_info.previous_hackathons || 'none',
-        
-        // Skills and additional fields your backend might expect
-        frameworks: [], // Add empty array as default
         projectExperience: '',
-        
-        // Requirements that your backend validates
-        ibmSkillsBuild: registrationData.commitments.ibm_skillsbuild || false,
-        nascomRegistration: registrationData.commitments.nasscom_registration || false,
+        ibmSkillsBuild: false,
+        nascomRegistration: false,
         specialAccommodations: '',
         dietaryRestrictions: '',
         emergencyContact: {},
-        
-        // Commitments that your backend validates (all must be true)
         commitments: {
           fullParticipation: true,
           codeOfConduct: true,
@@ -569,114 +553,54 @@ const hackathonService = {
           intellectualProperty: true
         },
         termsAccepted: true,
-        
-        // Additional Information
-        motivation: registrationData.additional_info.expectations || '',
-        expectations: registrationData.additional_info.expectations || '',
+        motivation: '',
+        expectations: '',
         learningGoals: '',
         howDidYouHear: '',
         suggestions: '',
-        
-        // Discount code (optional)
         discountCode: ''
       };
 
-      // Make the API call to your Lambda function
-      console.log('Sending registration data to:', HACKATHON_API_URL);
-      console.log('Registration payload:', JSON.stringify(backendRegistrationData, null, 2));
+      console.log('Making API call to:', `${HACKATHON_API_URL}/register`);
       
-      const response = await hackathonAPI.post('/register', backendRegistrationData, {
+      // Direct axios call without auth for now to test
+      const response = await axios.post(`${HACKATHON_API_URL}/register`, backendData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Backend registration failed');
-      }
-
-      console.log('Registration successful:', response.data);
-
-      // Also save to Firestore for additional features
-      try {
-        await this.saveUserProfile(registrationData.personal_info);
-        await this.createTeam(registrationData.team_info, registrationData.personal_info);
-        await this.saveCommitments(
-          response.data.data.registration_id, 
-          registrationData.commitments, 
-          registrationData.additional_info
-        );
-      } catch (firebaseError) {
-        // Don't fail the whole registration if Firebase fails
-        logger.warn('Firebase save failed, but registration succeeded:', firebaseError);
-      }
-
-      return {
-        success: true,
-        data: {
-          registration_id: response.data.data.registration_id,
-          team_id: response.data.data.registration_id, // Use registration_id as team_id fallback
-          team_size: registrationData.team_info.team_size // Use original team size, not backend-mapped
         },
-        message: 'Registration completed successfully'
-      };
+        timeout: 30000
+      });
+
+      console.log('Registration response:', response.data);
+
+      if (response.data.success) {
+        return {
+          success: true,
+          data: {
+            registration_id: response.data.data.registration_id,
+            team_size: registrationData.team_info.team_size
+          },
+          message: 'Registration completed successfully'
+        };
+      } else {
+        throw new Error(response.data.message || 'Registration failed');
+      }
+
     } catch (error) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
-      
-      // Handle specific HTTP error codes
-      if (error.response?.status === 409) {
-        return {
-          success: false,
-          message: 'You have already registered for this hackathon. Please check your email for registration details.',
-          error: error,
-          statusCode: 409
-        };
-      }
       
       if (error.response?.status === 405) {
         return {
           success: false,
           message: 'Registration endpoint not properly configured. Please contact support.',
-          error: error,
           statusCode: 405
-        };
-      }
-      
-      // Enhanced error handling for development
-      if (isDevelopment || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-        logger.info('Registration API not available, using development mode');
-        
-        // Return mock data for development
-        const mockRegistrationId = `reg_dev_${Date.now()}`;
-        const mockTeamId = `team_dev_${Date.now()}`;
-        
-        // Still save to Firebase in development
-        await this.saveCommitments(
-          mockRegistrationId, 
-          registrationData.commitments, 
-          registrationData.additional_info
-        );
-        
-        return {
-          success: true,
-          data: {
-            registration_id: mockRegistrationId,
-            team_id: mockTeamId,
-            team_size: registrationData.team_info.team_size
-          },
-          message: 'Registration completed successfully (Development Mode)'
         };
       }
       
       return {
         success: false,
-        message: error.message || 'Registration failed',
-        error: error,
-        isNetworkError: error.code === 'ERR_NETWORK' || error.message.includes('Network Error')
+        message: error.response?.data?.message || error.message || 'Registration failed'
       };
     }
   },
