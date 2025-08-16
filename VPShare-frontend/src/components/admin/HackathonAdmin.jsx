@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import hackathonService from '../../services/hackathonService';
 import '../../styles/Hackathon.css';
+import './HackathonAdmin.css';
 const HackathonAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
