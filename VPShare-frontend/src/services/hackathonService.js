@@ -540,8 +540,6 @@ const hackathonService = {
       };
 
       console.log('Making API call to:', `${HACKATHON_API_URL}/register`);
-      console.log('HACKATHON_API_URL value:', HACKATHON_API_URL);
-      console.log('Sending data:', JSON.stringify(backendData, null, 2));
       
       // Direct axios call without auth for now to test
       const response = await axios.post(`${HACKATHON_API_URL}/register`, backendData, {
