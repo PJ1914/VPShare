@@ -28,9 +28,9 @@ const isDevelopment = config.isDevelopment;
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 1; // ₹199 for individual
+      return 1; // ₹1 for individual (testing)
     case 3:
-      return 549; // ₹549 for team of 3
+      return 1; // ₹1 for team of 3 (testing)
     default:
       return 1; // Default to individual pricing
   }
@@ -40,9 +40,9 @@ const getTeamPrice = (teamSize) => {
 const getTeamPriceInPaise = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 100; // ₹199 = 19900 paise (Individual)
+      return 100; // ₹1 = 100 paise (Individual - testing)
     case 3:
-      return 54900; // ₹549 = 54900 paise (Team of 3)
+      return 100; // ₹1 = 100 paise (Team of 3 - testing)
     default:
       return 100; // Default to individual pricing
   }
@@ -58,9 +58,9 @@ const getHackathonPlanMapping = (teamSize) => {
   // Use exact amounts that Lambda expects (in paise)
   switch (teamSize) {
     case 1:
-      return { plan: 'one-member', amount: 100 }; // ₹199 = 19900 paise (Lambda expects exactly 19900)
+      return { plan: 'one-member', amount: 100 }; // ₹1 = 100 paise (testing)
     case 3:
-      return { plan: 'team-member', amount: 54900 }; // ₹549 = 54900 paise (Lambda expects exactly 54900)
+      return { plan: 'team-member', amount: 100 }; // ₹1 = 100 paise (testing)
     default:
       return { plan: 'one-member', amount: 100 }; // Default to individual
   }
@@ -526,35 +526,61 @@ const hackathonService = {
       // Step 1: Call the backend registration API directly
       const token = await user.getIdToken();
       
-      // Transform the form data to match what your Lambda expects
+      // Transform the form data to match what your Lambda expects exactly
       const backendRegistrationData = {
+        // Personal Information - match your backend validation
         fullName: registrationData.personal_info.full_name,
         email: registrationData.personal_info.email,
-        phone: registrationData.personal_info.phone,
+        phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''), // Clean phone number
         college: registrationData.personal_info.college,
         department: registrationData.personal_info.department,
-        yearOfStudy: registrationData.personal_info.year,
+        yearOfStudy: registrationData.personal_info.year, // Backend expects yearOfStudy
         rollNumber: registrationData.personal_info.roll_number,
-        teamName: registrationData.team_info.team_name,
+        
+        // Team Information
+        teamName: registrationData.team_info.team_name || '',
         teamSize: getBackendTeamSize(registrationData.team_info.team_size),
-        teamMembers: registrationData.team_info.team_members,
+        teamMembers: (registrationData.team_info.team_members || []).map(member => ({
+          ...member,
+          phone: member.phone?.replace(/[\s\-\(\)]/g, '') // Clean team member phone numbers too
+        })),
+        
+        // Technical Information
         problemStatement: registrationData.technical_info.problem_statement,
-        programmingLanguages: registrationData.technical_info.programming_languages,
-        aiExperience: registrationData.technical_info.ai_experience,
-        previousHackathons: registrationData.technical_info.previous_hackathons,
-        ibmSkillsBuild: registrationData.commitments.ibm_skillsbuild,
-        nascomRegistration: registrationData.commitments.nasscom_registration,
-        motivation: registrationData.additional_info.expectations,
-        expectations: registrationData.additional_info.expectations,
-        // Add commitments that your backend validates
+        programmingLanguages: registrationData.technical_info.programming_languages || [],
+        aiExperience: registrationData.technical_info.ai_experience || 'beginner',
+        previousHackathons: registrationData.technical_info.previous_hackathons || 'none',
+        
+        // Skills and additional fields your backend might expect
+        frameworks: [], // Add empty array as default
+        projectExperience: '',
+        
+        // Requirements that your backend validates
+        ibmSkillsBuild: registrationData.commitments.ibm_skillsbuild || false,
+        nascomRegistration: registrationData.commitments.nasscom_registration || false,
+        specialAccommodations: '',
+        dietaryRestrictions: '',
+        emergencyContact: {},
+        
+        // Commitments that your backend validates (all must be true)
         commitments: {
-          fullParticipation: registrationData.commitments.full_participation || true,
-          codeOfConduct: registrationData.commitments.code_of_conduct || true,
-          teamCommitment: registrationData.commitments.team_commitment || true,
-          submissionDeadline: registrationData.commitments.submission_deadline || true,
-          intellectualProperty: registrationData.commitments.intellectual_property || true
+          fullParticipation: true,
+          codeOfConduct: true,
+          teamCommitment: true,
+          submissionDeadline: true,
+          intellectualProperty: true
         },
-        termsAccepted: true
+        termsAccepted: true,
+        
+        // Additional Information
+        motivation: registrationData.additional_info.expectations || '',
+        expectations: registrationData.additional_info.expectations || '',
+        learningGoals: '',
+        howDidYouHear: '',
+        suggestions: '',
+        
+        // Discount code (optional)
+        discountCode: ''
       };
 
       // Make the API call to your Lambda function
