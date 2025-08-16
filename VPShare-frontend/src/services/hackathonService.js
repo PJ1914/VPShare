@@ -21,6 +21,13 @@ const ADMIN_API_URL = import.meta.env.VITE_HACKATHON_ADMIN_API_URL;
 const UTILS_API_URL = import.meta.env.VITE_HACKATHON_UTILS_API_URL;
 const HACKATHON_PAYMENT_API_URL = import.meta.env.VITE_HACKATHON_PAYMENT_API_URL || import.meta.env.VITE_API_BASE_URL; 
 
+// Debug environment variables
+console.log('Environment Variables Debug:');
+console.log('HACKATHON_API_URL:', HACKATHON_API_URL);
+console.log('ADMIN_API_URL:', ADMIN_API_URL);
+console.log('UTILS_API_URL:', UTILS_API_URL);
+console.log('HACKATHON_PAYMENT_API_URL:', HACKATHON_PAYMENT_API_URL); 
+
 // Development mode check
 const isDevelopment = config.isDevelopment;
 
@@ -584,17 +591,17 @@ const hackathonService = {
       };
 
       // Make the API call to your Lambda function
-      const response = await axios.post(
-        `${import.meta.env.VITE_HACKATHON_API_URL}/register`, 
-        backendRegistrationData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          timeout: 30000
+      console.log('HACKATHON_API_URL:', HACKATHON_API_URL); // Debug log
+      
+      if (!HACKATHON_API_URL) {
+        throw new Error('VITE_HACKATHON_API_URL environment variable is not set');
+      }
+      
+      const response = await hackathonAPI.post('/register', backendRegistrationData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      );
+      });
       
       if (!response.data.success) {
         throw new Error(response.data.message || 'Backend registration failed');
