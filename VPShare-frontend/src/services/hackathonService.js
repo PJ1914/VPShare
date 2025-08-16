@@ -539,10 +539,15 @@ const hackathonService = {
         aiExperience: registrationData.technical_info.ai_experience || 'beginner'
       };
 
-      console.log('Making API call to:', `${HACKATHON_API_URL}/register`);
+      // Check if API URL is loaded
+      if (!import.meta.env.VITE_HACKATHON_API_URL) {
+        throw new Error('VITE_HACKATHON_API_URL environment variable is not set. Please restart your development server.');
+      }
+
+      console.log('Making API call to:', `${import.meta.env.VITE_HACKATHON_API_URL}/register`);
       
       // Direct axios call without auth for now to test
-      const response = await axios.post(`${HACKATHON_API_URL}/register`, backendData, {
+      const response = await axios.post(`${import.meta.env.VITE_HACKATHON_API_URL}/register`, backendData, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -573,7 +578,7 @@ const hackathonService = {
       if (error.response?.status === 405) {
         return {
           success: false,
-          message: `405 Error: The endpoint ${HACKATHON_API_URL}/register does not support POST method. Check your Lambda configuration and API Gateway setup.`,
+          message: `405 Error: The endpoint ${import.meta.env.VITE_HACKATHON_API_URL}/register does not support POST method. Check your Lambda configuration and API Gateway setup.`,
           statusCode: 405
         };
       }
