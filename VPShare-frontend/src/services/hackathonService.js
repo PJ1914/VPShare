@@ -533,10 +533,10 @@ const hackathonService = {
         phone: registrationData.personal_info.phone,
         college: registrationData.personal_info.college,
         department: registrationData.personal_info.department,
-        year: registrationData.personal_info.year,
+        yearOfStudy: registrationData.personal_info.year,
         rollNumber: registrationData.personal_info.roll_number,
         teamName: registrationData.team_info.team_name,
-        teamSize: getBackendTeamSize(registrationData.team_info.team_size), // Convert to backend-compatible size (1 or 3 only)
+        teamSize: getBackendTeamSize(registrationData.team_info.team_size),
         teamMembers: registrationData.team_info.team_members,
         problemStatement: registrationData.technical_info.problem_statement,
         programmingLanguages: registrationData.technical_info.programming_languages,
@@ -545,7 +545,16 @@ const hackathonService = {
         ibmSkillsBuild: registrationData.commitments.ibm_skillsbuild,
         nascomRegistration: registrationData.commitments.nasscom_registration,
         motivation: registrationData.additional_info.expectations,
-        expectations: registrationData.additional_info.expectations
+        expectations: registrationData.additional_info.expectations,
+        // Add commitments that your backend validates
+        commitments: {
+          fullParticipation: registrationData.commitments.full_participation || true,
+          codeOfConduct: registrationData.commitments.code_of_conduct || true,
+          teamCommitment: registrationData.commitments.team_commitment || true,
+          submissionDeadline: registrationData.commitments.submission_deadline || true,
+          intellectualProperty: registrationData.commitments.intellectual_property || true
+        },
+        termsAccepted: true
       };
 
       // Make the API call to your Lambda function
