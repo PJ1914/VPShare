@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import hackathonService from '../../services/hackathonService';
 import '../../styles/Hackathon.css';
-import './HackathonAdmin.css';
 const HackathonAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -137,7 +136,7 @@ const HackathonAdmin = () => {
       if (result.success) {
         setRegistrations(prev => 
           prev.map(reg => 
-            reg.registration_id === registrationId 
+            reg.registrationId === registrationId 
               ? { ...reg, registration_status: backendStatus, status: newStatus }
               : reg
           )
@@ -233,7 +232,7 @@ const HackathonAdmin = () => {
         // Update local state
         setRegistrations(prev => 
           prev.map(reg => 
-            selectedRegistrations.has(reg.registration_id)
+            selectedRegistrations.has(reg.registrationId)
               ? { ...reg, registration_status: bulkAction, status: bulkAction }
               : reg
           )
@@ -272,7 +271,7 @@ const HackathonAdmin = () => {
   };
 
   const selectAllFilteredRegistrations = () => {
-    const allIds = new Set(filteredRegistrations.map(reg => reg.registration_id));
+    const allIds = new Set(filteredRegistrations.map(reg => reg.registrationId));
     setSelectedRegistrations(allIds);
   };
 
@@ -357,22 +356,22 @@ const HackathonAdmin = () => {
 
     data.forEach(reg => {
       const row = [
-        reg.registration_id || '',
-        reg.full_name || '',
+        reg.registrationId || '',
+        reg.fullName || '',
         reg.email || '',
         reg.phone || '',
         reg.college || '',
         reg.department || '',
         reg.year || '',
-        reg.team_name || 'Individual',
-        reg.team_size || 1,
-        reg.problem_statement || '',
-        (reg.programming_languages || []).join('; '),
-        reg.ai_experience || '',
-        reg.previous_hackathons || '',
+        reg.teamName || 'Individual',
+        reg.teamSize || 1,
+        reg.problemStatement || '',
+        (reg.programmingLanguages || []).join('; '),
+        reg.aiExperience || '',
+        reg.previousHackathons || '',
         reg.status || 'pending',
-        reg.payment_status || 'pending',
-        reg.created_at || reg.registration_date || ''
+        reg.paymentStatus || 'pending',
+        reg.createdAt || reg.registrationDate || ''
       ].map(field => `"${field}"`);
       
       csvRows.push(row.join(','));
@@ -389,7 +388,7 @@ const HackathonAdmin = () => {
     if (filters.status !== 'all' && frontendStatus !== filters.status) return false;
     
     if (filters.teamSize !== 'all') {
-      const teamSize = reg.team_info?.teamSize || reg.team_size || 1;
+      const teamSize = reg.team_info?.teamSize || reg.teamSize || 1;
       const teamType = teamSize === 1 ? 'individual' : 'team';
       if (filters.teamSize !== teamType) return false;
     }
@@ -401,12 +400,12 @@ const HackathonAdmin = () => {
       
       return (
         personalInfo.fullName?.toLowerCase().includes(searchLower) ||
-        reg.full_name?.toLowerCase().includes(searchLower) ||
+        reg.fullName?.toLowerCase().includes(searchLower) ||
         personalInfo.email?.toLowerCase().includes(searchLower) ||
         reg.email?.toLowerCase().includes(searchLower) ||
-        reg.registration_id?.toLowerCase().includes(searchLower) ||
+        reg.registrationId?.toLowerCase().includes(searchLower) ||
         teamInfo.teamName?.toLowerCase().includes(searchLower) ||
-        reg.team_name?.toLowerCase().includes(searchLower)
+        reg.teamName?.toLowerCase().includes(searchLower)
       );
     }
     return true;
@@ -804,27 +803,27 @@ const RegistrationsSection = ({
         const paymentInfo = registration.payment_info || {};
         const status = registration.registration_status || registration.status || 'pending';
         const frontendStatus = status === 'pending_payment' ? 'pending' : status;
-        const paymentStatus = paymentInfo.status || registration.payment_status || 'pending';
+        const paymentStatus = paymentInfo.status || registration.paymentStatus || 'pending';
         
         return (
           <motion.div
-            key={registration.registration_id}
+            key={registration.registrationId}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`table-row ${selectedRegistrations.has(registration.registration_id) ? 'selected' : ''}`}
+            className={`table-row ${selectedRegistrations.has(registration.registrationId) ? 'selected' : ''}`}
           >
             <div className="select-column">
               <input
                 type="checkbox"
-                checked={selectedRegistrations.has(registration.registration_id)}
+                checked={selectedRegistrations.has(registration.registrationId)}
                 onChange={(e) => {
                   if (e.target.checked) {
-                    setSelectedRegistrations(prev => new Set([...prev, registration.registration_id]));
+                    setSelectedRegistrations(prev => new Set([...prev, registration.registrationId]));
                   } else {
                     setSelectedRegistrations(prev => {
                       const newSet = new Set(prev);
-                      newSet.delete(registration.registration_id);
+                      newSet.delete(registration.registrationId);
                       return newSet;
                     });
                   }
@@ -832,19 +831,19 @@ const RegistrationsSection = ({
               />
             </div>
             <div className="registration-id">
-              {registration.registration_id}
+              {registration.registrationId}
             </div>
             <div className="name">
-              {personalInfo.fullName || registration.full_name || 'N/A'}
+              {personalInfo.fullName || registration.fullName || 'N/A'}
             </div>
             <div className="email">
               {personalInfo.email || registration.email || 'N/A'}
             </div>
             <div className="team">
-              {teamInfo.teamName || registration.team_name || 'Individual'}
-              {(teamInfo.teamSize > 1 || registration.team_size > 1) && (
+              {teamInfo.teamName || registration.teamName || 'Individual'}
+              {(teamInfo.teamSize > 1 || registration.teamSize > 1) && (
                 <span className="team-size">
-                  ({teamInfo.teamSize || registration.team_size} members)
+                  ({teamInfo.teamSize || registration.teamSize} members)
                 </span>
               )}
             </div>
@@ -868,7 +867,7 @@ const RegistrationsSection = ({
               </button>
               <select
                 value={frontendStatus}
-                onChange={(e) => updateRegistrationStatus(registration.registration_id, e.target.value)}
+                onChange={(e) => updateRegistrationStatus(registration.registrationId, e.target.value)}
                 className="status-select"
               >
                 <option value="pending">Pending</option>
@@ -942,8 +941,8 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
           <div className="detail-section">
             <h3>📋 Basic Information</h3>
             <div className="detail-grid">
-              <div><strong>Registration ID:</strong> {registration.registration_id}</div>
-              <div><strong>Name:</strong> {personalInfo.fullName || registration.full_name || 'N/A'}</div>
+              <div><strong>Registration ID:</strong> {registration.registrationId}</div>
+              <div><strong>Name:</strong> {personalInfo.fullName || registration.fullName || 'N/A'}</div>
               <div><strong>Email:</strong> {personalInfo.email || registration.email || 'N/A'}</div>
               <div><strong>Phone:</strong> {personalInfo.phone || registration.phone || 'N/A'}</div>
               <div><strong>College:</strong> {personalInfo.college || registration.college || 'N/A'}</div>
@@ -952,12 +951,12 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
             </div>
           </div>
 
-          {(teamInfo.teamName || registration.team_name) && (
+          {(teamInfo.teamName || registration.teamName) && (
             <div className="detail-section">
               <h3>👥 Team Information</h3>
               <div className="detail-grid">
-                <div><strong>Team Name:</strong> {teamInfo.teamName || registration.team_name}</div>
-                <div><strong>Team Size:</strong> {teamInfo.teamSize || registration.team_size || 1}</div>
+                <div><strong>Team Name:</strong> {teamInfo.teamName || registration.teamName}</div>
+                <div><strong>Team Size:</strong> {teamInfo.teamSize || registration.teamSize || 1}</div>
                 {(teamInfo.teamMembers || registration.team_members) && (
                   <div className="team-members">
                     <strong>Team Members:</strong>
@@ -977,12 +976,12 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
           <div className="detail-section">
             <h3>💻 Technical Information</h3>
             <div className="detail-grid">
-              <div><strong>Problem Statement:</strong> {registration.problem_statement || 'N/A'}</div>
+              <div><strong>Problem Statement:</strong> {registration.problemStatement || 'N/A'}</div>
               <div><strong>Programming Languages:</strong> {
-                (skills.programmingLanguages || registration.programming_languages || []).join(', ') || 'N/A'
+                (skills.programmingLanguages || registration.programmingLanguages || []).join(', ') || 'N/A'
               }</div>
-              <div><strong>AI Experience:</strong> {skills.aiExperience || registration.ai_experience || 'N/A'}</div>
-              <div><strong>Previous Hackathons:</strong> {skills.previousHackathons || registration.previous_hackathons || 'N/A'}</div>
+              <div><strong>AI Experience:</strong> {skills.aiExperience || registration.aiExperience || 'N/A'}</div>
+              <div><strong>Previous Hackathons:</strong> {skills.previousHackathons || registration.previousHackathons || 'N/A'}</div>
             </div>
           </div>
 
@@ -990,7 +989,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
             <h3>� Payment Information</h3>
             <div className="detail-grid">
               <div><strong>Amount:</strong> ₹{paymentInfo.amount || registration.amount || 'N/A'}</div>
-              <div><strong>Payment Status:</strong> {paymentInfo.status || registration.payment_status || 'pending'}</div>
+              <div><strong>Payment Status:</strong> {paymentInfo.status || registration.paymentStatus || 'pending'}</div>
               <div><strong>Payment ID:</strong> {paymentInfo.razorpay_payment_id || registration.payment_id || 'N/A'}</div>
               <div><strong>Order ID:</strong> {paymentInfo.razorpay_order_id || registration.order_id || 'N/A'}</div>
             </div>
@@ -1009,7 +1008,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
                 <strong>Update Status:</strong>
                 <select
                   value={frontendStatus}
-                  onChange={(e) => onStatusUpdate(registration.registration_id, e.target.value)}
+                  onChange={(e) => onStatusUpdate(registration.registrationId, e.target.value)}
                   className="status-select"
                 >
                   <option value="pending">Pending</option>
@@ -1032,19 +1031,19 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
               <h3>🛠️ Utilities & Actions</h3>
               <div className="utility-actions">
                 <button 
-                  onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registration_id, 'participation')}
+                  onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registrationId, 'participation')}
                   className="btn-utility"
                 >
                   🏆 Generate Certificate
                 </button>
                 <button 
-                  onClick={() => onSendEmail && onSendEmail(registration.registration_id, 'confirmation')}
+                  onClick={() => onSendEmail && onSendEmail(registration.registrationId, 'confirmation')}
                   className="btn-utility"
                 >
                   📧 Send Confirmation
                 </button>
                 <button 
-                  onClick={() => onSendEmail && onSendEmail(registration.registration_id, 'reminder')}
+                  onClick={() => onSendEmail && onSendEmail(registration.registrationId, 'reminder')}
                   className="btn-utility"
                 >
                   ⏰ Send Reminder
@@ -1061,7 +1060,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
 // Payments Section Component
 const PaymentsSection = ({ registrations }) => {
   const paymentStats = registrations.reduce((acc, reg) => {
-    const status = reg.payment_status || 'pending';
+    const status = reg.paymentStatus || 'pending';
     acc[status] = (acc[status] || 0) + 1;
     if (status === 'completed') {
       acc.revenue = (acc.revenue || 0) + (reg.amount || 0);
