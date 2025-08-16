@@ -79,8 +79,14 @@ const CacheDebugPanel = () => {
     }
   };
 
-  // Only show in development or when manually triggered
+  // Only show in development or when manually triggered, and hide on mobile
   if (import.meta.env.PROD && !window.location.search.includes('debug=cache')) {
+    return null;
+  }
+  
+  // Hide on mobile devices (screen width < 768px)
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
     return null;
   }
 

@@ -3,28 +3,40 @@ class ServiceWorkerManager {
   constructor() {
     this.registration = null;
     this.showUpdateAvailable = null;
-    this.forceReload = true;
+    this.forceReload = false; // Disable force reload to prevent infinite loops in all browsers
     this.updateCheckInterval = null;
+    this.isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+    this.isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('chrome');
+    this.isProblematicBrowser = this.isFirefox || this.isSafari;
   }
 
   // Initialize service worker with automatic update handling
   async init(options = {}) {
     this.showUpdateAvailable = options.showUpdateAvailable || this.defaultUpdateNotification;
-    this.forceReload = options.forceReload !== undefined ? options.forceReload : true;
+    this.forceReload = options.forceReload !== undefined ? options.forceReload : false;
+
+    // Skip service worker entirely for very problematic browsers in development
+    if (this.isProblematicBrowser && window.location.hostname === 'localhost') {
+      console.log('[SWM] Skipping service worker registration for browser compatibility in development');
+      return null;
+    }
 
     if ('serviceWorker' in navigator) {
       try {
-        // Unregister any existing service workers first to ensure clean slate
-        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of existingRegistrations) {
-          await registration.unregister();
-          console.log('[SWM] Unregistered existing service worker');
+        // For problematic browsers (Firefox, Safari), be less aggressive with unregistering
+        if (!this.isProblematicBrowser) {
+          // Unregister any existing service workers first to ensure clean slate
+          const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of existingRegistrations) {
+            await registration.unregister();
+            console.log('[SWM] Unregistered existing service worker');
+          }
         }
 
         // Register new service worker
         this.registration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
-          updateViaCache: 'none' // Always check for updates
+          updateViaCache: this.isProblematicBrowser ? 'imports' : 'none' // Less aggressive caching for problematic browsers
         });
 
         console.log('[SWM] Service Worker registered successfully');
@@ -99,9 +111,14 @@ class ServiceWorkerManager {
 
     // Handle service worker controller change
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('[SWM] Service Worker controller changed, reloading page');
-      // Always reload when controller changes to ensure fresh content
-      window.location.reload();
+      console.log('[SWM] Service Worker controller changed');
+      // Only reload if not a problematic browser or if explicitly requested
+      if (!this.isProblematicBrowser && this.forceReload) {
+        console.log('[SWM] Reloading page for controller change');
+        window.location.reload();
+      } else {
+        console.log('[SWM] Skipping reload for browser compatibility');
+      }
     });
   }
 
@@ -212,9 +229,12 @@ class ServiceWorkerManager {
         console.log('[SWM] Service Worker activated with version:', data.version);
         
         // Force reload when new SW is activated to ensure fresh content
-        if (data.action === 'reload') {
+        // But be gentler with problematic browsers (Firefox, Safari)
+        if (data.action === 'reload' && (!this.isProblematicBrowser || this.forceReload)) {
           console.log('[SWM] Reloading page for fresh content...');
           window.location.reload();
+        } else if (this.isProblematicBrowser) {
+          console.log('[SWM] Skipping reload for browser compatibility');
         }
       }
       
@@ -264,27 +284,32 @@ class ServiceWorkerManager {
   setupPeriodicUpdateChecks() {
     if (!this.registration) return;
 
-    // Check for updates every 30 seconds when page is visible
+    // Less aggressive checking for problematic browsers
+    const checkInterval = this.isProblematicBrowser ? 120000 : 30000; // 2 minutes vs 30 seconds
+
+    // Check for updates when page is visible
     setInterval(() => {
-      if (!document.hidden) {
+      if (!document.hidden && !this.isProblematicBrowser) {
         this.registration.update().catch(() => {
           // Silently handle update check failures
         });
       }
-    }, 30000);
+    }, checkInterval);
   }
 
   // Handle page visibility changes
   setupVisibilityHandling() {
     if (!this.registration) return;
 
-    // Check for updates when page becomes visible
+    // Check for updates when page becomes visible (less aggressive for problematic browsers)
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
+      if (!document.hidden && !this.isProblematicBrowser) {
         console.log('Page became visible, checking for updates...');
         this.registration.update().catch(() => {
           // Silently handle update check failures
         });
+      } else if (!document.hidden && this.isProblematicBrowser) {
+        console.log('Page became visible (problematic browser - skipping update check)');
       }
     });
   }

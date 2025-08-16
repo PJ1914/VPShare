@@ -947,27 +947,43 @@ const hackathonService = {
       const fallbackProblems = [
         {
           id: 'p1',
-          title: 'AI-Powered Healthcare Solution',
-          description: 'Develop an AI solution to improve healthcare diagnostics and patient care.',
+          title: 'AI Medical Prescription Verification Leveraging IBM Watson and Hugging Face Models',
+          description: 'Develop an AI solution to verify medical prescriptions using IBM Watson and Hugging Face models.',
           category: 'Healthcare',
-          difficulty: 'Medium',
-          tags: ['AI', 'Machine Learning', 'Healthcare']
+          difficulty: 'Hard',
+          tags: ['AI', 'IBM Watson', 'Healthcare', 'Machine Learning']
         },
         {
           id: 'p2', 
-          title: 'Sustainable Smart City Platform',
-          description: 'Create a platform to optimize city resources and reduce environmental impact.',
-          category: 'Sustainability',
+          title: 'ClauseWise: Legal Document Analyzer Using IBM Watson & Granite',
+          description: 'Create a legal document analyzer that uses IBM Watson and Granite for clause analysis.',
+          category: 'Legal Tech',
           difficulty: 'Hard',
-          tags: ['IoT', 'Sustainability', 'Smart City']
+          tags: ['AI', 'IBM Watson', 'Legal', 'Document Analysis']
         },
         {
           id: 'p3',
-          title: 'Financial Inclusion App',
-          description: 'Build an app to provide financial services to underbanked populations.',
+          title: 'Personal Finance Chatbot: Intelligent Guidance for Savings, Taxes, and Investments',
+          description: 'Build an AI-powered chatbot that provides intelligent financial guidance.',
           category: 'Fintech',
           difficulty: 'Medium',
-          tags: ['Fintech', 'Mobile', 'Inclusion']
+          tags: ['AI', 'Fintech', 'Chatbot', 'Personal Finance']
+        },
+        {
+          id: 'p4',
+          title: 'StudyMate: An AI-Powered PDF-Based Q&A System for Students',
+          description: 'Develop an AI system that answers questions based on PDF documents for students.',
+          category: 'Education',
+          difficulty: 'Medium',
+          tags: ['AI', 'Education', 'PDF Processing', 'Q&A']
+        },
+        {
+          id: 'p5',
+          title: 'EchoVerse – An AI-Powered Audiobook Creation Tool',
+          description: 'Create a tool that converts text to natural-sounding audiobooks using AI.',
+          category: 'Media & Entertainment',
+          difficulty: 'Medium',
+          tags: ['AI', 'Audio Processing', 'Text-to-Speech', 'Media']
         }
       ];
       
@@ -1008,27 +1024,43 @@ const hackathonService = {
       const fallbackProblems = [
         {
           id: 'p1',
-          title: 'AI-Powered Healthcare Solution',
-          description: 'Develop an AI solution to improve healthcare diagnostics and patient care.',
+          title: 'AI Medical Prescription Verification Leveraging IBM Watson and Hugging Face Models',
+          description: 'Develop an AI solution to verify medical prescriptions using IBM Watson and Hugging Face models.',
           category: 'Healthcare',
-          difficulty: 'Medium',
-          tags: ['AI', 'Machine Learning', 'Healthcare']
+          difficulty: 'Hard',
+          tags: ['AI', 'IBM Watson', 'Healthcare', 'Machine Learning']
         },
         {
           id: 'p2', 
-          title: 'Sustainable Smart City Platform',
-          description: 'Create a platform to optimize city resources and reduce environmental impact.',
-          category: 'Sustainability',
+          title: 'ClauseWise: Legal Document Analyzer Using IBM Watson & Granite',
+          description: 'Create a legal document analyzer that uses IBM Watson and Granite for clause analysis.',
+          category: 'Legal Tech',
           difficulty: 'Hard',
-          tags: ['IoT', 'Sustainability', 'Smart City']
+          tags: ['AI', 'IBM Watson', 'Legal', 'Document Analysis']
         },
         {
           id: 'p3',
-          title: 'Financial Inclusion App',
-          description: 'Build an app to provide financial services to underbanked populations.',
+          title: 'Personal Finance Chatbot: Intelligent Guidance for Savings, Taxes, and Investments',
+          description: 'Build an AI-powered chatbot that provides intelligent financial guidance.',
           category: 'Fintech',
           difficulty: 'Medium',
-          tags: ['Fintech', 'Mobile', 'Inclusion']
+          tags: ['AI', 'Fintech', 'Chatbot', 'Personal Finance']
+        },
+        {
+          id: 'p4',
+          title: 'StudyMate: An AI-Powered PDF-Based Q&A System for Students',
+          description: 'Develop an AI system that answers questions based on PDF documents for students.',
+          category: 'Education',
+          difficulty: 'Medium',
+          tags: ['AI', 'Education', 'PDF Processing', 'Q&A']
+        },
+        {
+          id: 'p5',
+          title: 'EchoVerse – An AI-Powered Audiobook Creation Tool',
+          description: 'Create a tool that converts text to natural-sounding audiobooks using AI.',
+          category: 'Media & Entertainment',
+          difficulty: 'Medium',
+          tags: ['AI', 'Audio Processing', 'Text-to-Speech', 'Media']
         }
       ];
       
@@ -1715,6 +1747,15 @@ export const validateRegistrationData = (data) => {
       }
       if (!member.phone?.trim()) {
         errors[`teamMember${index}Phone`] = `Team member ${index + 1} phone is required`;
+      }
+      if (!member.college?.trim()) {
+        errors[`teamMember${index}College`] = `Team member ${index + 1} college is required`;
+      }
+      if (!member.department?.trim()) {
+        errors[`teamMember${index}Department`] = `Team member ${index + 1} department is required`;
+      }
+      if (!member.year?.trim()) {
+        errors[`teamMember${index}Year`] = `Team member ${index + 1} year is required`;
       }
     });
   }

@@ -24,12 +24,35 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    strictPort: false, // Allow port fallback for browser compatibility
     mimeTypes: {
       'application/xml': ['xml']
     },
-    // Ensure service worker is served with correct headers in dev
+    // Enhanced headers for better browser support
     headers: {
-      'Service-Worker-Allowed': '/'
+      'Service-Worker-Allowed': '/',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+    // Universal browser compatibility
+    cors: {
+      origin: true,
+      credentials: true
+    },
+    // Improved HMR for all browsers
+    hmr: {
+      overlay: false, // Disable error overlay that can cause issues
+      port: 24678,
+      timeout: 60000 // Longer timeout for slower browsers
+    },
+    // Prevent aggressive caching in development
+    middlewareMode: false,
+    watch: {
+      usePolling: false, // Better for Safari
+      interval: 100
     }
   },
 

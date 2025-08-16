@@ -1,0 +1,43 @@
+/* Browser-specific compatibility styles */
+
+/* Firefox-specific fixes */
+html.browser-firefox {
+  /* Prevent layout shifts in Firefox */
+  scroll-behavior: auto !important;
+}
+
+html.browser-firefox * {
+  /* Improve text rendering in Firefox */
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Safari-specific fixes */
+html.browser-safari {
+  /* Prevent bounce scrolling issues */
+  -webkit-overflow-scrolling: touch;
+}
+
+html.browser-safari * {
+  /* Improve text rendering in Safari */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Universal browser compatibility */
+* {
+  /* Prevent layout shifts */
+  box-sizing: border-box;
+}
+
+/* Improve font loading for all browsers */
+body {
+  font-display: swap;
+  text-rendering: optimizeSpeed;
+}
+
+/* Prevent FOUC (Flash of Unstyled Content) */
+html {
+  visibility: visible;
+  opacity: 1;
+}

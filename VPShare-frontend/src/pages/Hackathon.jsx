@@ -14,7 +14,6 @@ import { useResponsive } from '../hooks/useResponsive';
 import { useNotification } from '../contexts/NotificationContext';
 import { mobileDetection, mobilePerformance, mobileUX, mobileA11y } from '../utils/mobileOptimization';
 import '../styles/Hackathon.css';
-import '../styles/HackathonMobile.css';
 import '../styles/MobileUtils.css';
 import '../styles/MobileLoadingSpinner.css';
 
@@ -237,6 +236,7 @@ const Hackathon = () => {
               <span>GenAI Hackathon</span>
             </div>
           </div>
+
           {/* Desktop Navigation - Hidden on Mobile */}
           {!isMobile && !isTablet && (
             <div className="nav-links">

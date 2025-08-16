@@ -55,7 +55,15 @@ const RegistrationForm = () => {
       team_name: '',
       team_size: 1,
       team_members: [
-        { name: '', email: '', phone: '', role: 'Team Leader' }
+        { 
+          name: '', 
+          email: '', 
+          phone: '', 
+          college: '', 
+          department: '', 
+          year: '', 
+          role: 'Team Leader' 
+        }
       ]
     },
     
@@ -156,20 +164,38 @@ const RegistrationForm = () => {
   }, [isDevelopment]);
 
   const getFallbackProblemStatements = () => [
-    'AI-Powered Healthcare Diagnosis System',
-    'Smart Education Platform with Personalized Learning',
-    'Sustainable Energy Management using AI',
-    'AI-Driven Financial Risk Assessment',
-    'Intelligent Transportation System',
-    'Agricultural Optimization with Machine Learning',
-    'Smart City Infrastructure Management',
-    'AI-Enhanced Cybersecurity Solutions',
-    'Automated Customer Service with NLP',
-    'Predictive Analytics for Supply Chain Management'
+    'AI Medical Prescription Verification Leveraging IBM Watson and Hugging Face Models',
+    'ClauseWise: Legal Document Analyzer Using IBM Watson & Granite',
+    'Personal Finance Chatbot: Intelligent Guidance for Savings, Taxes, and Investments',
+    'StudyMate: An AI-Powered PDF-Based Q&A System for Students',
+    'EchoVerse – An AI-Powered Audiobook Creation Tool'
   ];
 
   const programmingOptions = [
     'Python', 'JavaScript', 'Java', 'C++', 'R', 'Go', 'Scala', 'Julia', 'TypeScript', 'Swift'
+  ];
+
+  const collegeOptions = [
+    'TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)',
+    'TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)'
+  ];
+
+  const departmentOptions = [
+    'CIVIL',
+    'EEE', 
+    'ECE',
+    'CSE',
+    'IT',
+    'AIML',
+    'CSD',
+    'CSG'
+  ];
+
+  const yearOptions = [
+    '1st Year',
+    '2nd Year', 
+    '3rd Year',
+    '4th Year'
   ];
 
   const aiExperienceOptions = [
@@ -273,6 +299,57 @@ const RegistrationForm = () => {
     }
   }, [user, authLoading, restoreFormDataFromFirestore]);
 
+  // Handle automatic redirect to SmartInternz after successful payment
+  useEffect(() => {
+    if (success && step === 6) {
+      let redirectTimer;
+      let clickHandler;
+      
+      // Add click handler to detect clicks outside the success actions
+      clickHandler = (event) => {
+        const target = event.target;
+        // Check if click is not on the action buttons
+        if (!target.closest('.success-actions') && 
+            !target.closest('.download-btn') && 
+            !target.closest('.print-btn') &&
+            !target.closest('.complete-registration-btn') &&
+            !target.closest('.redirect-notice')) {
+          
+          // Show confirmation before redirect
+          const shouldRedirect = window.confirm(
+            'Your payment is complete! You need to complete your registration on SmartInternz platform. ' +
+            'Would you like to proceed now?'
+          );
+          
+          if (shouldRedirect) {
+            window.open('https://smartinternz.com/cognitivex-hackathon-2025/register', '_blank');
+          }
+        }
+      };
+      
+      // Auto-redirect after 2 minutes if no interaction
+      redirectTimer = setTimeout(() => {
+        const autoRedirect = window.confirm(
+          'Your registration is complete! You will now be redirected to SmartInternz platform ' +
+          'to complete additional details. Click OK to proceed.'
+        );
+        
+        if (autoRedirect) {
+          window.open('https://smartinternz.com/cognitivex-hackathon-2025/register', '_blank');
+        }
+      }, 120000); // 2 minutes
+      
+      // Add click listener
+      document.addEventListener('click', clickHandler);
+      
+      // Cleanup
+      return () => {
+        if (redirectTimer) clearTimeout(redirectTimer);
+        if (clickHandler) document.removeEventListener('click', clickHandler);
+      };
+    }
+  }, [success, step]);
+
   // Auto-save when form data changes (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -340,7 +417,15 @@ const RegistrationForm = () => {
       if (size > prev.team_info.team_size) {
         // Add new team members
         for (let i = prev.team_info.team_size; i < size; i++) {
-          newTeamMembers.push({ name: '', email: '', phone: '', role: `Member ${i + 1}` });
+          newTeamMembers.push({ 
+            name: '', 
+            email: '', 
+            phone: '', 
+            college: '', 
+            department: '', 
+            year: '', 
+            role: `Member ${i + 1}` 
+          });
         }
       } else if (size < prev.team_info.team_size) {
         // Remove team members
@@ -356,6 +441,88 @@ const RegistrationForm = () => {
         }
       };
     });
+  };
+
+  // Function to fill same college for all team members
+  const fillSameCollegeForAll = () => {
+    const leaderCollege = formData.team_info.team_members[0].college;
+    if (!leaderCollege) {
+      alert('Please select college for team leader first');
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      team_info: {
+        ...prev.team_info,
+        team_members: prev.team_info.team_members.map((member, index) => ({
+          ...member,
+          college: index === 0 ? member.college : leaderCollege
+        }))
+      }
+    }));
+  };
+
+  // Function to fill same department for all team members
+  const fillSameDepartmentForAll = () => {
+    const leaderDepartment = formData.team_info.team_members[0].department;
+    if (!leaderDepartment) {
+      alert('Please select department for team leader first');
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      team_info: {
+        ...prev.team_info,
+        team_members: prev.team_info.team_members.map((member, index) => ({
+          ...member,
+          department: index === 0 ? member.department : leaderDepartment
+        }))
+      }
+    }));
+  };
+
+  // Function to fill same year for all team members
+  const fillSameYearForAll = () => {
+    const leaderYear = formData.team_info.team_members[0].year;
+    if (!leaderYear) {
+      alert('Please select year for team leader first');
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      team_info: {
+        ...prev.team_info,
+        team_members: prev.team_info.team_members.map((member, index) => ({
+          ...member,
+          year: index === 0 ? member.year : leaderYear
+        }))
+      }
+    }));
+  };
+
+  // Function to fill all same info (college, department, year) for all team members
+  const fillAllSameInfoForAll = () => {
+    const leader = formData.team_info.team_members[0];
+    if (!leader.college || !leader.department || !leader.year) {
+      alert('Please fill all information (college, department, year) for team leader first');
+      return;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      team_info: {
+        ...prev.team_info,
+        team_members: prev.team_info.team_members.map((member, index) => ({
+          ...member,
+          college: index === 0 ? member.college : leader.college,
+          department: index === 0 ? member.department : leader.department,
+          year: index === 0 ? member.year : leader.year
+        }))
+      }
+    }));
   };
 
   const handleTeamMemberChange = (index, field, value) => {
@@ -773,28 +940,34 @@ const RegistrationForm = () => {
 
       <div className="form-group">
         <label>College/University *</label>
-        <input
-          type="text"
+        <select
           name="college"
           value={formData.personal_info.college}
           onChange={(e) => handleInputChange(e, 'personal_info')}
           className={errors.college ? 'error' : ''}
-          placeholder="Enter your college name"
-        />
+        >
+          <option value="">Select College</option>
+          {collegeOptions.map((college, index) => (
+            <option key={index} value={college}>{college}</option>
+          ))}
+        </select>
         {errors.college && <span className="error-message">{errors.college}</span>}
       </div>
 
       <div className="form-row">
         <div className="form-group">
           <label>Department *</label>
-          <input
-            type="text"
+          <select
             name="department"
             value={formData.personal_info.department}
             onChange={(e) => handleInputChange(e, 'personal_info')}
             className={errors.department ? 'error' : ''}
-            placeholder="e.g., Computer Science"
-          />
+          >
+            <option value="">Select Department</option>
+            {departmentOptions.map((dept, index) => (
+              <option key={index} value={dept}>{dept}</option>
+            ))}
+          </select>
           {errors.department && <span className="error-message">{errors.department}</span>}
         </div>
         
@@ -807,11 +980,9 @@ const RegistrationForm = () => {
             className={errors.year ? 'error' : ''}
           >
             <option value="">Select Year</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-            <option value="graduate">Graduate</option>
+            {yearOptions.map((year, index) => (
+              <option key={index} value={year}>{year}</option>
+            ))}
           </select>
           {errors.year && <span className="error-message">{errors.year}</span>}
         </div>
@@ -873,9 +1044,53 @@ const RegistrationForm = () => {
 
       <div className="team-members">
         <h4>Team Members</h4>
+        
+        {/* Quick fill buttons for teams with multiple members */}
+        {formData.team_info.team_size > 1 && (
+          <div className="quick-fill-buttons">
+            <h5>Quick Fill Options (Fill same info for all members)</h5>
+            <div className="button-group">
+              <button 
+                type="button" 
+                className="quick-fill-btn"
+                onClick={fillSameCollegeForAll}
+                title="Fill same college for all team members"
+              >
+                Same College
+              </button>
+              <button 
+                type="button" 
+                className="quick-fill-btn"
+                onClick={fillSameDepartmentForAll}
+                title="Fill same department for all team members"
+              >
+                Same Department
+              </button>
+              <button 
+                type="button" 
+                className="quick-fill-btn"
+                onClick={fillSameYearForAll}
+                title="Fill same year for all team members"
+              >
+                Same Year
+              </button>
+              <button 
+                type="button" 
+                className="quick-fill-btn primary"
+                onClick={fillAllSameInfoForAll}
+                title="Fill all same info for all team members"
+              >
+                Fill All Same
+              </button>
+            </div>
+          </div>
+        )}
+
         {formData.team_info.team_members.map((member, index) => (
           <div key={index} className="team-member">
             <h5>{member.role}</h5>
+            
+            {/* Basic Information */}
             <div className="form-row">
               <div className="form-group">
                 <label>Name *</label>
@@ -917,6 +1132,60 @@ const RegistrationForm = () => {
               />
               {errors[`teamMember${index}Phone`] && (
                 <span className="error-message">{errors[`teamMember${index}Phone`]}</span>
+              )}
+            </div>
+
+            {/* Academic Information */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>College *</label>
+                <select
+                  value={member.college}
+                  onChange={(e) => handleTeamMemberChange(index, 'college', e.target.value)}
+                  className={errors[`teamMember${index}College`] ? 'error' : ''}
+                >
+                  <option value="">Select College</option>
+                  {collegeOptions.map((college, idx) => (
+                    <option key={idx} value={college}>{college}</option>
+                  ))}
+                </select>
+                {errors[`teamMember${index}College`] && (
+                  <span className="error-message">{errors[`teamMember${index}College`]}</span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Department *</label>
+                <select
+                  value={member.department}
+                  onChange={(e) => handleTeamMemberChange(index, 'department', e.target.value)}
+                  className={errors[`teamMember${index}Department`] ? 'error' : ''}
+                >
+                  <option value="">Select Department</option>
+                  {departmentOptions.map((dept, idx) => (
+                    <option key={idx} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                {errors[`teamMember${index}Department`] && (
+                  <span className="error-message">{errors[`teamMember${index}Department`]}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Year *</label>
+              <select
+                value={member.year}
+                onChange={(e) => handleTeamMemberChange(index, 'year', e.target.value)}
+                className={errors[`teamMember${index}Year`] ? 'error' : ''}
+              >
+                <option value="">Select Year</option>
+                {yearOptions.map((year, idx) => (
+                  <option key={idx} value={year}>{year}</option>
+                ))}
+              </select>
+              {errors[`teamMember${index}Year`] && (
+                <span className="error-message">{errors[`teamMember${index}Year`]}</span>
               )}
             </div>
           </div>
@@ -1509,17 +1778,104 @@ const RegistrationForm = () => {
 
         <div className="success-actions">
           <button 
-            className="btn-primary"
+            className="btn-primary download-btn"
+            onClick={() => {
+              // Generate and download registration confirmation
+              const registrationData = {
+                registrationId: registrationId || 'DEMO-REG-001',
+                teamName: formData.team_info.team_name,
+                teamSize: formData.team_info.team_size,
+                amountPaid: formatPrice(getTeamPrice(formData.team_info.team_size)),
+                email: formData.personal_info.email,
+                problemStatement: formData.technical_info.problem_statement
+              };
+              
+              // Create downloadable content
+              const content = `
+CognitiveX GenAI Hackathon 2025 - Registration Confirmation
+
+Registration ID: ${registrationData.registrationId}
+Team Name: ${registrationData.teamName}
+Team Size: ${registrationData.teamSize}
+Amount Paid: ${registrationData.amountPaid}
+Email: ${registrationData.email}
+Problem Statement: ${registrationData.problemStatement}
+
+Next Steps:
+1. Check your email for detailed bootcamp information
+2. Join the WhatsApp group for updates
+3. Complete IBM SkillsBuild courses
+4. Register on NASSCOM FSP platform
+
+Contact: hackathon@tkrcollege.ac.in
+Website: codetapasya.com
+`;
+              
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `hackathon-registration-${registrationData.registrationId}.txt`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(url);
+            }}
+          >
+            📥 Download Registration Details
+          </button>
+          
+          <button 
+            className="btn-secondary print-btn"
+            onClick={() => {
+              // Print current page
+              window.print();
+            }}
+          >
+            🖨️ Print Confirmation
+          </button>
+          
+          <button 
+            className="btn-primary complete-registration-btn"
+            onClick={() => {
+              // Redirect to SmartInternz website for additional details
+              window.open('https://smartinternz.com/cognitivex-hackathon-2025/register', '_blank');
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              marginTop: '1rem'
+            }}
+          >
+            🚀 Complete Registration on SmartInternz
+          </button>
+          
+          <button 
+            className="btn-secondary"
             onClick={() => window.location.reload()}
           >
             Register Another Team
           </button>
-          <button 
-            className="btn-secondary"
-            onClick={() => window.print()}
-          >
-            Print Confirmation
-          </button>
+        </div>
+        
+        {/* Auto-redirect notice */}
+        <div className="redirect-notice" style={{
+          background: 'linear-gradient(135deg, #fef3c7, #fbbf24)',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          margin: '2rem 0 0 0',
+          border: '1px solid #f59e0b',
+          textAlign: 'center'
+        }}>
+          <h4 style={{ color: '#92400e', marginBottom: '1rem', fontSize: '1.1rem' }}>
+            🎯 Important: Complete Your Registration
+          </h4>
+          <p style={{ color: '#92400e', margin: '0 0 1rem 0', lineHeight: '1.6' }}>
+            Your payment is confirmed! Now please click the button above to complete your registration 
+            on the SmartInternz platform where you'll provide additional details about your problem statement selection.
+          </p>
+          <p style={{ color: '#92400e', margin: '0', fontSize: '0.9rem', fontStyle: 'italic' }}>
+            💡 <strong>Tip:</strong> Save or print your registration details before proceeding to the next step.
+          </p>
         </div>
       </div>
     </motion.div>

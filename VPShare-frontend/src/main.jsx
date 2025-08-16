@@ -76,8 +76,13 @@ if ('serviceWorker' in navigator) {
 
   window.addEventListener('load', () => {
     // Initialize service worker manager with automatic updates
+    // Be gentler with problematic browsers to prevent reload loops
+    const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+    const isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('chrome');
+    const isProblematicBrowser = isFirefox || isSafari;
+    
     serviceWorkerManager.init({
-      forceReload: true, // Automatically reload when updates are available
+      forceReload: !isProblematicBrowser, // Don't force reload in problematic browsers
       showUpdateAvailable: (callback) => {
         // If we detected module errors, force refresh immediately
         if (moduleErrorDetected) {

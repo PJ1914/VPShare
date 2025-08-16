@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Firefox Compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="telephone=no" />
+    
     <!-- Primary Meta Tags -->
     <title>CodeTapasya - Learn Programming Online | Best Coding Courses in India</title>
     <meta name="title" content="CodeTapasya - Learn Programming Online | Best Coding Courses in India" />
@@ -85,6 +89,36 @@
       ]
     }
     </script>
+    
+    <!-- Browser compatibility script -->
+    <script>
+      // Early browser detection and compatibility setup
+      (function() {
+        const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+        const isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('chrome');
+        
+        if (isFirefox || isSafari) {
+          // Disable some features that cause issues in problematic browsers
+          window.problematicBrowser = true;
+          window.browserType = isFirefox ? 'firefox' : 'safari';
+          
+          // Prevent service worker issues
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              if (event.data && event.data.type === 'SW_UPDATED') {
+                // Prevent automatic reloads in problematic browsers
+                event.preventDefault();
+                console.log('Browser compatibility: Prevented automatic SW reload');
+              }
+            });
+          }
+          
+          // Add browser-specific CSS class for styling
+          document.documentElement.classList.add('browser-' + (isFirefox ? 'firefox' : 'safari'));
+        }
+      })();
+    </script>
+    
     <style>
       /* Minimal styling for the loading logo */
       #loading-logo {
