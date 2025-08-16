@@ -26,11 +26,11 @@ const isDevelopment = config.isDevelopment;// Team pricing configuration with La
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 1; // ₹1 for individual (testing)
+      return 199; // ₹199 for individual
     case 3:
-      return 1; // ₹1 for team of 3 (testing)
+      return 549; // ₹549 for team of 3
     default:
-      return 1; // Default to individual pricing
+      return 199; // Default to individual pricing
   }
 };
 
@@ -38,11 +38,11 @@ const getTeamPrice = (teamSize) => {
 const getTeamPriceInPaise = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 100; // ₹1 = 100 paise (Individual - testing)
+      return 19900; // ₹199 = 19900 paise (Individual)
     case 3:
-      return 100; // ₹1 = 100 paise (Team of 3 - testing)
+      return 54900; // ₹549 = 54900 paise (Team of 3)
     default:
-      return 100; // Default to individual pricing
+      return 19900; // Default to individual pricing
   }
 };
 
@@ -56,11 +56,11 @@ const getHackathonPlanMapping = (teamSize) => {
   // Use exact amounts that Lambda expects (in paise)
   switch (teamSize) {
     case 1:
-      return { plan: 'one-member', amount: 100 }; // ₹1 = 100 paise (testing)
+      return { plan: 'one-member', amount: 19900 }; // ₹199 = 19900 paise
     case 3:
-      return { plan: 'team-member', amount: 100 }; // ₹1 = 100 paise (testing)
+      return { plan: 'team-member', amount: 54900 }; // ₹549 = 54900 paise
     default:
-      return { plan: 'one-member', amount: 100 }; // Default to individual
+      return { plan: 'one-member', amount: 19900 }; // Default to individual
   }
 };
 
