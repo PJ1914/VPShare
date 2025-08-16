@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import hackathonService from '../../services/hackathonService';
-
+import '../../styles/Hackathon.css';
+import './HackathonAdmin.css';
 const HackathonAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -30,6 +31,11 @@ const HackathonAdmin = () => {
     message: '',
     type: 'success'
   });
+
+  // Utils operations state
+  const [isExporting, setIsExporting] = useState(false);
+  const [emailModal, setEmailModal] = useState({ show: false, type: 'confirmation', recipients: [] });
+  const [certificateModal, setCertificateModal] = useState({ show: false, registrationId: null });
 
   // Load data on component mount
   useEffect(() => {
@@ -274,6 +280,68 @@ const HackathonAdmin = () => {
     setSelectedRegistrations(new Set());
   };
 
+  // Export functionality
+  const handleExport = async (format) => {
+    try {
+      setIsExporting(true);
+      showNotification(`📊 Exporting data as ${format.toUpperCase()}...`, 'info');
+      
+      const filterParams = {
+        status: filters.status !== 'all' ? filters.status : undefined,
+        team_size: filters.teamSize !== 'all' ? filters.teamSize : undefined
+      };
+      
+      const result = await hackathonService.exportRegistrations(format, filterParams);
+      
+      if (result.success) {
+        showNotification(`✅ ${result.message}`, 'success');
+      } else {
+        showNotification(`❌ Export failed: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      showNotification('❌ Export failed', 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Certificate generation
+  const handleGenerateCertificate = async (registrationId, certificateType = 'participation') => {
+    try {
+      showNotification('🏆 Generating certificate...', 'info');
+      
+      const result = await hackathonService.generateCertificate(registrationId, certificateType);
+      
+      if (result.success) {
+        showNotification(`✅ ${result.message}`, 'success');
+      } else {
+        showNotification(`❌ Certificate generation failed: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('Certificate generation error:', error);
+      showNotification('❌ Certificate generation failed', 'error');
+    }
+  };
+
+  // Email functionality
+  const handleSendEmails = async (recipients, emailType, customMessage = '') => {
+    try {
+      showNotification(`📧 Sending ${emailType} emails to ${recipients.length} recipients...`, 'info');
+      
+      const result = await hackathonService.sendBulkEmails(recipients, emailType, customMessage);
+      
+      if (result.success) {
+        showNotification(`✅ Emails sent successfully to ${recipients.length} recipients`, 'success');
+      } else {
+        showNotification(`❌ Email sending failed: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('Email sending error:', error);
+      showNotification('❌ Email sending failed', 'error');
+    }
+  };
+
   const generateLocalCSV = (data) => {
     if (!data || data.length === 0) {
       return 'No data available';
@@ -431,6 +499,17 @@ const HackathonAdmin = () => {
             totalRegistrations={filteredRegistrations.length}
             updateRegistrationStatus={updateRegistrationStatus}
             setSelectedRegistration={setSelectedRegistration}
+            handleExport={handleExport}
+            isExporting={isExporting}
+            selectedRegistrations={selectedRegistrations}
+            setEmailModal={setEmailModal}
+            filteredRegistrations={filteredRegistrations}
+            selectAllFilteredRegistrations={selectAllFilteredRegistrations}
+            clearSelection={clearSelection}
+            bulkAction={bulkAction}
+            setBulkAction={setBulkAction}
+            handleBulkAction={handleBulkAction}
+            setSelectedRegistrations={setSelectedRegistrations}
           />
         )}
 
@@ -454,6 +533,18 @@ const HackathonAdmin = () => {
             registration={selectedRegistration}
             onClose={() => setSelectedRegistration(null)}
             onStatusUpdate={updateRegistrationStatus}
+            onGenerateCertificate={handleGenerateCertificate}
+            onSendEmail={(regId, emailType) => handleSendEmails([regId], emailType)}
+          />
+        )}
+
+        {/* Email Modal */}
+        {emailModal.show && (
+          <EmailModal
+            emailType={emailModal.type}
+            recipients={emailModal.recipients}
+            onSend={handleSendEmails}
+            onClose={() => setEmailModal({ show: false, type: 'confirmation', recipients: [] })}
           />
         )}
       </AnimatePresence>
@@ -566,14 +657,61 @@ const RegistrationsSection = ({
   totalPages, 
   totalRegistrations,
   updateRegistrationStatus,
-  setSelectedRegistration 
+  setSelectedRegistration,
+  handleExport,
+  isExporting,
+  selectedRegistrations,
+  setEmailModal,
+  filteredRegistrations,
+  selectAllFilteredRegistrations,
+  clearSelection,
+  bulkAction,
+  setBulkAction,
+  handleBulkAction,
+  setSelectedRegistrations 
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="registrations-section"
   >
-    <h2>👥 Registration Management</h2>
+    <div className="section-header-with-actions">
+      <h2>👥 Registration Management</h2>
+      <div className="export-actions">
+        <button 
+          onClick={() => handleExport('csv')} 
+          disabled={isExporting}
+          className="btn-export"
+        >
+          {isExporting ? '⏳' : '📄'} Export CSV
+        </button>
+        <button 
+          onClick={() => handleExport('excel')} 
+          disabled={isExporting}
+          className="btn-export"
+        >
+          {isExporting ? '⏳' : '📊'} Export Excel
+        </button>
+        <button 
+          onClick={() => handleExport('pdf')} 
+          disabled={isExporting}
+          className="btn-export"
+        >
+          {isExporting ? '⏳' : '📑'} Export PDF
+        </button>
+        <button 
+          onClick={() => setEmailModal({ 
+            show: true, 
+            type: 'announcement', 
+            recipients: Array.from(selectedRegistrations) 
+          })}
+          disabled={selectedRegistrations.size === 0}
+          className="btn-email"
+        >
+          📧 Send Emails ({selectedRegistrations.size})
+        </button>
+      </div>
+    </div>
 
     {/* Filters */}
     <div className="filters-row">
@@ -772,7 +910,7 @@ const RegistrationsSection = ({
 );
 
 // Registration Detail Modal Component
-const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate }) => {
+const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGenerateCertificate, onSendEmail }) => {
   const personalInfo = registration.personal_info || {};
   const teamInfo = registration.team_info || {};
   const skills = registration.skills || {};
@@ -888,6 +1026,31 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate }) => {
                 <p>{registration.admin_notes}</p>
               </div>
             )}
+
+            {/* Utilities Section */}
+            <div className="detail-section">
+              <h3>🛠️ Utilities & Actions</h3>
+              <div className="utility-actions">
+                <button 
+                  onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registration_id, 'participation')}
+                  className="btn-utility"
+                >
+                  🏆 Generate Certificate
+                </button>
+                <button 
+                  onClick={() => onSendEmail && onSendEmail(registration.registration_id, 'confirmation')}
+                  className="btn-utility"
+                >
+                  📧 Send Confirmation
+                </button>
+                <button 
+                  onClick={() => onSendEmail && onSendEmail(registration.registration_id, 'reminder')}
+                  className="btn-utility"
+                >
+                  ⏰ Send Reminder
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -1026,5 +1189,89 @@ const CommunicationsSection = ({ registrations }) => (
     </div>
   </motion.div>
 );
+
+// Email Modal Component
+const EmailModal = ({ emailType, recipients, onSend, onClose }) => {
+  const [customMessage, setCustomMessage] = useState('');
+  const [selectedEmailType, setSelectedEmailType] = useState(emailType);
+
+  const emailTypes = [
+    { value: 'confirmation', label: '✅ Confirmation Email' },
+    { value: 'reminder', label: '⏰ Reminder Email' },
+    { value: 'announcement', label: '📢 Announcement' },
+    { value: 'certificate', label: '🏆 Certificate Notification' }
+  ];
+
+  const handleSend = () => {
+    onSend(recipients, selectedEmailType, customMessage);
+    onClose();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="modal-overlay"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        className="email-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h2>📧 Send Emails</h2>
+          <button onClick={onClose} className="close-btn">✕</button>
+        </div>
+        
+        <div className="modal-content">
+          <div className="email-config">
+            <div className="form-group">
+              <label>Email Type:</label>
+              <select 
+                value={selectedEmailType} 
+                onChange={(e) => setSelectedEmailType(e.target.value)}
+                className="email-type-select"
+              >
+                {emailTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="form-group">
+              <label>Recipients: {recipients.length} selected</label>
+            </div>
+            
+            <div className="form-group">
+              <label>Custom Message (Optional):</label>
+              <textarea
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                placeholder="Add any custom message here..."
+                rows={4}
+                className="custom-message-input"
+              />
+            </div>
+          </div>
+          
+          <div className="modal-actions">
+            <button onClick={onClose} className="btn-cancel">
+              Cancel
+            </button>
+            <button onClick={handleSend} className="btn-send">
+              📧 Send Emails
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export default HackathonAdmin;

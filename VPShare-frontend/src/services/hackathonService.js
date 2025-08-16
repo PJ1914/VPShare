@@ -28,11 +28,11 @@ const isDevelopment = config.isDevelopment;
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 199; // ₹199 for individual
+      return 1; // ₹199 for individual
     case 3:
       return 549; // ₹549 for team of 3
     default:
-      return 199; // Default to individual pricing
+      return 1; // Default to individual pricing
   }
 };
 
@@ -40,11 +40,11 @@ const getTeamPrice = (teamSize) => {
 const getTeamPriceInPaise = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 19900; // ₹199 = 19900 paise (Individual)
+      return 100; // ₹199 = 19900 paise (Individual)
     case 3:
       return 54900; // ₹549 = 54900 paise (Team of 3)
     default:
-      return 19900; // Default to individual pricing
+      return 100; // Default to individual pricing
   }
 };
 
@@ -58,11 +58,11 @@ const getHackathonPlanMapping = (teamSize) => {
   // Use exact amounts that Lambda expects (in paise)
   switch (teamSize) {
     case 1:
-      return { plan: 'one-member', amount: 19900 }; // ₹199 = 19900 paise (Lambda expects exactly 19900)
+      return { plan: 'one-member', amount: 100 }; // ₹199 = 19900 paise (Lambda expects exactly 19900)
     case 3:
       return { plan: 'team-member', amount: 54900 }; // ₹549 = 54900 paise (Lambda expects exactly 54900)
     default:
-      return { plan: 'one-member', amount: 19900 }; // Default to individual
+      return { plan: 'one-member', amount: 100 }; // Default to individual
   }
 };
 
@@ -1557,6 +1557,164 @@ const hackathonService = {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to send notification',
         error: error.response?.data
+      };
+    }
+  },
+
+  // Utils API Methods
+  async exportRegistrations(format = 'csv', filters = {}) {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const queryParams = new URLSearchParams({
+        format: format,
+        ...filters
+      });
+      
+      const response = await axios.get(`${UTILS_API_URL}/export?${queryParams}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: format === 'pdf' ? 'blob' : 'text',
+        timeout: 60000
+      });
+      
+      // Handle file download
+      if (format === 'csv' || format === 'excel') {
+        const blob = new Blob([response.data], { 
+          type: format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else if (format === 'pdf') {
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+      
+      return {
+        success: true,
+        message: `${format.toUpperCase()} file downloaded successfully`
+      };
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to export data'
+      };
+    }
+  },
+
+  async generateCertificate(registrationId, certificateType = 'participation') {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.post(`${UTILS_API_URL}/generate-certificate`, {
+        registration_id: registrationId,
+        certificate_type: certificateType
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'blob', // Certificate will be a PDF
+        timeout: 30000
+      });
+      
+      // Download certificate
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `certificate_${registrationId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      return {
+        success: true,
+        message: 'Certificate generated and downloaded successfully'
+      };
+      
+    } catch (error) {
+      console.error('Certificate generation error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to generate certificate'
+      };
+    }
+  },
+
+  async sendEmail(recipients, emailType, customData = {}) {
+    try {
+      const user = await this.ensureAuth();
+      const token = await user.getIdToken();
+      
+      const response = await axios.post(`${UTILS_API_URL}/send-email`, {
+        recipients: recipients, // Array of registration IDs or email addresses
+        email_type: emailType, // 'confirmation', 'reminder', 'announcement', 'certificate'
+        custom_data: customData // Additional data for email template
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      });
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data,
+          message: response.data.message || 'Emails sent successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data?.message || 'Failed to send emails'
+        };
+      }
+      
+    } catch (error) {
+      console.error('Email sending error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to send emails'
+      };
+    }
+  },
+
+  async sendBulkEmails(registrationIds, emailType, customMessage = '') {
+    try {
+      const result = await this.sendEmail(registrationIds, emailType, {
+        custom_message: customMessage,
+        sent_at: new Date().toISOString()
+      });
+      
+      return result;
+      
+    } catch (error) {
+      console.error('Bulk email error:', error);
+      return {
+        success: false,
+        message: 'Failed to send bulk emails'
       };
     }
   }

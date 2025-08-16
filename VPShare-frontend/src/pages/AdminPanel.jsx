@@ -3,7 +3,6 @@ import { getAuth } from 'firebase/auth';
 import axios from 'axios';
 import '../styles/AdminPanel.css';
 import HackathonAdmin from '../components/admin/HackathonAdmin';
-import '../components/admin/HackathonAdmin.css';
 
 function AdminPanel() {
   const [user, setUser] = useState(null);
