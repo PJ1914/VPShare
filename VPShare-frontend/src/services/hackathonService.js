@@ -582,9 +582,13 @@ const hackathonService = {
       };
 
       // Make the API call to your Lambda function
+      console.log('Sending registration data to:', HACKATHON_API_URL);
+      console.log('Registration payload:', JSON.stringify(backendRegistrationData, null, 2));
+      
       const response = await hackathonAPI.post('/register', backendRegistrationData, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
@@ -619,6 +623,9 @@ const hackathonService = {
       };
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
       
       // Handle specific HTTP error codes
       if (error.response?.status === 409) {
@@ -627,6 +634,15 @@ const hackathonService = {
           message: 'You have already registered for this hackathon. Please check your email for registration details.',
           error: error,
           statusCode: 409
+        };
+      }
+      
+      if (error.response?.status === 405) {
+        return {
+          success: false,
+          message: 'Registration endpoint not properly configured. Please contact support.',
+          error: error,
+          statusCode: 405
         };
       }
       
