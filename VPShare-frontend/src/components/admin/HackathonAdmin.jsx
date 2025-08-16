@@ -287,7 +287,7 @@ const HackathonAdmin = () => {
       
       const filterParams = {
         status: filters.status !== 'all' ? filters.status : undefined,
-        team_size: filters.teamSize !== 'all' ? filters.teamSize : undefined
+        teamSize: filters.teamSize !== 'all' ? filters.teamSize : undefined
       };
       
       const result = await hackathonService.exportRegistrations(format, filterParams);
@@ -989,7 +989,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
             <h3>� Payment Information</h3>
             <div className="detail-grid">
               <div><strong>Amount:</strong> ₹{paymentInfo.amount || registration.amount || 'N/A'}</div>
-              <div><strong>Payment Status:</strong> {paymentInfo.status || registration.paymentStatus || 'pending'}</div>
+                            <div><strong>Payment Status:</strong> {paymentInfo.status || registration.paymentStatus || 'pending'}</div>
               <div><strong>Payment ID:</strong> {paymentInfo.razorpay_payment_id || registration.payment_id || 'N/A'}</div>
               <div><strong>Order ID:</strong> {paymentInfo.razorpay_order_id || registration.order_id || 'N/A'}</div>
             </div>

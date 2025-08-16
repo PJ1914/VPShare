@@ -728,6 +728,9 @@ const RegistrationForm = () => {
                 ...formData.team_info,
                 team_size: backendTeamSize
               },
+              technical_info: formData.technical_info,
+              commitments: formData.commitments,
+              additional_info: formData.additional_info,
               experience_info: formData.experience_info,
               contact_info: formData.contact_info,
               user_id: user.uid,
