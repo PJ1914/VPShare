@@ -527,7 +527,7 @@ const hackathonService = {
         year: registrationData.personal_info.year, // Changed from yearOfStudy to year
         rollNumber: registrationData.personal_info.roll_number,
         teamSize: registrationData.team_info.team_size,
-        teamName: registrationData.team_info.team_name || '',
+        teamName: registrationData.team_info.team_name || `Team_${registrationData.personal_info.full_name}`, // Ensure teamName is always provided
         teamMembers: (registrationData.team_info.team_members || []).map(member => ({
           name: member.name,
           email: member.email,
@@ -540,6 +540,8 @@ const hackathonService = {
       };
 
       console.log('Making API call to:', `${HACKATHON_API_URL}/register`);
+      console.log('HACKATHON_API_URL value:', HACKATHON_API_URL);
+      console.log('Sending data:', JSON.stringify(backendData, null, 2));
       
       // Direct axios call without auth for now to test
       const response = await axios.post(`${HACKATHON_API_URL}/register`, backendData, {
@@ -567,18 +569,21 @@ const hackathonService = {
     } catch (error) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error config:', error.config);
       
       if (error.response?.status === 405) {
         return {
           success: false,
-          message: 'Registration endpoint not properly configured. Please contact support.',
+          message: `405 Error: The endpoint ${HACKATHON_API_URL}/register does not support POST method. Check your Lambda configuration and API Gateway setup.`,
           statusCode: 405
         };
       }
       
       return {
         success: false,
-        message: error.response?.data?.message || error.message || 'Registration failed'
+        message: error.response?.data?.message || error.message || 'Registration failed',
+        statusCode: error.response?.status
       };
     }
   },
