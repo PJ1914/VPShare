@@ -778,6 +778,46 @@ main, .main-content, .dashboard-main, .page-content {
   
   .modern-card:hover {
     background: rgba(55, 65, 81, 0.8) !important;
+
+  /* Checkout and Payment Dark Mode Support */
+  .checkout-container,
+  .payment-container,
+  .registration-container {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Forms and inputs in dark mode */
+  input, select, textarea {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-medium) !important;
+  }
+
+  /* All text elements in dark mode */
+  p, span, div, h1, h2, h3, h4, h5, h6, label {
+    color: var(--text-primary) !important;
+  }
+
+  /* Payment and review sections */
+  .review-section,
+  .payment-section,
+  .summary-section,
+  .payment-breakdown,
+  .payment-row {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-medium) !important;
+  }
+
+  /* Make sure all children inherit proper colors */
+  .review-section *,
+  .payment-section *,
+  .summary-section *,
+  .payment-breakdown *,
+  .payment-row * {
+    color: var(--text-primary) !important;
+  }
     border-color: rgba(99, 102, 241, 0.4) !important;
     box-shadow: 
       0 20px 50px rgba(0, 0, 0, 0.4),
@@ -982,10 +1022,6 @@ main, .main-content, .dashboard-main, .page-content {
     color: var(--text-primary) !important;
   }
   
-  p, span, div {
-    color: var(--text-secondary) !important;
-  }
-  
   /* Fix hero carousel text */
   .hero-content h1,
   .hero-content h2,
@@ -1032,6 +1068,129 @@ main, .main-content, .dashboard-main, .page-content {
     --text-secondary: #6b7280;
     --text-tertiary: #9ca3af;
   }
+
+/* Dark Theme Classes Support - Independent of system preference */
+[data-theme="dark"],
+.dark,
+.dark-theme {
+  /* Dark mode variables */
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --border-light: #374151;
+  --border-medium: #4b5563;
+  --border-dark: #6b7280;
+  --glass-bg: rgba(31, 41, 55, 0.95);
+}
+
+/* Dark Theme Class Overrides for Checkout/Payment */
+[data-theme="dark"] body,
+.dark body,
+.dark-theme body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .checkout-container,
+[data-theme="dark"] .payment-container,
+[data-theme="dark"] .registration-container,
+.dark .checkout-container,
+.dark .payment-container,
+.dark .registration-container,
+.dark-theme .checkout-container,
+.dark-theme .payment-container,
+.dark-theme .registration-container {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+.dark input,
+.dark select,
+.dark textarea,
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-medium) !important;
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+[data-theme="dark"] label,
+.dark p,
+.dark span,
+.dark div,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark label,
+.dark-theme p,
+.dark-theme span,
+.dark-theme div,
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme h4,
+.dark-theme h5,
+.dark-theme h6,
+.dark-theme label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .review-section,
+[data-theme="dark"] .payment-section,
+[data-theme="dark"] .summary-section,
+[data-theme="dark"] .payment-breakdown,
+[data-theme="dark"] .payment-row,
+.dark .review-section,
+.dark .payment-section,
+.dark .summary-section,
+.dark .payment-breakdown,
+.dark .payment-row,
+.dark-theme .review-section,
+.dark-theme .payment-section,
+.dark-theme .summary-section,
+.dark-theme .payment-breakdown,
+.dark-theme .payment-row {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-medium) !important;
+}
+
+[data-theme="dark"] .review-section *,
+[data-theme="dark"] .payment-section *,
+[data-theme="dark"] .summary-section *,
+[data-theme="dark"] .payment-breakdown *,
+[data-theme="dark"] .payment-row *,
+.dark .review-section *,
+.dark .payment-section *,
+.dark .summary-section *,
+.dark .payment-breakdown *,
+.dark .payment-row *,
+.dark-theme .review-section *,
+.dark-theme .payment-section *,
+.dark-theme .summary-section *,
+.dark-theme .payment-breakdown *,
+.dark-theme .payment-row * {
+  color: var(--text-primary) !important;
+}
   
   /* Modern Cards - Enhanced for Light Mode */
   .modern-card {

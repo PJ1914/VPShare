@@ -1,27 +1,114 @@
+/* ==========================================
+   SUBSCRIPTION BANNER - CSS VARIABLES & THEMES
+   ========================================== */
+
+:root {
+  /* Light Theme Variables */
+  --banner-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  --banner-bg-hover: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
+  --banner-text: #1f2937;
+  --banner-border: rgba(255, 221, 87, 0.3);
+  --banner-border-hover: #ffdd57;
+  --banner-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --banner-shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Icon Colors */
+  --icon-bg: linear-gradient(135deg, #ff9500 0%, #ffdd57 100%);
+  --icon-text: #1f2937;
+  
+  /* Button Colors */
+  --btn-primary-bg: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover-bg: linear-gradient(90deg, #ffdd57 0%, #ff9500 100%);
+  --btn-primary-hover-text: #1f2937;
+  
+  /* Close Button Colors */
+  --close-btn-bg: #f3f4f6;
+  --close-btn-text: #6b7280;
+  --close-btn-hover-bg: #ffe4e1;
+  --close-btn-hover-text: #dc2626;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"],
+.dark,
+.dark-theme {
+  /* Dark Theme Banner */
+  --banner-bg: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  --banner-bg-hover: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  --banner-text: #f9fafb;
+  --banner-border: rgba(96, 165, 250, 0.3);
+  --banner-border-hover: #60a5fa;
+  --banner-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --banner-shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  
+  /* Dark Icon Colors */
+  --icon-bg: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  --icon-text: #ffffff;
+  
+  /* Dark Button Colors */
+  --btn-primary-bg: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover-bg: linear-gradient(90deg, #93c5fd 0%, #60a5fa 100%);
+  --btn-primary-hover-text: #1f2937;
+  
+  /* Dark Close Button Colors */
+  --close-btn-bg: #4b5563;
+  --close-btn-text: #d1d5db;
+  --close-btn-hover-bg: #ef4444;
+  --close-btn-hover-text: #ffffff;
+}
+
+/* System Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Automatic dark mode when system is dark */
+    --banner-bg: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    --banner-bg-hover: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    --banner-text: #f9fafb;
+    --banner-border: rgba(96, 165, 250, 0.3);
+    --banner-border-hover: #60a5fa;
+    --banner-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --banner-shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    
+    --icon-bg: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    --icon-text: #ffffff;
+    
+    --btn-primary-bg: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+    --btn-primary-text: #ffffff;
+    --btn-primary-hover-bg: linear-gradient(90deg, #93c5fd 0%, #60a5fa 100%);
+    --btn-primary-hover-text: #1f2937;
+    
+    --close-btn-bg: #4b5563;
+    --close-btn-text: #d1d5db;
+    --close-btn-hover-bg: #ef4444;
+    --close-btn-hover-text: #ffffff;
+  }
+}
+
 .subscription-banner {
   position: fixed;
   bottom: clamp(16px, 4vw, 32px);
   left: 0;
   right: 0;
   margin: 0 auto;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  color: var(--text-primary, #1f2937);
+  background: var(--banner-bg);
+  color: var(--banner-text);
   padding: clamp(0.8rem, 2.5vw, 1.2rem) clamp(1rem, 3vw, 2.2rem) clamp(0.8rem, 2.5vw, 1.2rem) clamp(0.8rem, 2.5vw, 1.2rem);
   border-radius: var(--radius-2xl, 24px);
-  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04));
+  box-shadow: var(--banner-shadow);
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 2vw, 1.1rem);
   z-index: 999;
   font-family: var(--font-family, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: clamp(0.9rem, 2.5vw, 1.13rem);
-  border: 1.5px solid rgba(255, 221, 87, 0.3);
+  border: 1.5px solid var(--banner-border);
   min-width: clamp(280px, 85vw, 320px);
   max-width: clamp(320px, 95vw, 600px);
   width: fit-content;
   box-sizing: border-box;
   touch-action: manipulation;
-  /* Remove the old CSS animation since we're using framer-motion */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   will-change: transform, opacity;
@@ -29,17 +116,19 @@
 
 /* Enhanced hover effects that work with framer-motion */
 .subscription-banner:hover {
-  box-shadow: var(--shadow-2xl, 0 25px 50px -12px rgba(0, 0, 0, 0.25));
-  border: 1.5px solid #ffdd57;
-  background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
+  background: var(--banner-bg-hover);
+  border-color: var(--banner-border-hover);
+  box-shadow: var(--banner-shadow-hover);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Remove the old fadeInUp animation */
 /* @keyframes fadeInUp - REMOVED */
 
 .banner-icon {
-  background: linear-gradient(135deg, #ff9500 0%, #ffdd57 100%);
-  color: #1f2937;
+  background: var(--icon-bg);
+  color: var(--icon-text);
   border-radius: var(--radius-full, 9999px);
   width: clamp(2rem, 5vw, 2.4rem);
   height: clamp(2rem, 5vw, 2.4rem);
@@ -74,7 +163,7 @@
 .banner-message {
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: #1f2937;
+  color: var(--banner-text);
   margin-right: clamp(0.3rem, 1vw, 0.5rem);
   flex: 1 1 auto;
   min-width: 0;
@@ -87,8 +176,8 @@
 }
 
 .banner-subscribe-btn {
-  background: linear-gradient(90deg, var(--primary, #6366f1) 0%, var(--primary-dark, #4f46e5) 100%);
-  color: var(--text-inverse, #ffffff);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   border: none;
   border-radius: var(--radius-xl, 16px);
   padding: clamp(0.5rem, 1.5vw, 0.7rem) clamp(0.8rem, 2.5vw, 1.5rem);
@@ -110,6 +199,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Enhanced hover effect with framer-motion support */
@@ -117,7 +207,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #ffdd57 0%, #ff9500 100%);
+  background: var(--btn-primary-hover-bg);
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: inherit;
@@ -128,8 +218,9 @@
 }
 
 .banner-subscribe-btn:hover {
-  color: #1f2937;
+  color: var(--btn-primary-hover-text);
   box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
+  transform: translateY(-1px);
 }
 
 /* Ensure text stays above background */
@@ -139,8 +230,8 @@
 }
 
 .banner-close-btn {
-  background: var(--gray-100, #f3f4f6);
-  color: #6b7280;
+  background: var(--close-btn-bg);
+  color: var(--close-btn-text);
   border: none;
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   font-weight: 700;
@@ -162,13 +253,14 @@
   will-change: transform;
   position: relative;
   overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .banner-close-btn::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: #ffe4e1;
+  background: var(--close-btn-hover-bg);
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: inherit;
@@ -179,7 +271,9 @@
 }
 
 .banner-close-btn:hover {
-  color: #dc2626;
+  background: var(--close-btn-hover-bg);
+  color: var(--close-btn-hover-text);
+  transform: scale(1.05);
 }
 
 /* Enhanced Mobile-First Responsive Design */

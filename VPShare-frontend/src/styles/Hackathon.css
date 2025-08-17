@@ -289,7 +289,6 @@
 }
 
 .btn-secondary {
-  background: transparent;
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -1751,6 +1750,13 @@ section#register {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
+/* Dark theme support for registration section */
+[data-theme="dark"] .registration-section,
+.dark .registration-section,
+.dark-theme .registration-section {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
 .registration-header {
   text-align: center;
   margin-bottom: 3rem;
@@ -1770,6 +1776,13 @@ section#register {
   margin: 0 auto;
 }
 
+/* Dark theme support for registration header */
+[data-theme="dark"] .registration-header p,
+.dark .registration-header p,
+.dark-theme .registration-header p {
+  color: #d1d5db;
+}
+
 .registration-form {
   max-width: 1000px; /* Made wider like image 3 */
   margin: 0 auto;
@@ -1780,6 +1793,16 @@ section#register {
   position: relative;
   overflow: hidden;
   border: 1px solid #e5e7eb;
+}
+
+/* Dark theme support for registration form */
+[data-theme="dark"] .registration-form,
+.dark .registration-form,
+.dark-theme .registration-form {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #ffffff !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3) !important;
 }
 
 .registration-form::before {
@@ -1854,6 +1877,36 @@ section#register {
   font-weight: 600;
 }
 
+/* Enhanced dark mode support for form sections and registration steps */
+[data-theme="dark"] .form-section,
+[data-theme="dark"] .registration-step,
+.dark .form-section,
+.dark .registration-step,
+.dark-theme .form-section,
+.dark-theme .registration-step {
+  background: #374151 !important;
+  color: #f9fafb !important;
+}
+
+[data-theme="dark"] .form-section h3,
+[data-theme="dark"] .registration-step h3,
+.dark .form-section h3,
+.dark .registration-step h3,
+.dark-theme .form-section h3,
+.dark-theme .registration-step h3 {
+  color: #60a5fa !important;
+}
+
+/* Dark theme support for section headings */
+[data-theme="dark"] .form-section h3,
+[data-theme="dark"] .registration-step h3,
+.dark .form-section h3,
+.dark .registration-step h3,
+.dark-theme .form-section h3,
+.dark-theme .registration-step h3 {
+  color: #8b5cf6 !important;
+}
+
 .form-section h3::before,
 .registration-step h3::before {
   content: '';
@@ -1905,6 +1958,13 @@ section#register {
   font-size: 0.9rem;
 }
 
+/* Dark theme support for form labels */
+[data-theme="dark"] .form-group label,
+.dark .form-group label,
+.dark-theme .form-group label {
+  color: #f3f4f6 !important;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -1915,6 +1975,32 @@ section#register {
   transition: all 0.3s ease;
   background: #ffffff;
   font-family: inherit;
+  color: #111827;
+}
+
+/* Dark theme support for form inputs */
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea,
+.dark .form-group input,
+.dark .form-group select,
+.dark .form-group textarea,
+.dark-theme .form-group input,
+.dark-theme .form-group select,
+.dark-theme .form-group textarea {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
+/* Dark theme placeholder text */
+[data-theme="dark"] .form-group input::placeholder,
+[data-theme="dark"] .form-group textarea::placeholder,
+.dark .form-group input::placeholder,
+.dark .form-group textarea::placeholder,
+.dark-theme .form-group input::placeholder,
+.dark-theme .form-group textarea::placeholder {
+  color: #9ca3af !important;
 }
 
 .form-group input:focus,
@@ -1924,6 +2010,20 @@ section#register {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   transform: translateY(-1px);
+}
+
+/* Dark theme focus states */
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .form-group textarea:focus,
+.dark .form-group input:focus,
+.dark .form-group select:focus,
+.dark .form-group textarea:focus,
+.dark-theme .form-group input:focus,
+.dark-theme .form-group select:focus,
+.dark-theme .form-group textarea:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
 }
 
 .form-group input:hover,
@@ -1975,11 +2075,29 @@ section#register {
   transition: all 0.3s ease;
   border: 2px solid transparent;
   background: #f9fafb;
+  color: #374151;
+}
+
+/* Dark theme support for checkbox labels */
+[data-theme="dark"] .checkbox-label,
+.dark .checkbox-label,
+.dark-theme .checkbox-label {
+  background: #374151 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
 }
 
 .checkbox-label:hover {
   background: #f3f4f6;
   border-color: #e5e7eb;
+}
+
+/* Dark theme hover states for checkbox labels */
+[data-theme="dark"] .checkbox-label:hover,
+.dark .checkbox-label:hover,
+.dark-theme .checkbox-label:hover {
+  background: #4b5563 !important;
+  border-color: #6b7280 !important;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -2001,6 +2119,13 @@ section#register {
   font-weight: 600;
 }
 
+/* Dark theme support for team members heading */
+[data-theme="dark"] .team-members h4,
+.dark .team-members h4,
+.dark-theme .team-members h4 {
+  color: #8b5cf6 !important;
+}
+
 .team-member {
   background: #f9fafb;
   padding: 1.5rem;
@@ -2010,9 +2135,24 @@ section#register {
   transition: all 0.3s ease;
 }
 
+/* Dark theme support for team member cards */
+[data-theme="dark"] .team-member,
+.dark .team-member,
+.dark-theme .team-member {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
 .team-member:hover {
   border-color: #d1d5db;
   transform: translateY(-1px);
+}
+
+/* Dark theme hover for team member cards */
+[data-theme="dark"] .team-member:hover,
+.dark .team-member:hover,
+.dark-theme .team-member:hover {
+  border-color: #6b7280 !important;
 }
 
 .team-member h5 {
@@ -2020,6 +2160,13 @@ section#register {
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* Dark theme support for team member headings */
+[data-theme="dark"] .team-member h5,
+.dark .team-member h5,
+.dark-theme .team-member h5 {
+  color: #f3f4f6 !important;
 }
 
 /* Streamlined Quick Fill Buttons */
@@ -2976,8 +3123,8 @@ section#register {
   
   /* Fix content icon circle alignment - preserve inline background-color */
   .content-icon {
-    width: 80px !important;
-    height: 80px !important;
+    width: 100% !important;
+    height: 100% !important;
     border-radius: 50% !important;
     display: flex !important;
     align-items: center !important;
@@ -4499,11 +4646,26 @@ section#register {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Dark theme support for summary sections */
+[data-theme="dark"] .summary-section,
+.dark .summary-section,
+.dark-theme .summary-section {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
+}
+
 .summary-section h4 {
   color: #2196F3;
   margin-bottom: 1rem;
   border-bottom: 2px solid rgba(33, 150, 243, 0.3);
   padding-bottom: 0.5rem;
+}
+
+/* Dark theme support for summary section headings */
+[data-theme="dark"] .summary-section h4,
+.dark .summary-section h4,
+.dark-theme .summary-section h4 {
+  color: #60a5fa !important;
 }
 
 .summary-section p {
@@ -4512,8 +4674,23 @@ section#register {
   line-height: 1.5;
 }
 
+/* Dark theme support for summary section text */
+[data-theme="dark"] .summary-section p,
+.dark .summary-section p,
+.dark-theme .summary-section p {
+  color: #f3f4f6 !important;
+}
+
 .payment-breakdown {
   margin-top: 1rem;
+}
+
+/* Dark theme support for payment breakdown */
+[data-theme="dark"] .payment-breakdown,
+.dark .payment-breakdown,
+.dark-theme .payment-breakdown {
+  background: #374151 !important;
+  border-color: #4b5563 !important;
 }
 
 .payment-row {
@@ -4524,6 +4701,20 @@ section#register {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Dark theme support for payment row */
+[data-theme="dark"] .payment-row,
+.dark .payment-row,
+.dark-theme .payment-row {
+  border-bottom-color: #4b5563 !important;
+  color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .payment-row span,
+.dark .payment-row span,
+.dark-theme .payment-row span {
+  color: #f9fafb !important;
+}
+
 .payment-row.total {
   border-top: 2px solid #2196F3;
   border-bottom: none;
@@ -4532,9 +4723,24 @@ section#register {
   font-size: 1.1rem;
 }
 
+/* Dark theme support for total payment row */
+[data-theme="dark"] .payment-row.total,
+.dark .payment-row.total,
+.dark-theme .payment-row.total {
+  border-top-color: #60a5fa !important;
+  color: #f9fafb !important;
+}
+
 .payment-row span:last-child {
   color: #4CAF50;
   font-weight: bold;
+}
+
+/* Dark theme support for payment amount */
+[data-theme="dark"] .payment-row span:last-child,
+.dark .payment-row span:last-child,
+.dark-theme .payment-row span:last-child {
+  color: #4ade80 !important;
 }
 
 .terms-acceptance {
@@ -4545,6 +4751,14 @@ section#register {
   margin-top: 2rem;
 }
 
+/* Dark theme support for terms acceptance */
+[data-theme="dark"] .terms-acceptance,
+.dark .terms-acceptance,
+.dark-theme .terms-acceptance {
+  background: rgba(96, 165, 250, 0.1) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+}
+
 .terms-acceptance .terms-header {
   color: #2196F3;
   font-size: 1.2rem;
@@ -4552,10 +4766,24 @@ section#register {
   margin-bottom: 1rem;
 }
 
+/* Dark theme support for terms header */
+[data-theme="dark"] .terms-acceptance .terms-header,
+.dark .terms-acceptance .terms-header,
+.dark-theme .terms-acceptance .terms-header {
+  color: #60a5fa !important;
+}
+
 .terms-acceptance p {
   color: #2c3e50;
   margin-bottom: 1rem;
   font-weight: 500;
+}
+
+/* Dark theme support for terms text */
+[data-theme="dark"] .terms-acceptance p,
+.dark .terms-acceptance p,
+.dark-theme .terms-acceptance p {
+  color: #f3f4f6 !important;
 }
 
 .terms-acceptance ul {
@@ -4568,7 +4796,13 @@ section#register {
   color: #34495e;
   padding: 0.25rem 0;
   position: relative;
-  padding-left: 1.5rem;
+}
+
+/* Dark theme support for terms list items */
+[data-theme="dark"] .terms-acceptance li,
+.dark .terms-acceptance li,
+.dark-theme .terms-acceptance li {
+  color: #d1d5db !important;
 }
 
 .terms-acceptance li::before {
@@ -4814,7 +5048,6 @@ section#register {
 
 @media (max-width: 480px) {
   .registration-container {
-    padding: 0.75rem;
     margin: 0.25rem auto;
     max-width: 98%;
     border-radius: 12px;
@@ -4909,9 +5142,16 @@ section#register {
 
 .summary-item {
   padding: 0.75rem;
-  background: #f8f9fa;
   border-radius: 8px;
   border-left: 4px solid #007bff;
+}
+
+/* Dark theme support for summary items */
+[data-theme="dark"] .summary-item,
+.dark .summary-item,
+.dark-theme .summary-item {
+  background: #374151 !important;
+  border-left-color: #60a5fa !important;
 }
 
 @media (max-width: 768px) {
@@ -4936,10 +5176,27 @@ section#register {
   font-size: 0.9rem;
 }
 
+/* Dark theme support for summary item labels */
+[data-theme="dark"] .summary-item strong,
+.dark .summary-item strong,
+.dark-theme .summary-item strong {
+  color: #d1d5db !important;
+}
+
 .summary-item span,
 .summary-item a {
   color: #212529;
   font-weight: 500;
+}
+
+/* Dark theme support for summary item values */
+[data-theme="dark"] .summary-item span,
+[data-theme="dark"] .summary-item a,
+.dark .summary-item span,
+.dark .summary-item a,
+.dark-theme .summary-item span,
+.dark-theme .summary-item a {
+  color: #f9fafb !important;
 }
 
 .summary-item a {
@@ -4954,8 +5211,14 @@ section#register {
 .team-members-review {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f8f9fa;
   border-radius: 8px;
+}
+
+/* Dark theme support for team members review */
+[data-theme="dark"] .team-members-review,
+.dark .team-members-review,
+.dark-theme .team-members-review {
+  background: #374151 !important;
 }
 
 .member-review {
@@ -4964,9 +5227,16 @@ section#register {
   gap: 0.5rem;
   margin-bottom: 0.75rem;
   padding: 0.5rem;
-  background: white;
   border-radius: 6px;
   border-left: 3px solid #28a745;
+}
+
+/* Dark theme support for member review */
+[data-theme="dark"] .member-review,
+.dark .member-review,
+.dark-theme .member-review {
+  background: #4b5563 !important;
+  border-left-color: #34d399 !important;
 }
 
 .member-review:last-child {
@@ -4979,14 +5249,27 @@ section#register {
   min-width: 100px;
 }
 
+/* Dark theme support for member role */
+[data-theme="dark"] .member-role,
+.dark .member-role,
+.dark-theme .member-role {
+  color: #d1d5db !important;
+}
+
 .member-details {
   color: #6c757d;
+}
+
+/* Dark theme support for member details */
+[data-theme="dark"] .member-details,
+.dark .member-details,
+.dark-theme .member-details {
+  color: #f3f4f6 !important;
 }
 
 .languages-list {
   margin-top: 0.25rem;
   padding: 0.5rem;
-  background: #e9ecef;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9rem;
@@ -5008,7 +5291,6 @@ section#register {
 }
 
 .commitment-item.committed {
-  background: #d4edda;
   border: 1px solid #c3e6cb;
   color: #155724;
 }
@@ -5033,6 +5315,22 @@ section#register {
 .payment-section h4 {
   color: white !important;
   margin-bottom: 1rem;
+}
+
+/* Ensure payment section text is always visible */
+[data-theme="dark"] .payment-section,
+[data-theme="dark"] .payment-section h4,
+[data-theme="dark"] .payment-section p,
+[data-theme="dark"] .payment-section span,
+.dark .payment-section,
+.dark .payment-section h4,
+.dark .payment-section p,
+.dark .payment-section span,
+.dark-theme .payment-section,
+.dark-theme .payment-section h4,
+.dark-theme .payment-section p,
+.dark-theme .payment-section span {
+  color: white !important;
 }
 
 .payment-breakdown {
@@ -5063,8 +5361,6 @@ section#register {
 .terms-acceptance {
   margin-top: 2rem;
   padding: 1.5rem;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
   border-radius: 10px;
 }
 
@@ -6706,28 +7002,276 @@ html {
 }
 
 /* ====================================
-   DARK MODE CONSIDERATIONS (Future-proofing)
+   COMPREHENSIVE DARK MODE SUPPORT
    ==================================== */
 
+/* Dark mode detection for various theme implementations */
 @media (prefers-color-scheme: dark) {
   .registration-form,
   .registration-step {
-    background: #1a1a1a;
-    color: #ffffff;
+    background: #1a1a1a !important;
+    color: #ffffff !important;
   }
   
   .form-group input,
   .form-group select,
   .form-group textarea {
-    background: #2d2d2d;
-    border-color: #404040;
-    color: #ffffff;
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+  }
+  
+  .form-group label {
+    color: #ffffff !important;
   }
   
   .team-member {
-    background: #2d2d2d;
-    border-color: #404040;
+    background: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
   }
+  
+  .team-member h5 {
+    color: #ffffff !important;
+  }
+  
+  .checkbox-label {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #404040 !important;
+  }
+  
+  .form-section h3,
+  .registration-step h3 {
+    color: #8b5cf6 !important;
+  }
+  
+  .team-members h4 {
+    color: #8b5cf6 !important;
+  }
+  
+  .registration-section {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  }
+  
+  .registration-header p {
+    color: #d1d5db !important;
+  }
+}
+
+/* Additional dark theme class support */
+[data-theme="dark"] .registration-form,
+[data-theme="dark"] .registration-step,
+.dark .registration-form,
+.dark .registration-step,
+.dark-theme .registration-form,
+.dark-theme .registration-step {
+  background: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+/* Ensure all text is visible in dark mode */
+[data-theme="dark"] .registration-form *,
+[data-theme="dark"] .registration-step *,
+.dark .registration-form *,
+.dark .registration-step *,
+.dark-theme .registration-form *,
+.dark-theme .registration-step * {
+  color: inherit !important;
+}
+
+/* Force visibility for specific review elements */
+[data-theme="dark"] .review-summary .summary-section p,
+[data-theme="dark"] .review-summary .summary-item span,
+[data-theme="dark"] .review-summary .member-details,
+[data-theme="dark"] .review-summary .member-role,
+.dark .review-summary .summary-section p,
+.dark .review-summary .summary-item span,
+.dark .review-summary .member-details,
+.dark .review-summary .member-role,
+.dark-theme .review-summary .summary-section p,
+.dark-theme .review-summary .summary-item span,
+.dark-theme .review-summary .member-details,
+.dark-theme .review-summary .member-role {
+  color: #f9fafb !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Comprehensive Checkout/Payment Dark Mode Support */
+[data-theme="dark"] .checkout-page,
+[data-theme="dark"] .payment-page,
+[data-theme="dark"] .registration-form,
+.dark .checkout-page,
+.dark .payment-page,
+.dark .registration-form,
+.dark-theme .checkout-page,
+.dark-theme .payment-page,
+.dark-theme .registration-form {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Enhanced Form Elements Dark Mode Support */
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+.dark .form-group input,
+.dark .form-group select,
+.dark .form-group textarea,
+.dark input,
+.dark select,
+.dark textarea,
+.dark-theme .form-group input,
+.dark-theme .form-group select,
+.dark-theme .form-group textarea,
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea {
+  background: #374151 !important;
+  color: #f9fafb !important;
+  border: 2px solid #4b5563 !important;
+}
+
+/* Enhanced Form Labels Dark Mode Support */
+[data-theme="dark"] .form-group label,
+[data-theme="dark"] label,
+.dark .form-group label,
+.dark label,
+.dark-theme .form-group label,
+.dark-theme label {
+  color: #f9fafb !important;
+  font-weight: 600 !important;
+}
+
+/* Input Placeholder Text Dark Mode */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder,
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Focus States for Dark Mode */
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus,
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus,
+.dark-theme input:focus,
+.dark-theme select:focus,
+.dark-theme textarea:focus {
+  background: #4b5563 !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* All form elements in checkout/payment */
+[data-theme="dark"] .checkout-page input,
+[data-theme="dark"] .checkout-page select,
+[data-theme="dark"] .checkout-page textarea,
+[data-theme="dark"] .checkout-page label,
+[data-theme="dark"] .payment-page input,
+[data-theme="dark"] .payment-page select,
+[data-theme="dark"] .payment-page textarea,
+[data-theme="dark"] .payment-page label,
+.dark .checkout-page input,
+.dark .checkout-page select,
+.dark .checkout-page textarea,
+.dark .checkout-page label,
+.dark .payment-page input,
+.dark .payment-page select,
+.dark .payment-page textarea,
+.dark .payment-page label,
+.dark-theme .checkout-page input,
+.dark-theme .checkout-page select,
+.dark-theme .checkout-page textarea,
+.dark-theme .checkout-page label,
+.dark-theme .payment-page input,
+.dark-theme .payment-page select,
+.dark-theme .payment-page textarea,
+.dark-theme .payment-page label {
+  background: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+/* All text elements in checkout/payment */
+[data-theme="dark"] .checkout-page p,
+[data-theme="dark"] .checkout-page span,
+[data-theme="dark"] .checkout-page div,
+[data-theme="dark"] .checkout-page h1,
+[data-theme="dark"] .checkout-page h2,
+[data-theme="dark"] .checkout-page h3,
+[data-theme="dark"] .checkout-page h4,
+[data-theme="dark"] .checkout-page h5,
+[data-theme="dark"] .checkout-page h6,
+[data-theme="dark"] .payment-page p,
+[data-theme="dark"] .payment-page span,
+[data-theme="dark"] .payment-page div,
+[data-theme="dark"] .payment-page h1,
+[data-theme="dark"] .payment-page h2,
+[data-theme="dark"] .payment-page h3,
+[data-theme="dark"] .payment-page h4,
+[data-theme="dark"] .payment-page h5,
+[data-theme="dark"] .payment-page h6,
+.dark .checkout-page p,
+.dark .checkout-page span,
+.dark .checkout-page div,
+.dark .checkout-page h1,
+.dark .checkout-page h2,
+.dark .checkout-page h3,
+.dark .checkout-page h4,
+.dark .checkout-page h5,
+.dark .checkout-page h6,
+.dark .payment-page p,
+.dark .payment-page span,
+.dark .payment-page div,
+.dark .payment-page h1,
+.dark .payment-page h2,
+.dark .payment-page h3,
+.dark .payment-page h4,
+.dark .payment-page h5,
+.dark .payment-page h6,
+.dark-theme .checkout-page p,
+.dark-theme .checkout-page span,
+.dark-theme .checkout-page div,
+.dark-theme .checkout-page h1,
+.dark-theme .checkout-page h2,
+.dark-theme .checkout-page h3,
+.dark-theme .checkout-page h4,
+.dark-theme .checkout-page h5,
+.dark-theme .checkout-page h6,
+.dark-theme .payment-page p,
+.dark-theme .payment-page span,
+.dark-theme .payment-page div,
+.dark-theme .payment-page h1,
+.dark-theme .payment-page h2,
+.dark-theme .payment-page h3,
+.dark-theme .payment-page h4,
+.dark-theme .payment-page h5,
+.dark-theme .payment-page h6 {
+  color: #f9fafb !important;
+}
+
+/* Make sure buttons remain visible */
+[data-theme="dark"] .submit-btn,
+[data-theme="dark"] .quick-fill-btn,
+.dark .submit-btn,
+.dark .quick-fill-btn,
+.dark-theme .submit-btn,
+.dark-theme .quick-fill-btn {
+  background: linear-gradient(135deg, #4a9eff 0%, #0066cc 100%) !important;
+  color: white !important;
+  border: none !important;
 }
 
 /* ====================================
@@ -7283,7 +7827,6 @@ html {
   }
   
   .btn-secondary {
-    background: transparent;
     border: 2px solid rgba(255, 255, 255, 0.4);
     color: #fff;
     backdrop-filter: blur(10px);
@@ -8367,7 +8910,6 @@ html {
   
   .registration-container {
     margin: 0 4%;
-    padding: 8%;
   }
 }
 
@@ -8871,4 +9413,124 @@ html {
     width: 98%;
     margin: 0.5rem;
   }
+}
+
+/* ==========================================
+   CRITICAL DARK MODE FIXES - FINAL OVERRIDE
+   ========================================== */
+
+/* Force all text elements to be visible in dark mode */
+[data-theme="dark"] .hackathon-page,
+[data-theme="dark"] .registration-container,
+[data-theme="dark"] .registration-form,
+[data-theme="dark"] .form-section,
+[data-theme="dark"] .registration-step,
+.dark .hackathon-page,
+.dark .registration-container,
+.dark .registration-form,
+.dark .form-section,
+.dark .registration-step,
+.dark-theme .hackathon-page,
+.dark-theme .registration-container,
+.dark-theme .registration-form,
+.dark-theme .form-section,
+.dark-theme .registration-step {
+  background: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Force all input fields to have proper contrast - CRITICAL */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark select,
+.dark textarea,
+.dark-theme input[type="text"],
+.dark-theme input[type="email"],
+.dark-theme input[type="tel"],
+.dark-theme select,
+.dark-theme textarea {
+  background: #4b5563 !important;
+  color: #ffffff !important;
+  border: 2px solid #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+/* Force all labels to be visible - CRITICAL */
+[data-theme="dark"] label,
+[data-theme="dark"] .form-group label,
+.dark label,
+.dark .form-group label,
+.dark-theme label,
+.dark-theme .form-group label {
+  color: #f9fafb !important;
+  font-weight: 600 !important;
+}
+
+/* Force all headings to be visible - CRITICAL */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme h4,
+.dark-theme h5,
+.dark-theme h6 {
+  color: #f9fafb !important;
+}
+
+/* Force all paragraph and span text to be visible - CRITICAL */
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+.dark p,
+.dark span,
+.dark div,
+.dark-theme p,
+.dark-theme span,
+.dark-theme div {
+  color: #f3f4f6 !important;
+}
+
+/* Ensure placeholder text is visible - CRITICAL */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder,
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder {
+  color: #d1d5db !important;
+  opacity: 0.8 !important;
+}
+
+/* Focus states for better usability */
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus,
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus,
+.dark-theme input:focus,
+.dark-theme select:focus,
+.dark-theme textarea:focus {
+  background: #6b7280 !important;
+  color: #ffffff !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
+  outline: none !important;
 }

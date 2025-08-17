@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { auth } from '../config/firebase'; 
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { Box, Button, Typography, Paper, TextField, Alert, InputAdornment, IconButton, Divider } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import SEO from '../components/SEO';
@@ -109,6 +109,41 @@ function Login() {
       sessionStorage.setItem('loginReturnPath', returnPath);
     }
   }, [isLogin, location]);
+
+  // Handle redirect results from OAuth providers
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User successfully signed in via redirect
+          const returnPath = sessionStorage.getItem('auth_return_path') || getAndClearReturnPath();
+          sessionStorage.removeItem('auth_return_path');
+          
+          showNotification({
+            type: 'success',
+            title: '🎉 Welcome!',
+            message: `Successfully signed in with ${result.providerId.includes('google') ? 'Google' : 'GitHub'}.`,
+            duration: 3000
+          });
+          
+          navigate(returnPath);
+        }
+      } catch (error) {
+        console.error('Redirect authentication error:', error);
+        setError('Authentication failed. Please try again.');
+        showNotification({
+          type: 'error',
+          title: 'Authentication Error',
+          message: 'Failed to complete sign-in. Please try again.',
+          duration: 4000
+        });
+      }
+    };
+
+    handleRedirectResult();
+  }, [navigate, getAndClearReturnPath, showNotification]);
+
   // Validate form
   const validateForm = () => {
     const errors = {};
@@ -156,20 +191,47 @@ function Login() {
         access_type: 'online' // Faster auth without offline access
       });
       
-      const result = await signInWithPopup(auth, provider);
-      
-      clearTimeout(timeoutId);
-      setAuthCancelTimeout(null);
-      
-      if (result.user) {
-        const returnPath = getAndClearReturnPath();
-        showNotification({
-          type: 'success',
-          title: '🎉 Welcome back!',
-          message: `Successfully signed in with Google.`,
-          duration: 3000
-        });
-        navigate(returnPath);
+      // Try popup first, fallback to redirect if COOP policy blocks it
+      try {
+        const result = await signInWithPopup(auth, provider);
+        
+        clearTimeout(timeoutId);
+        setAuthCancelTimeout(null);
+        
+        if (result.user) {
+          const returnPath = getAndClearReturnPath();
+          showNotification({
+            type: 'success',
+            title: '🎉 Welcome back!',
+            message: `Successfully signed in with Google.`,
+            duration: 3000
+          });
+          navigate(returnPath);
+        }
+      } catch (popupError) {
+        // If popup is blocked or COOP policy interferes, use redirect
+        if (popupError.code === 'auth/popup-blocked' || 
+            popupError.message?.includes('Cross-Origin-Opener-Policy') ||
+            popupError.message?.includes('window.closed')) {
+          
+          clearTimeout(timeoutId);
+          setAuthCancelTimeout(null);
+          
+          showNotification({
+            type: 'info',
+            title: 'Redirecting...',
+            message: 'Opening Google sign-in in a new tab.',
+            duration: 2000
+          });
+          
+          // Store the current path to return to after redirect
+          sessionStorage.setItem('auth_return_path', getAndClearReturnPath());
+          
+          await signInWithRedirect(auth, provider);
+          return;
+        } else {
+          throw popupError; // Re-throw other errors to be handled below
+        }
       }
     } catch (error) {
       clearTimeout(timeoutId);
@@ -219,20 +281,47 @@ function Login() {
         allow_signup: 'true'
       });
       
-      const result = await signInWithPopup(auth, provider);
-      
-      clearTimeout(timeoutId);
-      setAuthCancelTimeout(null);
-      
-      if (result.user) {
-        const returnPath = getAndClearReturnPath();
-        showNotification({
-          type: 'success',
-          title: '🎉 Welcome!',
-          message: `Successfully signed in with GitHub.`,
-          duration: 3000
-        });
-        navigate(returnPath);
+      // Try popup first, fallback to redirect if COOP policy blocks it
+      try {
+        const result = await signInWithPopup(auth, provider);
+        
+        clearTimeout(timeoutId);
+        setAuthCancelTimeout(null);
+        
+        if (result.user) {
+          const returnPath = getAndClearReturnPath();
+          showNotification({
+            type: 'success',
+            title: '🎉 Welcome!',
+            message: `Successfully signed in with GitHub.`,
+            duration: 3000
+          });
+          navigate(returnPath);
+        }
+      } catch (popupError) {
+        // If popup is blocked or COOP policy interferes, use redirect
+        if (popupError.code === 'auth/popup-blocked' || 
+            popupError.message?.includes('Cross-Origin-Opener-Policy') ||
+            popupError.message?.includes('window.closed')) {
+          
+          clearTimeout(timeoutId);
+          setAuthCancelTimeout(null);
+          
+          showNotification({
+            type: 'info',
+            title: 'Redirecting...',
+            message: 'Opening GitHub sign-in in a new tab.',
+            duration: 2000
+          });
+          
+          // Store the current path to return to after redirect
+          sessionStorage.setItem('auth_return_path', getAndClearReturnPath());
+          
+          await signInWithRedirect(auth, provider);
+          return;
+        } else {
+          throw popupError; // Re-throw other errors to be handled below
+        }
       }
     } catch (error) {
       clearTimeout(timeoutId);

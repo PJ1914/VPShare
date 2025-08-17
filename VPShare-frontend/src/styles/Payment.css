@@ -1641,11 +1641,6 @@
     color: #e5e7eb !important;
   }
   
-  /* All paragraph and span text should be light */
-  p, span, div:not(.feature-check):not(.feature-icon) {
-    color: #e5e7eb !important;
-  }
-  
   /* Security info text */
   .security-info {
     color: #d1d5db !important;
