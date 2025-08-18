@@ -2992,7 +2992,6 @@ section#register {
     line-height: 1.5;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
-    background: #ffffff;
     transition: all 0.3s ease;
     min-height: 50px;
     box-sizing: border-box;
@@ -3398,7 +3397,6 @@ section#register {
   .form-group select:focus,
   .form-group textarea:focus {
     border-color: #2196F3 !important;
-    background: #fff !important;
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1) !important;
     outline: none !important;
   }
@@ -9199,12 +9197,6 @@ html {
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h2 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 1.25rem;
 }
 
 .close-btn {
