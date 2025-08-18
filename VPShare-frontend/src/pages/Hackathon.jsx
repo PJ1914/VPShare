@@ -9,13 +9,9 @@ import Bootcamp from '../components/hackathon/Bootcamp';
 import Partners from '../components/hackathon/Partners';
 import Responsibilities from '../components/hackathon/Responsibilities';
 import MobileSidebar from '../components/hackathon/MobileSidebar';
-import { HackathonMobileLoader, MobileSectionLoader } from '../components/MobileLoadingSpinner';
 import { useResponsive } from '../hooks/useResponsive';
 import { useNotification } from '../contexts/NotificationContext';
-import { mobileDetection, mobilePerformance, mobileUX, mobileA11y } from '../utils/mobileOptimization';
 import '../styles/Hackathon.css';
-import '../styles/MobileUtils.css';
-import '../styles/MobileLoadingSpinner.css';
 
 const Hackathon = () => {
   const navigate = useNavigate();
@@ -25,6 +21,17 @@ const Hackathon = () => {
   const [loadingStage, setLoadingStage] = useState('Initializing');
   const { isMobile, isTablet, deviceType } = useResponsive();
   const { showNotification } = useNotification();
+  const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
+
+  // Show mobile disclaimer for mobile users instead of blocking
+  useEffect(() => {
+    if (isMobile || isTablet) {
+      // Show disclaimer modal after a short delay
+      setTimeout(() => {
+        setShowMobileDisclaimer(true);
+      }, 1000);
+    }
+  }, [isMobile, isTablet]);
 
   const sections = [
     { id: 'about', label: 'About' },
@@ -49,80 +56,23 @@ const Hackathon = () => {
     return () => clearTimeout(timer);
   }, [showNotification]);
 
-  // Mobile-specific optimizations
+  // Loading sequence for all users
   useEffect(() => {
     // Initialize loading sequence
     const initializeApp = async () => {
       setLoadingStage('Initializing');
       await new Promise(resolve => setTimeout(resolve, 500));
-
-      if (isMobile || isTablet) {
-        setLoadingStage('Loading');
-        
-        // Add mobile-specific body classes
-        document.body.classList.add('mobile-hackathon');
-        
-        // Optimize touch scrolling
-        document.documentElement.style.setProperty('-webkit-overflow-scrolling', 'touch');
-        
-        // Initialize mobile optimizations
-        if (typeof mobileUX !== 'undefined') {
-          mobileUX.preventZoomOnInput();
-        }
-        if (typeof mobileA11y !== 'undefined') {
-          mobileA11y.ensureTouchTargetSize();
-        }
-        if (typeof mobilePerformance !== 'undefined') {
-          mobilePerformance.lazyLoadImages();
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, 600));
-      }
-
+      
+      setLoadingStage('Loading');
+      await new Promise(resolve => setTimeout(resolve, 600));
+      
       setLoadingStage('Ready');
       await new Promise(resolve => setTimeout(resolve, 300));
       setIsLoading(false);
     };
 
     initializeApp();
-    
-    // Prevent zoom on input focus for iOS
-    const addNoZoomInputs = () => {
-      const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], select, textarea');
-      inputs.forEach(input => {
-        if (parseFloat(getComputedStyle(input).fontSize) < 16) {
-          input.style.fontSize = '16px';
-        }
-      });
-    };
-    
-    // Add mobile performance optimizations
-    const optimizeForMobile = () => {
-      // Lazy load non-critical sections
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('mobile-visible');
-          }
-        });
-      }, { threshold: 0.1 });
-      
-      const sections = document.querySelectorAll('.hackathon-section');
-      sections.forEach(section => observer.observe(section));
-      
-      return () => observer.disconnect();
-    };
-    
-    if (isMobile || isTablet) {
-      setTimeout(addNoZoomInputs, 100);
-      const cleanup = optimizeForMobile();
-      
-      return () => {
-        document.body.classList.remove('mobile-hackathon');
-        cleanup?.();
-      };
-    }
-  }, [isMobile, isTablet]);
+  }, []);
 
   // Handle navigation with smooth scrolling - Enhanced for mobile
   const handleNavigation = (sectionId) => {
@@ -197,30 +147,96 @@ const Hackathon = () => {
 
   return (
     <div className={`hackathon-page ${deviceType}`}>
-      {/* Mobile Loading Screen */}
-      <HackathonMobileLoader show={isLoading} stage={loadingStage} />
-      
-      {/* Mobile Menu Button */}
-      {(isMobile || isTablet) && (
-        <button
-          className={`hackathon-mobile-menu-btn ${mobileSidebarOpen ? 'open' : ''}`}
-          onClick={toggleMobileSidebar}
-          aria-label="Toggle navigation menu"
-        >
-          {mobileSidebarOpen ? '✕' : '☰'}
-        </button>
+      {/* Mobile Disclaimer Modal */}
+      {showMobileDisclaimer && (isMobile || isTablet) && (
+        <div className="mobile-disclaimer-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 10000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            maxWidth: '400px',
+            width: '100%',
+            textAlign: 'center',
+            animation: 'fadeInScale 0.3s ease-out'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💻</div>
+            <h2 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: '1.5rem' }}>
+              Better Experience on Desktop
+            </h2>
+            <p style={{ color: '#7f8c8d', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              While you can browse the hackathon details on mobile, we recommend using a 
+              desktop or laptop for registration and the best experience.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+              <button
+                onClick={() => setShowMobileDisclaimer(false)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#3498db',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  fontWeight: '600'
+                }}
+              >
+                Continue on Mobile
+              </button>
+              <button
+                onClick={handleHomeNavigation}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: 'transparent',
+                  color: '#7f8c8d',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Go to Home Page
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Mobile Sidebar */}
-      <MobileSidebar
-        isOpen={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
-        activeSection={activeSection}
-        onNavigate={handleNavigation}
-      />
+      {/* Main Content - Available for all devices */}
+      <div style={{ position: 'relative' }}>
+        {/* Mobile Menu Button */}
+        {(isMobile || isTablet) && (
+          <button
+            className={`hackathon-mobile-menu-btn ${mobileSidebarOpen ? 'open' : ''}`}
+            onClick={toggleMobileSidebar}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileSidebarOpen ? '✕' : '☰'}
+          </button>
+        )}
 
-      {/* Navigation */}
-      <nav className="hackathon-nav">
+        {/* Mobile Sidebar */}
+        <MobileSidebar
+          isOpen={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+          activeSection={activeSection}
+          onNavigate={handleNavigation}
+        />
+
+        {/* Navigation */}
+        <nav className="hackathon-nav">
         <div className="nav-container">
           <div className="nav-logo">
             <button 
@@ -374,6 +390,7 @@ const Hackathon = () => {
           <RegistrationForm />
         </section>
       </main>
+      </div>
     </div>
   );
 };

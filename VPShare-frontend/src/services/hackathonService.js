@@ -1099,6 +1099,14 @@ const hackathonService = {
       // Development mode fallback first
       if (isDevelopment || paymentData.registration_id?.startsWith('reg_dev_')) {
         console.log('Development mode: Simulating payment verification');
+        
+        // Simulate sending confirmation email in development
+        try {
+          await this.sendConfirmationEmail(paymentData.registration_id);
+        } catch (emailError) {
+          console.warn('Development mode: Email simulation failed:', emailError.message);
+        }
+        
         return {
           success: true,
           data: {
@@ -1132,6 +1140,19 @@ const hackathonService = {
         });
 
         if (statusUpdate.data?.success) {
+          // Step 4: Send confirmation email after successful payment verification
+          try {
+            await this.sendConfirmationEmail(paymentData.registration_id, {
+              payment_id: paymentData.razorpay_payment_id,
+              payment_amount: paymentData.amount,
+              team_size: paymentData.team_size
+            });
+            console.log('Confirmation email sent successfully');
+          } catch (emailError) {
+            console.error('Failed to send confirmation email:', emailError);
+            // Don't fail the payment verification if email fails
+          }
+          
           return {
             success: true,
             data: {
@@ -1161,6 +1182,17 @@ const hackathonService = {
             team_size: getBackendTeamSize(paymentData.team_size),
             amount: paymentData.amount
           });
+
+          // Try to send confirmation email even with fallback method
+          try {
+            await this.sendConfirmationEmail(paymentData.registration_id, {
+              payment_id: paymentData.razorpay_payment_id,
+              payment_amount: paymentData.amount,
+              team_size: paymentData.team_size
+            });
+          } catch (emailError) {
+            console.error('Failed to send confirmation email (fallback):', emailError);
+          }
 
           return {
             success: true,
@@ -1266,10 +1298,23 @@ const hackathonService = {
     }
   },
 
-  async updateRegistrationStatus(registrationId, newStatus, adminNotes = '') {
+  async updateRegistrationStatus(registrationId, newStatus, adminNotes = '', sendEmail = true) {
     try {
       const user = await this.ensureAuth();
       const token = await user.getIdToken();
+      
+      // Get current status before updating (for email logic)
+      let oldStatus = '';
+      if (sendEmail) {
+        try {
+          const currentReg = await this.getRegistrationDetails(registrationId);
+          if (currentReg.success) {
+            oldStatus = currentReg.data.registration_status || '';
+          }
+        } catch (statusError) {
+          console.warn('Could not fetch current status for email logic:', statusError);
+        }
+      }
       
       const response = await axios.put(`${ADMIN_API_URL}/status`, {
         registration_id: registrationId,
@@ -1285,6 +1330,17 @@ const hackathonService = {
       
       // Handle the Lambda response structure
       if (response.data?.success) {
+        // Send automated email notification if enabled
+        if (sendEmail && oldStatus !== newStatus) {
+          try {
+            await this.handleRegistrationStatusChange(registrationId, newStatus, oldStatus);
+            console.log(`Status change email sent for registration ${registrationId}: ${oldStatus} → ${newStatus}`);
+          } catch (emailError) {
+            console.error('Failed to send status change email:', emailError);
+            // Don't fail the status update if email fails
+          }
+        }
+        
         return {
           success: true,
           data: response.data.data || response.data,
@@ -1617,14 +1673,27 @@ const hackathonService = {
 
   async sendEmail(recipients, emailType, customData = {}) {
     try {
+      console.log('📧 sendEmail called with:', {
+        recipients,
+        emailType,
+        customData,
+        apiUrl: UTILS_API_URL
+      });
+      
       const user = await this.ensureAuth();
       const token = await user.getIdToken();
       
-      const response = await axios.post(`${UTILS_API_URL}/send-email`, {
+      console.log('🔐 Authentication successful, sending email request...');
+      
+      const requestPayload = {
         recipients: recipients, // Array of registration IDs or email addresses
         email_type: emailType, // 'confirmation', 'reminder', 'announcement', 'certificate'
         custom_data: customData // Additional data for email template
-      }, {
+      };
+      
+      console.log('📤 Request payload:', requestPayload);
+      
+      const response = await axios.post(`${UTILS_API_URL}/send-email`, requestPayload, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -1632,12 +1701,30 @@ const hackathonService = {
         timeout: 30000
       });
       
+      console.log('📨 Email API response:', response.data);
+      
       if (response.data?.success) {
-        return {
-          success: true,
-          data: response.data.data,
-          message: response.data.message || 'Emails sent successfully'
-        };
+        const data = response.data.data || {};
+        const successCount = data.successful_count || 0;
+        const failedCount = data.failed_count || 0;
+        
+        // Check if any emails actually succeeded
+        if (successCount > 0) {
+          return {
+            success: true,
+            data: response.data.data,
+            message: response.data.message || `Emails sent: ${successCount} successful, ${failedCount} failed`
+          };
+        } else {
+          // All emails failed even though API returned success=true
+          const failureDetails = data.failed_sends || [];
+          const firstError = failureDetails[0]?.error || 'Unknown error';
+          return {
+            success: false,
+            message: `All emails failed: ${firstError}`,
+            data: response.data.data
+          };
+        }
       } else {
         return {
           success: false,
@@ -1646,7 +1733,9 @@ const hackathonService = {
       }
       
     } catch (error) {
-      console.error('Email sending error:', error);
+      console.error('❌ Email sending error:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to send emails'
@@ -1668,6 +1757,348 @@ const hackathonService = {
       return {
         success: false,
         message: 'Failed to send bulk emails'
+      };
+    }
+  },
+
+  // Send confirmation email after successful payment
+  async sendConfirmationEmail(registrationId, paymentDetails = {}) {
+    try {
+      console.log(`📧 Sending confirmation email for registration: ${registrationId}`);
+      
+      // Prepare custom data for email template
+      const customData = {
+        payment_id: paymentDetails.payment_id || 'N/A',
+        payment_amount: paymentDetails.payment_amount || 0,
+        team_size: paymentDetails.team_size || 1,
+        custom_message: `
+          🎉 Congratulations! Your registration for CognitiveX GenAI Hackathon is now confirmed.
+          
+          💳 Payment Confirmation:
+          • Payment ID: ${paymentDetails.payment_id || 'N/A'}
+          • Amount Paid: ₹${paymentDetails.payment_amount ? (paymentDetails.payment_amount / 100) : 'N/A'}
+          • Status: ✅ Confirmed
+          
+          📅 What's Next:
+          • Complete your IBM SkillsBuild courses
+          • Register for NASSCOM FutureSkills Prime
+          • Join our Discord community for updates
+          • Prepare your development environment
+          
+          🔗 Important Links:
+          • IBM SkillsBuild: https://skillsbuild.org/
+          • NASSCOM FSP: https://futureskillsprime.in/
+          • Hackathon Website: https://codetapasya.com/
+          
+          We're excited to see what you'll build! Good luck! 🚀
+        `
+      };
+
+      // Send confirmation email via utils API
+      const emailResult = await this.sendEmail([registrationId], 'confirmation', customData);
+      
+      if (emailResult.success) {
+        console.log(`✅ Confirmation email sent successfully for registration ${registrationId}`);
+        return {
+          success: true,
+          message: 'Confirmation email sent successfully',
+          data: emailResult.data
+        };
+      } else {
+        console.error(`❌ Failed to send confirmation email:`, emailResult.message);
+        throw new Error(emailResult.message || 'Failed to send confirmation email');
+      }
+      
+    } catch (error) {
+      console.error('Send confirmation email error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to send confirmation email'
+      };
+    }
+  },
+
+  // Send reminder email to participants
+  async sendReminderEmail(registrationId, reminderType = 'general', customMessage = '') {
+    try {
+      const customData = {
+        reminder_type: reminderType,
+        custom_message: customMessage || 'Don\'t forget about the upcoming CognitiveX GenAI Hackathon! Make sure you\'re prepared and ready to innovate.',
+        hackathon_date: 'February 2025',
+        preparation_checklist: `
+          ✅ Checklist for the Hackathon:
+          • Complete IBM SkillsBuild courses
+          • Register for NASSCOM FutureSkills Prime
+          • Set up your development environment
+          • Review the problem statements
+          • Prepare your team collaboration tools
+          • Join our Discord community for live updates
+        `
+      };
+
+      const emailResult = await this.sendEmail([registrationId], 'reminder', customData);
+      
+      if (emailResult.success) {
+        console.log(`Reminder email sent successfully for registration ${registrationId}`);
+        return {
+          success: true,
+          message: 'Reminder email sent successfully'
+        };
+      } else {
+        throw new Error(emailResult.message || 'Failed to send reminder email');
+      }
+      
+    } catch (error) {
+      console.error('Send reminder email error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to send reminder email'
+      };
+    }
+  },
+
+  // Send announcement email to participants
+  async sendAnnouncementEmail(registrationIds, subject, message) {
+    try {
+      const customData = {
+        announcement_subject: subject,
+        custom_message: message,
+        sent_by: 'CognitiveX Team',
+        sent_at: new Date().toLocaleString('en-IN', { 
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'full',
+          timeStyle: 'short'
+        })
+      };
+
+      const emailResult = await this.sendEmail(registrationIds, 'announcement', customData);
+      
+      return emailResult;
+      
+    } catch (error) {
+      console.error('Send announcement email error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to send announcement email'
+      };
+    }
+  },
+
+  // Automated email notifications based on registration status
+  async handleRegistrationStatusChange(registrationId, newStatus, oldStatus = '') {
+    try {
+      let emailSent = false;
+      
+      // Send appropriate email based on status change
+      switch (newStatus.toLowerCase()) {
+        case 'confirmed':
+          if (oldStatus !== 'confirmed') {
+            await this.sendConfirmationEmail(registrationId);
+            emailSent = true;
+          }
+          break;
+          
+        case 'pending':
+          // Send reminder to complete payment if status is pending
+          await this.sendReminderEmail(registrationId, 'payment', 
+            'Your registration is pending payment. Please complete the payment to confirm your participation in CognitiveX GenAI Hackathon.');
+          emailSent = true;
+          break;
+          
+        case 'waitlisted':
+          await this.sendEmail([registrationId], 'announcement', {
+            custom_message: `Your registration for CognitiveX GenAI Hackathon has been waitlisted. We'll notify you if a spot becomes available. Thank you for your interest!`
+          });
+          emailSent = true;
+          break;
+          
+        case 'rejected':
+          await this.sendEmail([registrationId], 'announcement', {
+            custom_message: `We regret to inform you that your registration for CognitiveX GenAI Hackathon was not successful this time. We encourage you to participate in future events. Thank you for your interest!`
+          });
+          emailSent = true;
+          break;
+      }
+      
+      return {
+        success: true,
+        message: emailSent ? 'Status change email sent successfully' : 'No email required for this status change',
+        emailSent
+      };
+      
+    } catch (error) {
+      console.error('Status change email error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to send status change email'
+      };
+    }
+  },
+
+  // Send pre-event reminders to all confirmed participants
+  async sendPreEventReminders(customMessage = '') {
+    try {
+      // Get all confirmed registrations
+      const registrationsResult = await this.getAllRegistrations(1000, 'confirmed');
+      
+      if (!registrationsResult.success) {
+        throw new Error('Failed to fetch confirmed registrations');
+      }
+      
+      const confirmedRegistrations = registrationsResult.data;
+      const registrationIds = confirmedRegistrations.map(reg => reg.registration_id);
+      
+      if (registrationIds.length === 0) {
+        return {
+          success: true,
+          message: 'No confirmed registrations found',
+          count: 0
+        };
+      }
+      
+      const defaultMessage = `
+        🚀 The CognitiveX GenAI Hackathon is approaching fast!
+        
+        📅 Event Details:
+        • Date: February 2025
+        • Duration: 48 hours
+        • Format: Hybrid (Virtual + On-site)
+        
+        ✅ Final Preparation Checklist:
+        • ✅ Complete your IBM SkillsBuild courses
+        • ✅ Register for NASSCOM FutureSkills Prime
+        • ✅ Set up your development environment
+        • ✅ Review the problem statements
+        • ✅ Prepare your team collaboration tools
+        • ✅ Join our Discord community
+        
+        📱 Stay Connected:
+        • Discord: [Link will be shared soon]
+        • Email: support@codetapasya.com
+        • Website: codetapasya.com
+        
+        We can't wait to see what innovative solutions you'll create! 🎯
+      `;
+      
+      const emailResult = await this.sendBulkEmails(
+        registrationIds, 
+        'reminder', 
+        customMessage || defaultMessage
+      );
+      
+      return {
+        success: emailResult.success,
+        message: `Pre-event reminders sent to ${registrationIds.length} participants`,
+        count: registrationIds.length,
+        details: emailResult
+      };
+      
+    } catch (error) {
+      console.error('Pre-event reminder error:', error);
+      return {
+        success: false,
+        message: error.message || 'Failed to send pre-event reminders'
+      };
+    }
+  },
+
+  // Test email functionality
+  async testEmailSystem(registrationId, emailType = 'confirmation') {
+    try {
+      console.log(`🧪 Testing email system for registration ${registrationId} with type: ${emailType}`);
+      console.log('📡 Using UTILS API URL:', UTILS_API_URL);
+      
+      // First, verify the registration exists via Admin API
+      try {
+        console.log('🔍 Verifying registration exists via Admin API...');
+        const regCheck = await this.getRegistrationDetails(registrationId);
+        if (regCheck.success) {
+          console.log('✅ Registration found in Admin API:', {
+            id: regCheck.data.registration_id,
+            email: regCheck.data.email,
+            status: regCheck.data.registration_status
+          });
+        } else {
+          console.error('❌ Registration not found in Admin API:', regCheck.message);
+          return {
+            success: false,
+            message: `Registration verification failed: ${regCheck.message}`
+          };
+        }
+      } catch (adminError) {
+        console.error('❌ Admin API verification failed:', adminError);
+        return {
+          success: false,
+          message: `Admin API error: ${adminError.message}`
+        };
+      }
+      
+      switch (emailType) {
+        case 'confirmation':
+          return await this.sendConfirmationEmail(registrationId, {
+            payment_id: 'test_payment_123',
+            payment_amount: 19900, // ₹199 in paise
+            team_size: 1
+          });
+          
+        case 'reminder':
+          return await this.sendReminderEmail(registrationId, 'test', 'This is a test reminder email from the CognitiveX system.');
+          
+        case 'announcement':
+          return await this.sendAnnouncementEmail([registrationId], 'Test Announcement', 'This is a test announcement email from the CognitiveX system.');
+          
+        case 'test':
+          // Direct test email call
+          const user = await this.ensureAuth();
+          const token = await user.getIdToken();
+          
+          console.log('🔐 Auth token obtained, making direct test email API call');
+          
+          const response = await axios.post(`${UTILS_API_URL}/send-email`, {
+            recipients: [registrationId],
+            email_type: 'test',
+            custom_data: {
+              test_message: 'This is a test email from the CognitiveX Hackathon Admin Panel',
+              sent_at: new Date().toISOString()
+            }
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 30000
+          });
+          
+          console.log('📧 Direct email API response:', response.data);
+          
+          if (response.data?.success) {
+            return {
+              success: true,
+              message: 'Test email sent successfully',
+              data: response.data.data
+            };
+          } else {
+            return {
+              success: false,
+              message: response.data?.message || 'Test email failed'
+            };
+          }
+          
+        default:
+          throw new Error(`Unknown email type: ${emailType}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Email test error:', error);
+      console.error('📍 Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Email test failed'
       };
     }
   }
@@ -1731,6 +2162,47 @@ export const initiateRazorpayPayment = async (paymentData, onSuccess, onFailure)
           });
 
           if (verificationResult.success) {
+            // 🎉 Payment successful - automatically send confirmation email
+            try {
+              console.log('💳 Payment verified successfully, sending confirmation email...');
+              console.log('📋 Payment data structure:', paymentData);
+              
+              // Get registration ID from multiple possible sources
+              const registrationId = paymentData.registration_details?.registration_id || 
+                                   paymentData.registration_id || 
+                                   verificationResult.data?.registration_id;
+              
+              console.log('🆔 Using registration ID for email:', registrationId);
+              
+              if (!registrationId) {
+                console.error('❌ No registration ID found for email sending');
+                console.error('📋 Available data:', {
+                  paymentData,
+                  verificationResult: verificationResult.data
+                });
+                throw new Error('Registration ID not found for email sending');
+              }
+              
+              const emailResult = await hackathonService.sendConfirmationEmail(
+                registrationId,
+                {
+                  payment_id: response.razorpay_payment_id,
+                  payment_amount: paymentData.amount,
+                  team_size: paymentData.registration_details?.team_size || 1,
+                  custom_message: `Welcome to CognitiveX! Your payment of ₹${paymentData.amount / 100} has been confirmed.`
+                }
+              );
+              
+              if (emailResult.success) {
+                console.log('✅ Confirmation email sent successfully');
+              } else {
+                console.warn('⚠️ Payment successful but confirmation email failed:', emailResult.message);
+              }
+            } catch (emailError) {
+              console.error('❌ Email sending error after payment:', emailError);
+              // Don't fail the payment flow if email fails
+            }
+            
             onSuccess(verificationResult.data);
           } else {
             onFailure(verificationResult.message);

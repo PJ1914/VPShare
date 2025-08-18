@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import hackathonService from '../../services/hackathonService';
-import '../../styles/Hackathon.css';
 import './HackathonAdmin.css';
 const HackathonAdmin = () => {
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,27 @@ const HackathonAdmin = () => {
         const registrationsData = registrationsResult.data.data || registrationsResult.data;
         console.log('Registrations data:', registrationsData);
         
-        setRegistrations(registrationsData.registrations || []);
+        // Transform data to ensure consistent field names
+        const transformedRegistrations = (registrationsData.registrations || []).map(reg => ({
+          ...reg,
+          registrationId: reg.registration_id || reg.registrationId, // Ensure consistent field name
+          // Ensure personal_info exists with fallback
+          personal_info: reg.personal_info || {
+            fullName: reg.fullName || reg.name || 'N/A',
+            email: reg.email || 'N/A'
+          },
+          // Ensure team_info exists with fallback  
+          team_info: reg.team_info || {
+            teamName: reg.teamName || reg.team_name || 'Individual',
+            teamSize: reg.teamSize || reg.team_size || 1
+          },
+          // Ensure payment_info exists
+          payment_info: reg.payment_info || {
+            status: reg.paymentStatus || reg.payment_status || 'pending'
+          }
+        }));
+        
+        setRegistrations(transformedRegistrations);
         
         // If statistics are included in registrations response
         if (registrationsData.statistics) {
@@ -276,6 +296,24 @@ const HackathonAdmin = () => {
     setSelectedRegistrations(allIds);
   };
 
+  const selectAllOnCurrentPage = () => {
+    const currentPageIds = new Set(paginatedRegistrations.map(reg => reg.registrationId));
+    setSelectedRegistrations(prev => {
+      const newSet = new Set(prev);
+      currentPageIds.forEach(id => newSet.add(id));
+      return newSet;
+    });
+  };
+
+  const isCurrentPageFullySelected = () => {
+    return paginatedRegistrations.length > 0 && 
+           paginatedRegistrations.every(reg => selectedRegistrations.has(reg.registrationId));
+  };
+
+  const isCurrentPagePartiallySelected = () => {
+    return paginatedRegistrations.some(reg => selectedRegistrations.has(reg.registrationId));
+  };
+
   const clearSelection = () => {
     setSelectedRegistrations(new Set());
   };
@@ -339,6 +377,344 @@ const HackathonAdmin = () => {
     } catch (error) {
       console.error('Email sending error:', error);
       showNotification('❌ Email sending failed', 'error');
+    }
+  };
+
+  // Send individual emails
+  const handleSendIndividualEmail = async (registrationId, emailType, customMessage = '') => {
+    try {
+      // Validate registration ID
+      if (!registrationId) {
+        console.error('❌ Registration ID is undefined or empty:', registrationId);
+        showNotification('❌ Error: Registration ID is missing', 'error');
+        return;
+      }
+      
+      console.log(`📧 Sending ${emailType} email to registration:`, registrationId);
+      showNotification(`📧 Sending ${emailType} email...`, 'info');
+      
+      let result;
+      switch (emailType) {
+        case 'confirmation':
+          result = await hackathonService.sendConfirmationEmail(registrationId);
+          break;
+        case 'reminder':
+          result = await hackathonService.sendReminderEmail(registrationId, 'general', customMessage);
+          break;
+        case 'announcement':
+          result = await hackathonService.sendAnnouncementEmail([registrationId], 'Important Update', customMessage);
+          break;
+        case 'test':
+          result = await hackathonService.testEmailSystem(registrationId, 'confirmation');
+          break;
+        default:
+          result = await hackathonService.sendBulkEmails([registrationId], emailType, customMessage);
+      }
+      
+      if (result.success) {
+        showNotification(`✅ ${result.message}`, 'success');
+      } else {
+        showNotification(`❌ Email failed: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('Individual email error:', error);
+      showNotification('❌ Email sending failed', 'error');
+    }
+  };
+
+  // Send pre-event reminders to all confirmed participants
+  const handleSendPreEventReminders = async (customMessage = '') => {
+    try {
+      showNotification('📧 Sending pre-event reminders to all confirmed participants...', 'info');
+      
+      const result = await hackathonService.sendPreEventReminders(customMessage);
+      
+      if (result.success) {
+        showNotification(`✅ ${result.message}`, 'success');
+      } else {
+        showNotification(`❌ Pre-event reminders failed: ${result.message}`, 'error');
+      }
+    } catch (error) {
+      console.error('Pre-event reminders error:', error);
+      showNotification('❌ Failed to send pre-event reminders', 'error');
+    }
+  };
+
+  // Test email system
+  const handleTestEmail = async (registrationId = null) => {
+    try {
+      // Debug environment variables
+      console.log('🔍 Environment Debug:');
+      console.log('- Direct env var:', import.meta.env.VITE_HACKATHON_UTILS_API_URL);
+      console.log('- Environment mode:', import.meta.env.MODE);
+      
+      // Use a test registration ID if none provided
+      let testRegId = registrationId;
+      
+      // If no specific registration ID provided, try to use an actual registration
+      if (!registrationId) {
+        if (registrations.length > 0) {
+          // First try to find a confirmed registration
+          const confirmedReg = registrations.find(reg => 
+            (reg.registration_status || reg.status) === 'confirmed'
+          );
+          // Use the correct field name: registration_id not registrationId
+          testRegId = confirmedReg ? 
+            (confirmedReg.registration_id || confirmedReg.registrationId) : 
+            (registrations[0].registration_id || registrations[0].registrationId);
+        } else {
+          // Use a default test ID if no registrations are available
+          testRegId = 'reg001';
+        }
+      }
+      
+      console.log('🧪 Testing email system with registration ID:', testRegId);
+      console.log('� Selected from registrations:', registrations.length > 0 ? {
+        total: registrations.length,
+        selectedFrom: registrations.find(reg => (reg.registration_id || reg.registrationId) === testRegId) ? 'found match' : 'fallback'
+      } : 'no registrations available');
+      console.log('�📡 API endpoint will be:', import.meta.env.VITE_HACKATHON_UTILS_API_URL || 'UNDEFINED');
+      
+      showNotification('🧪 Testing email system...', 'info');
+      
+      const result = await hackathonService.testEmailSystem(testRegId, 'confirmation');
+      
+      console.log('📧 Email test result:', result);
+      
+      if (result.success) {
+        showNotification(`✅ Email test successful for registration ${testRegId}`, 'success');
+      } else {
+        console.error('❌ Email test failed:', result);
+        showNotification(`❌ Email test failed: ${result.message || 'Unknown error'}`, 'error');
+        
+        // Show detailed failure information if available
+        if (result.data?.failed_sends) {
+          console.error('📋 Failed email details:', result.data.failed_sends);
+          result.data.failed_sends.forEach(failure => {
+            console.error(`❌ ${failure.recipient_id}: ${failure.error}`);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Email test error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      showNotification(`❌ Email test failed: ${error.message || 'Network error'}`, 'error');
+    }
+  };
+
+  // Simple direct email test with manual registration ID
+  const handleDirectEmailTest = async () => {
+    try {
+      const testRegId = prompt('Enter Registration ID to test (e.g., reg001):');
+      if (!testRegId) {
+        showNotification('❌ Registration ID required for test', 'error');
+        return;
+      }
+      
+      console.log('🧪 Direct email test with registration ID:', testRegId);
+      showNotification(`🧪 Testing direct email for ${testRegId}...`, 'info');
+      
+      // Use the simplified sendEmail function directly
+      const result = await hackathonService.sendEmail([testRegId], 'test', {
+        test_message: 'This is a direct test email from the CognitiveX Admin Panel',
+        sent_at: new Date().toISOString(),
+        test_type: 'manual_admin_test'
+      });
+      
+      console.log('📧 Direct email test result:', result);
+      
+      if (result.success) {
+        showNotification(`✅ Direct email test successful for ${testRegId}`, 'success');
+      } else {
+        console.error('❌ Direct email test failed details:', result);
+        showNotification(`❌ Direct email test failed: ${result.message || 'Unknown error'}`, 'error');
+        
+        // Show detailed failure information if available
+        if (result.data?.failed_sends) {
+          console.error('📋 Failed email details:', result.data.failed_sends);
+          result.data.failed_sends.forEach(failure => {
+            console.error(`❌ ${failure.recipient_id}: ${failure.error}`);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Direct email test error:', error);
+      showNotification(`❌ Direct email test failed: ${error.message || 'Network error'}`, 'error');
+    }
+  };
+
+  // Debug function to check current registrations
+  const handleDebugRegistrations = async () => {
+    try {
+      console.log('🔍 Current registrations in state:', registrations);
+      console.log('📊 Total registrations loaded:', registrations.length);
+      
+      if (registrations.length > 0) {
+        const firstReg = registrations[0];
+        console.log('📋 Sample registration structure:', firstReg);
+        console.log('🆔 Registration ID field:', firstReg.registrationId || firstReg.registration_id);
+        console.log('📧 Email field:', firstReg.email || firstReg.personal_info?.email);
+        
+        showNotification(`📊 Found ${registrations.length} registrations. Check console for details.`, 'info');
+      } else {
+        showNotification('❌ No registrations loaded yet', 'error');
+      }
+    } catch (error) {
+      console.error('❌ Debug error:', error);
+      showNotification('❌ Debug failed', 'error');
+    }
+  };
+
+  // Test API connectivity separately  
+  const handleTestAPIConnectivity = async () => {
+    try {
+      // Get first registration ID from state
+      let testRegId = '80f24aca-a277-438b-b9e0-e28909bc909d'; // Use known ID from logs
+      
+      if (registrations.length > 0) {
+        testRegId = registrations[0].registration_id || registrations[0].registrationId || testRegId;
+      }
+      
+      console.log('🔍 Testing API connectivity with registration ID:', testRegId);
+      showNotification('🔍 Testing API connectivity...', 'info');
+      
+      // Test 1: Admin API Registration Lookup
+      console.log('📊 Test 1: Admin API registration lookup...');
+      try {
+        const adminResult = await hackathonService.getRegistrationDetails(testRegId);
+        console.log('📊 Admin API result:', adminResult);
+        if (adminResult.success) {
+          console.log('✅ Admin API: Registration found', {
+            id: adminResult.data.registration_id,
+            email: adminResult.data.email,
+            status: adminResult.data.registration_status
+          });
+        } else {
+          console.error('❌ Admin API: Registration not found -', adminResult.message);
+        }
+      } catch (adminError) {
+        console.error('❌ Admin API: Connection failed -', adminError);
+      }
+      
+      // Test 2: Utils API Direct Email Test (bypass DynamoDB lookup)
+      console.log('📧 Test 2: Utils API direct email test...');
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const token = await user.getIdToken();
+          
+          // Test with direct email instead of registration ID
+          const testPayload = {
+            recipients: ['pranay.jumbarthi1905@gmail.com'], // Direct email
+            email_type: 'test',
+            custom_data: { 
+              test: true,
+              recipient_name: 'Pranay Jumbarthi',
+              bypass_lookup: true, // Signal to backend to skip DynamoDB lookup
+              custom_message: 'This is a direct email test bypassing DynamoDB lookup'
+            }
+          };
+          
+          const response = await fetch(`${import.meta.env.VITE_HACKATHON_UTILS_API_URL}/send-email`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(testPayload)
+          });
+          
+          const responseData = await response.json();
+          console.log('📧 Utils API response:', responseData);
+          
+          if (response.ok) {
+            console.log('✅ Utils API: Connection successful');
+            if (responseData.success === false && responseData.message) {
+              console.error('❌ Utils API: Response indicates failure -', responseData.message);
+            } else {
+              console.log('✅ Utils API: Email test successful');
+            }
+          } else {
+            console.error('❌ Utils API: HTTP error -', response.status, responseData);
+          }
+        }
+      } catch (utilsError) {
+        console.error('❌ Utils API: Connection failed -', utilsError);
+      }
+      
+      showNotification('🔍 API connectivity test completed. Check console for details.', 'info');
+      
+    } catch (error) {
+      console.error('API connectivity test error:', error);
+      showNotification(`❌ API test failed: ${error.message}`, 'error');
+    }
+  };
+
+  // Direct API test function with send-email endpoint
+  const handleDirectAPITest = async () => {
+    try {
+      const utilsApiUrl = import.meta.env.VITE_HACKATHON_UTILS_API_URL;
+      
+      if (!utilsApiUrl) {
+        showNotification('❌ UTILS API URL not configured in .env', 'error');
+        console.error('Missing UTILS API URL from environment:', {
+          envValue: import.meta.env.VITE_HACKATHON_UTILS_API_URL
+        });
+        return;
+      }
+      
+      console.log('🔄 Testing direct API connection to:', utilsApiUrl);
+      console.log('📧 Testing /send-email endpoint...');
+      showNotification('🔄 Testing direct /send-email API connection...', 'info');
+      
+      // Get auth token for the request
+      const user = await hackathonService.ensureAuth();
+      const token = await user.getIdToken();
+      
+      // Test the send-email endpoint directly
+      const response = await axios.post(`${utilsApiUrl}/send-email`, {
+        recipients: ['test@example.com'],
+        email_type: 'test',
+        custom_data: {
+          test_message: 'Direct API test from HackathonAdmin',
+          sent_at: new Date().toISOString()
+        }
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      });
+      
+      console.log('✅ Direct API Response:', response.data);
+      showNotification('✅ Direct /send-email API test successful!', 'success');
+      
+    } catch (error) {
+      console.error('❌ Direct API test failed:', error);
+      console.error('❌ API Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      
+      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        showNotification('❌ Network Error: Cannot reach API server', 'error');
+      } else if (error.response?.status === 404) {
+        showNotification('❌ /send-email endpoint not found (404)', 'error');
+      } else if (error.response?.status === 401) {
+        showNotification('❌ Authentication failed (401)', 'error');
+      } else {
+        showNotification(`❌ API test failed: ${error.message}`, 'error');
+      }
     }
   };
 
@@ -459,6 +835,24 @@ const HackathonAdmin = () => {
           <button onClick={() => exportData('json')} className="export-btn">
             📋 Export JSON
           </button>
+          <button onClick={() => handleSendPreEventReminders()} className="email-btn">
+            📧 Pre-Event Reminders
+          </button>
+          <button onClick={() => handleTestEmail()} className="test-btn">
+            🧪 Test Email
+          </button>
+          <button onClick={handleDirectEmailTest} className="test-btn">
+            📧 Direct Email Test
+          </button>
+          <button onClick={handleDebugRegistrations} className="test-btn">
+            🔍 Debug Registrations
+          </button>
+          <button onClick={handleTestAPIConnectivity} className="test-btn">
+            🔧 Test API Connectivity
+          </button>
+          <button onClick={handleDirectAPITest} className="test-btn">
+            🌐 Direct API Test
+          </button>
           <button onClick={loadDashboardData} className="refresh-btn">
             🔄 Refresh
           </button>
@@ -504,12 +898,18 @@ const HackathonAdmin = () => {
             selectedRegistrations={selectedRegistrations}
             setEmailModal={setEmailModal}
             filteredRegistrations={filteredRegistrations}
+            paginatedRegistrations={paginatedRegistrations}
             selectAllFilteredRegistrations={selectAllFilteredRegistrations}
+            selectAllOnCurrentPage={selectAllOnCurrentPage}
+            isCurrentPageFullySelected={isCurrentPageFullySelected}
+            isCurrentPagePartiallySelected={isCurrentPagePartiallySelected}
             clearSelection={clearSelection}
             bulkAction={bulkAction}
             setBulkAction={setBulkAction}
             handleBulkAction={handleBulkAction}
             setSelectedRegistrations={setSelectedRegistrations}
+            handleSendEmails={handleSendEmails}
+            handleTestEmail={handleTestEmail}
           />
         )}
 
@@ -522,7 +922,13 @@ const HackathonAdmin = () => {
         )}
 
         {activeSection === 'communications' && (
-          <CommunicationsSection registrations={registrations} />
+          <CommunicationsSection 
+            registrations={registrations} 
+            handleSendEmails={handleSendEmails}
+            handleSendPreEventReminders={handleSendPreEventReminders}
+            handleTestEmail={handleTestEmail}
+            setEmailModal={setEmailModal}
+          />
         )}
       </div>
 
@@ -534,7 +940,7 @@ const HackathonAdmin = () => {
             onClose={() => setSelectedRegistration(null)}
             onStatusUpdate={updateRegistrationStatus}
             onGenerateCertificate={handleGenerateCertificate}
-            onSendEmail={(regId, emailType) => handleSendEmails([regId], emailType)}
+            onSendEmail={handleSendIndividualEmail}
           />
         )}
 
@@ -663,7 +1069,11 @@ const RegistrationsSection = ({
   selectedRegistrations,
   setEmailModal,
   filteredRegistrations,
+  paginatedRegistrations,
   selectAllFilteredRegistrations,
+  selectAllOnCurrentPage,
+  isCurrentPageFullySelected,
+  isCurrentPagePartiallySelected,
   clearSelection,
   bulkAction,
   setBulkAction,
@@ -785,8 +1195,24 @@ const RegistrationsSection = ({
         <div className="select-column">
           <input
             type="checkbox"
-            checked={selectedRegistrations.size === filteredRegistrations.length && filteredRegistrations.length > 0}
-            onChange={(e) => e.target.checked ? selectAllFilteredRegistrations() : clearSelection()}
+            checked={selectedRegistrations.size > 0 && 
+                     registrations.length > 0 && 
+                     registrations.every(reg => selectedRegistrations.has(reg.registrationId))}
+            onChange={(e) => {
+              if (e.target.checked) {
+                // Select all on current page
+                const currentPageIds = new Set(registrations.map(reg => reg.registrationId));
+                setSelectedRegistrations(prev => new Set([...prev, ...currentPageIds]));
+              } else {
+                // Deselect all on current page
+                const currentPageIds = new Set(registrations.map(reg => reg.registrationId));
+                setSelectedRegistrations(prev => {
+                  const newSet = new Set(prev);
+                  currentPageIds.forEach(id => newSet.delete(id));
+                  return newSet;
+                });
+              }
+            }}
           />
         </div>
         <div>Registration ID</div>
@@ -832,20 +1258,22 @@ const RegistrationsSection = ({
               />
             </div>
             <div className="registration-id">
-              {registration.registrationId}
+              {registration.registrationId?.slice(-8) || 'N/A'}
             </div>
             <div className="name">
-              {personalInfo.fullName || registration.fullName || 'N/A'}
+              <div>{personalInfo.fullName || registration.fullName || 'N/A'}</div>
             </div>
             <div className="email">
-              {personalInfo.email || registration.email || 'N/A'}
+              <div>{personalInfo.email || registration.email || 'N/A'}</div>
             </div>
             <div className="team">
-              {teamInfo.teamName || registration.teamName || 'Individual'}
+              <div className="team-name">
+                {teamInfo.teamName || registration.teamName || 'Individual'}
+              </div>
               {(teamInfo.teamSize > 1 || registration.teamSize > 1) && (
-                <span className="team-size">
-                  ({teamInfo.teamSize || registration.teamSize} members)
-                </span>
+                <div className="team-size">
+                  {teamInfo.teamSize || registration.teamSize} members
+                </div>
               )}
             </div>
             <div className="status">
@@ -911,12 +1339,29 @@ const RegistrationsSection = ({
 
 // Registration Detail Modal Component
 const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGenerateCertificate, onSendEmail }) => {
+  const [customEmailMessage, setCustomEmailMessage] = useState('');
+  const [selectedEmailType, setSelectedEmailType] = useState('confirmation');
+  
   const personalInfo = registration.personal_info || {};
   const teamInfo = registration.team_info || {};
   const skills = registration.skills || {};
   const paymentInfo = registration.payment_info || {};
   const status = registration.registration_status || registration.status || 'pending';
   const frontendStatus = status === 'pending_payment' ? 'pending' : status;
+
+  const emailTypes = [
+    { value: 'confirmation', label: '✅ Confirmation Email', description: 'Send registration confirmation' },
+    { value: 'reminder', label: '⏰ Reminder Email', description: 'Send payment or event reminder' },
+    { value: 'announcement', label: '📢 Announcement', description: 'Send important announcement' },
+    { value: 'test', label: '🧪 Test Email', description: 'Test email functionality' }
+  ];
+
+  const handleSendCustomEmail = () => {
+    if (onSendEmail) {
+      onSendEmail(registration.registration_id || registration.registrationId, selectedEmailType, customEmailMessage);
+      setCustomEmailMessage('');
+    }
+  };
 
   return (
     <motion.div
@@ -1030,25 +1475,75 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
             {/* Utilities Section */}
             <div className="detail-section">
               <h3>🛠️ Utilities & Actions</h3>
+              
+              {/* Quick Action Buttons */}
               <div className="utility-actions">
                 <button 
-                  onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registrationId, 'participation')}
+                  onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registration_id || registration.registrationId, 'participation')}
                   className="btn-utility"
                 >
                   🏆 Generate Certificate
                 </button>
                 <button 
-                  onClick={() => onSendEmail && onSendEmail(registration.registrationId, 'confirmation')}
+                  onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'confirmation')}
                   className="btn-utility"
                 >
-                  📧 Send Confirmation
+                  📧 Quick Confirmation
                 </button>
                 <button 
-                  onClick={() => onSendEmail && onSendEmail(registration.registrationId, 'reminder')}
+                  onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'reminder')}
                   className="btn-utility"
                 >
-                  ⏰ Send Reminder
+                  ⏰ Quick Reminder
                 </button>
+                <button 
+                  onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'test')}
+                  className="btn-utility test"
+                >
+                  🧪 Test Email
+                </button>
+              </div>
+
+              {/* Custom Email Section */}
+              <div className="custom-email-section">
+                <h4>📧 Send Custom Email</h4>
+                <div className="email-compose-form">
+                  <div className="email-type-selector">
+                    <label>Email Type:</label>
+                    <select 
+                      value={selectedEmailType} 
+                      onChange={(e) => setSelectedEmailType(e.target.value)}
+                      className="email-type-select"
+                    >
+                      {emailTypes.map(type => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="email-type-description">
+                      {emailTypes.find(t => t.value === selectedEmailType)?.description}
+                    </span>
+                  </div>
+                  
+                  <div className="custom-message-field">
+                    <label>Custom Message (Optional):</label>
+                    <textarea
+                      value={customEmailMessage}
+                      onChange={(e) => setCustomEmailMessage(e.target.value)}
+                      placeholder="Add any custom message here... (Leave empty to use default template)"
+                      rows={3}
+                      className="custom-message-input"
+                    />
+                  </div>
+                  
+                  <button 
+                    onClick={handleSendCustomEmail}
+                    className="btn-send-custom-email"
+                  >
+                    📧 Send Custom Email
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1273,5 +1768,103 @@ const EmailModal = ({ emailType, recipients, onSend, onClose }) => {
     </motion.div>
   );
 };
+
+// Additional CSS for custom email functionality
+const additionalStyles = `
+  .btn-utility.test {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .custom-email-section {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+  }
+
+  .custom-email-section h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 14px;
+  }
+
+  .email-compose-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .email-type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .email-type-selector label {
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .email-type-select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .email-type-description {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+  }
+
+  .custom-message-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .custom-message-field label {
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .custom-message-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .btn-send-custom-email {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+  }
+
+  .btn-send-custom-email:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+`;
+
+// Inject additional styles
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = additionalStyles;
+  document.head.appendChild(styleElement);
+}
 
 export default HackathonAdmin;

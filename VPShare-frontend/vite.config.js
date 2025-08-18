@@ -28,14 +28,16 @@ export default defineConfig({
     mimeTypes: {
       'application/xml': ['xml']
     },
-    // Enhanced headers for better browser support
-    headers: {
-      'Service-Worker-Allowed': '/',
-      'Cross-Origin-Embedder-Policy': 'credentialless',
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+    // Configure middleware for proper COOP policy in development
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        // Set headers for Firebase Auth compatibility in development
+        res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+        res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+        res.setHeader('Service-Worker-Allowed', '/');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        next();
+      });
     },
     // Universal browser compatibility
     cors: {
