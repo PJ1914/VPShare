@@ -21,7 +21,6 @@ const getOrdinalSuffix = (num) => {
 const RegistrationForm = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [problemStatements, setProblemStatements] = useState([]);
   const [registrationId, setRegistrationId] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [errors, setErrors] = useState({});
@@ -65,20 +64,6 @@ const RegistrationForm = () => {
           role: 'Team Leader' 
         }
       ]
-    },
-    
-    // Technical Information
-    technical_info: {
-      problem_statement: '',
-      programming_languages: [],
-      ai_experience: '',
-      previous_hackathons: ''
-    },
-    
-    // Commitments
-    commitments: {
-      ibm_skillsbuild: false,
-      nasscom_registration: false
     },
     
     // Additional Information
@@ -130,51 +115,6 @@ const RegistrationForm = () => {
     checkFirebaseConnection();
   }, [isDevelopment]);
 
-  // Load problem statements on component mount
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadProblemStatements = async () => {
-      try {
-        const result = await hackathonService.getProblemStatements();
-        
-        if (!isMounted) return; // Prevent state update if component unmounted
-        
-        if (result.success && result.data) {
-          setProblemStatements(result.data);
-          
-          // Don't show development notice for fallback data - handle silently
-        } else {
-          // Use fallback data if API fails
-          setProblemStatements(getFallbackProblemStatements());
-        }
-      } catch (error) {
-        if (!isMounted) return; // Prevent state update if component unmounted
-        
-        // Use fallback problem statements silently
-        setProblemStatements(getFallbackProblemStatements());
-      }
-    };
-
-    loadProblemStatements();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [isDevelopment]);
-
-  const getFallbackProblemStatements = () => [
-    'AI Medical Prescription Verification Leveraging IBM Watson and Hugging Face Models',
-    'ClauseWise: Legal Document Analyzer Using IBM Watson & Granite',
-    'Personal Finance Chatbot: Intelligent Guidance for Savings, Taxes, and Investments',
-    'StudyMate: An AI-Powered PDF-Based Q&A System for Students',
-    'EchoVerse – An AI-Powered Audiobook Creation Tool'
-  ];
-
-  const programmingOptions = [
-    'Python', 'JavaScript', 'Java', 'C++', 'R', 'Go', 'Scala', 'Julia', 'TypeScript', 'Swift'
-  ];
-
   const collegeOptions = [
     'TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)',
     'TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)'
@@ -196,13 +136,6 @@ const RegistrationForm = () => {
     '2nd Year', 
     '3rd Year',
     '4th Year'
-  ];
-
-  const aiExperienceOptions = [
-    'Beginner (0-1 years)',
-    'Intermediate (1-3 years)',
-    'Advanced (3+ years)',
-    'Expert (5+ years)'
   ];
 
   // Auto-save functionality
@@ -301,7 +234,7 @@ const RegistrationForm = () => {
 
   // Handle automatic redirect to SmartInternz after successful payment
   useEffect(() => {
-    if (success && step === 6) {
+    if (success && step === 5) {
       let redirectTimer;
       let clickHandler;
       
@@ -537,18 +470,6 @@ const RegistrationForm = () => {
     }));
   };
 
-  const handleProgrammingLanguageToggle = (language) => {
-    setFormData(prev => ({
-      ...prev,
-      technical_info: {
-        ...prev.technical_info,
-        programming_languages: prev.technical_info.programming_languages.includes(language)
-          ? prev.technical_info.programming_languages.filter(lang => lang !== language)
-          : [...prev.technical_info.programming_languages, language]
-      }
-    }));
-  };
-
   const validateCurrentStep = () => {
     const validation = validateRegistrationData(formData);
     
@@ -584,23 +505,8 @@ const RegistrationForm = () => {
         break;
       
       case 3:
-        // Technical information validation
-        const technicalFields = ['problemStatement', 'programmingLanguages', 'aiExperience'];
-        technicalFields.forEach(field => {
-          if (validation.errors[field]) {
-            stepErrors[field] = validation.errors[field];
-          }
-        });
-        break;
-      
-      case 4:
-        // Requirements validation
-        const requirementFields = ['ibmSkillsBuild', 'nascomRegistration'];
-        requirementFields.forEach(field => {
-          if (validation.errors[field]) {
-            stepErrors[field] = validation.errors[field];
-          }
-        });
+        // Additional information (final step before payment)
+        // No validation needed for optional fields
         break;
       
       default:
@@ -624,7 +530,7 @@ const RegistrationForm = () => {
       const isValid = validateCurrentStep();
       
       if (isValid) {
-        const nextStepNumber = Math.min(step + 1, 5);
+        const nextStepNumber = Math.min(step + 1, 3); // Only 3 steps now: Personal, Team, Additional
         setStep(nextStepNumber);
       }
     } catch (error) {
@@ -723,16 +629,11 @@ const RegistrationForm = () => {
             // Register the participant with the backend
             const registrationData = {
               personal_info: formData.personal_info,
-              academic_info: formData.academic_info,
               team_info: {
                 ...formData.team_info,
                 team_size: backendTeamSize
               },
-              technical_info: formData.technical_info,
-              commitments: formData.commitments,
               additional_info: formData.additional_info,
-              experience_info: formData.experience_info,
-              contact_info: formData.contact_info,
               user_id: user.uid,
               payment_info: {
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -784,8 +685,6 @@ const RegistrationForm = () => {
             await setDoc(registrationDoc, {
               personal_info: formData.personal_info,
               team_info: formData.team_info,
-              technical_info: formData.technical_info,
-              commitments: formData.commitments,
               additional_info: formData.additional_info,
               payment: {
                 plan: `hackathon_team_${teamSize}`,
@@ -808,7 +707,7 @@ const RegistrationForm = () => {
             
             setPaymentStatus('success');
             setSuccess(true);
-            setStep(6);
+            setStep(5);
             
           } catch (error) {
             console.error('Post-payment registration error:', error);
@@ -855,8 +754,6 @@ const RegistrationForm = () => {
             await setDoc(registrationDoc, {
               personal_info: formData.personal_info,
               team_info: formData.team_info,
-              technical_info: formData.technical_info,
-              commitments: formData.commitments,
               additional_info: formData.additional_info,
               payment_info: {
                 payment_id: 'dev_test_payment',
@@ -873,7 +770,7 @@ const RegistrationForm = () => {
             await clearFormDraft();
             
             setSuccess(true);
-            setStep(6); // Success step
+            setStep(5); // Success step
             setErrors({});
           } else {
             throw new Error(registrationResult.message);
@@ -1197,113 +1094,23 @@ const RegistrationForm = () => {
     </motion.div>
   );
 
-  const renderTechnicalInfo = () => (
+  const renderAdditionalInfo = () => (
     <motion.div
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
       className="registration-step"
     >
-      <h3>Technical Information</h3>
+      <h3>Additional Information</h3>
       
       <div className="form-group">
-        <label>Problem Statement *</label>
-        <select
-          name="problem_statement"
-          value={formData.technical_info.problem_statement}
-          onChange={(e) => handleInputChange(e, 'technical_info')}
-          className={errors.problemStatement ? 'error' : ''}
-        >
-          <option value="">Select a problem statement</option>
-          {problemStatements.map((statement, index) => {
-            // Handle both string and object formats
-            const isObject = typeof statement === 'object' && statement !== null;
-            const value = isObject ? (statement.title || statement.name || `Problem ${index + 1}`) : statement;
-            const displayText = isObject ? (statement.title || statement.name || `Problem ${index + 1}`) : statement;
-            const key = isObject ? (statement.id || `obj-${index}`) : `str-${index}`;
-            
-            // Skip if no valid value
-            if (!value || !displayText) return null;
-            
-            return (
-              <option key={key} value={value}>
-                {displayText}
-              </option>
-            );
-          }).filter(Boolean)}
-        </select>
-        {errors.problemStatement && <span className="error-message">{errors.problemStatement}</span>}
-      </div>
-
-      <div className="form-group">
-        <label>Programming Languages *</label>
-        <div className="checkbox-grid">
-          {programmingOptions.map(language => (
-            <label 
-              key={language} 
-              className="checkbox-item"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '1rem',
-                background: '#ffffff',
-                border: '2px solid #e1e8ed',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                minHeight: '50px'
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={formData.technical_info.programming_languages.includes(language)}
-                onChange={() => handleProgrammingLanguageToggle(language)}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  margin: '0',
-                  accentColor: '#2196F3'
-                }}
-              />
-              <span style={{
-                color: '#2c3e50',
-                fontWeight: '500',
-                fontSize: '0.95rem'
-              }}>
-                {language}
-              </span>
-            </label>
-          ))}
-        </div>
-        {errors.programmingLanguages && <span className="error-message">{errors.programmingLanguages}</span>}
-      </div>
-
-      <div className="form-group">
-        <label>AI/ML Experience Level *</label>
-        <select
-          name="ai_experience"
-          value={formData.technical_info.ai_experience}
-          onChange={(e) => handleInputChange(e, 'technical_info')}
-          className={errors.aiExperience ? 'error' : ''}
-        >
-          <option value="">Select your experience level</option>
-          {aiExperienceOptions.map((level, index) => (
-            <option key={index} value={level}>
-              {level}
-            </option>
-          ))}
-        </select>
-        {errors.aiExperience && <span className="error-message">{errors.aiExperience}</span>}
-      </div>
-
-      <div className="form-group">
-        <label>Previous Hackathon Experience</label>
+        <label>What are your expectations from this hackathon?</label>
         <textarea
-          name="previous_hackathons"
-          value={formData.technical_info.previous_hackathons}
-          onChange={(e) => handleInputChange(e, 'technical_info')}
-          placeholder="Describe your previous hackathon experiences (optional)"
-          rows="3"
+          name="expectations"
+          value={formData.additional_info.expectations}
+          onChange={(e) => handleInputChange(e, 'additional_info')}
+          placeholder="Share your expectations and what you hope to achieve"
+          rows="4"
         />
       </div>
 
@@ -1329,166 +1136,6 @@ const RegistrationForm = () => {
             placeholder="https://github.com/yourusername"
           />
         </div>
-      </div>
-    </motion.div>
-  );
-
-  const renderRequirements = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      className="registration-step"
-    >
-      <h3>Requirements & Commitments</h3>
-      
-      <div className="form-group">
-        <label>What are your expectations from this hackathon?</label>
-        <textarea
-          name="expectations"
-          value={formData.additional_info.expectations}
-          onChange={(e) => handleInputChange(e, 'additional_info')}
-          placeholder="Share your expectations and what you hope to achieve"
-          rows="4"
-        />
-      </div>
-
-      <div className="requirements-section">
-        <div className="requirement-item" style={{
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          background: '#fff8e1',
-          border: '2px solid #ffcc02',
-          borderRadius: '12px',
-          boxShadow: '0 4px 8px rgba(255, 204, 2, 0.1)'
-        }}>
-          <label 
-            className="checkbox-requirement"
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem',
-              cursor: 'pointer',
-              color: '#2c3e50',
-              margin: '0',
-              fontWeight: 'normal',
-              width: '100%'
-            }}
-          >
-            <input
-              type="checkbox"
-              name="ibm_skillsbuild"
-              checked={formData.commitments.ibm_skillsbuild}
-              onChange={(e) => handleInputChange(e, 'commitments')}
-              className={errors.ibmSkillsBuild ? 'error' : ''}
-              style={{
-                width: '24px',
-                height: '24px',
-                accentColor: '#ff9800',
-                marginTop: '2px',
-                flexShrink: '0',
-                margin: '0'
-              }}
-            />
-            <div className="requirement-content" style={{ flex: '1', color: '#2c3e50' }}>
-              <h4 style={{
-                color: '#e65100',
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.1rem',
-                fontWeight: '600',
-                display: 'block'
-              }}>
-                IBM SkillsBuild Commitment *
-              </h4>
-              <p style={{
-                color: '#6c757d',
-                margin: '0',
-                lineHeight: '1.5',
-                fontSize: '0.95rem',
-                display: 'block'
-              }}>
-                I commit to completing at least 2 courses on IBM SkillsBuild platform during the 4-day bootcamp period.
-              </p>
-            </div>
-          </label>
-          {errors.ibmSkillsBuild && <span className="error-message">{errors.ibmSkillsBuild}</span>}
-        </div>
-
-        <div className="requirement-item" style={{
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          background: '#fff8e1',
-          border: '2px solid #ffcc02',
-          borderRadius: '12px',
-          boxShadow: '0 4px 8px rgba(255, 204, 2, 0.1)'
-        }}>
-          <label 
-            className="checkbox-requirement"
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem',
-              cursor: 'pointer',
-              color: '#2c3e50',
-              margin: '0',
-              fontWeight: 'normal',
-              width: '100%'
-            }}
-          >
-            <input
-              type="checkbox"
-              name="nasscom_registration"
-              checked={formData.commitments.nasscom_registration}
-              onChange={(e) => handleInputChange(e, 'commitments')}
-              className={errors.nascomRegistration ? 'error' : ''}
-              style={{
-                width: '24px',
-                height: '24px',
-                accentColor: '#ff9800',
-                marginTop: '2px',
-                flexShrink: '0',
-                margin: '0'
-              }}
-            />
-            <div className="requirement-content" style={{ flex: '1', color: '#2c3e50' }}>
-              <h4 style={{
-                color: '#e65100',
-                margin: '0 0 0.5rem 0',
-                fontSize: '1.1rem',
-                fontWeight: '600',
-                display: 'block'
-              }}>
-                NASSCOM FSP Registration *
-              </h4>
-              <p style={{
-                color: '#6c757d',
-                margin: '0',
-                lineHeight: '1.5',
-                fontSize: '0.95rem',
-                display: 'block'
-              }}>
-                I commit to registering for NASSCOM's Future Skills Prime (FSP) platform as part of this program.
-              </p>
-            </div>
-          </label>
-          {errors.nascomRegistration && <span className="error-message">{errors.nascomRegistration}</span>}
-        </div>
-      </div>
-
-      <div className="commitment-note" style={{
-        marginTop: '2rem',
-        padding: '1rem',
-        background: '#ffecb3',
-        borderLeft: '4px solid #ff9800',
-        borderRadius: '8px'
-      }}>
-        <p style={{
-          color: '#e65100',
-          margin: '0',
-          fontSize: '0.9rem'
-        }}>
-          <strong style={{ color: '#e65100' }}>Note:</strong> Both commitments are mandatory for participation. Failure to complete these requirements may result in disqualification from the hackathon.
-        </p>
       </div>
     </motion.div>
   );
@@ -1888,10 +1535,9 @@ Website: codetapasya.com
     switch (step) {
       case 1: return renderPersonalInfo();
       case 2: return renderTeamInfo();
-      case 3: return renderTechnicalInfo();
-      case 4: return renderRequirements();
-      case 5: return renderReview();
-      case 6: return renderSuccess();
+      case 3: return renderAdditionalInfo();
+      case 4: return renderReview();
+      case 5: return renderSuccess();
       default: return renderPersonalInfo();
     }
   };
@@ -2005,7 +1651,7 @@ Website: codetapasya.com
 
       {/* Progress Indicator */}
       <div className="progress-indicator">
-        {[1, 2, 3, 4, 5].map(stepNum => (
+        {[1, 2, 3].map(stepNum => (
           <div
             key={stepNum}
             className={`progress-step ${step >= stepNum ? 'active' : ''}`}
@@ -2019,9 +1665,7 @@ Website: codetapasya.com
       <div className="step-labels">
         <span className={step >= 1 ? 'active' : ''}>Personal</span>
         <span className={step >= 2 ? 'active' : ''}>Team</span>
-        <span className={step >= 3 ? 'active' : ''}>Technical</span>
-        <span className={step >= 4 ? 'active' : ''}>Requirements</span>
-        <span className={step >= 5 ? 'active' : ''}>Review</span>
+        <span className={step >= 3 ? 'active' : ''}>Additional</span>
       </div>
 
       {/* Auto-save Status Indicator */}
@@ -2074,7 +1718,7 @@ Website: codetapasya.com
             </button>
           )}
           
-          {step < 5 ? (
+          {step < 3 ? (
             <button
               type="button"
               onClick={nextStep}
