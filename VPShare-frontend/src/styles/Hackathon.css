@@ -5394,7 +5394,6 @@ section#register {
 }
 
 .success-details {
-  background: #f8f9fa;
   border-radius: 12px;
   padding: 1.5rem;
   margin: 2rem 0;
@@ -5476,7 +5475,6 @@ section#register {
 .contact-info {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: #e3f2fd;
   border-radius: 10px;
   text-align: left;
 }
@@ -5495,7 +5493,6 @@ section#register {
 
 .date-item {
   padding: 0.5rem;
-  background: white;
   border-radius: 6px;
   border-left: 4px solid #2196f3;
 }
@@ -6794,7 +6791,6 @@ html {
 
 /* Contact Information Section - Force visibility */
 .contact-info {
-  background: #fff !important;
   color: #333 !important;
 }
 
@@ -6803,7 +6799,6 @@ html {
 }
 
 .contact-details {
-  background: #fff !important;
   color: #333 !important;
 }
 
@@ -7449,7 +7444,6 @@ html {
 .contact-info p,
 .contact-info span,
 .contact-info div {
-  color: #333 !important;
   text-shadow: none !important;
 }
 

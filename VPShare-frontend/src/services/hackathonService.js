@@ -517,26 +517,35 @@ const hackathonService = {
     try {
       console.log('Starting registration process...');
       
-      // Transform the form data to match your Lambda EXACTLY
+      // Transform the form data to match the new simplified backend structure
       const backendData = {
-        fullName: registrationData.personal_info.full_name,
-        email: registrationData.personal_info.email,
-        phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''),
-        college: registrationData.personal_info.college,
-        department: registrationData.personal_info.department,
-        year: registrationData.personal_info.year, // Changed from yearOfStudy to year
-        rollNumber: registrationData.personal_info.roll_number,
-        teamSize: registrationData.team_info.team_size,
-        teamName: registrationData.team_info.team_name || `Team_${registrationData.personal_info.full_name}`, // Ensure teamName is always provided
-        teamMembers: (registrationData.team_info.team_members || []).map(member => ({
-          name: member.name,
-          email: member.email,
-          phone: member.phone?.replace(/[\s\-\(\)]/g, ''),
-          rollNumber: member.roll_number || member.rollNumber
-        })),
-        problemStatement: registrationData.technical_info.problem_statement,
-        programmingLanguages: registrationData.technical_info.programming_languages || [],
-        aiExperience: registrationData.technical_info.ai_experience || 'beginner'
+        personal_info: {
+          full_name: registrationData.personal_info.full_name,
+          email: registrationData.personal_info.email,
+          phone: registrationData.personal_info.phone?.replace(/[\s\-\(\)]/g, ''),
+          college: registrationData.personal_info.college,
+          department: registrationData.personal_info.department,
+          year: registrationData.personal_info.year,
+          roll_number: registrationData.personal_info.roll_number
+        },
+        team_info: {
+          team_name: registrationData.team_info.team_name || `Team_${registrationData.personal_info.full_name}`,
+          team_size: registrationData.team_info.team_size,
+          team_members: (registrationData.team_info.team_members || []).map(member => ({
+            name: member.name,
+            email: member.email,
+            phone: member.phone?.replace(/[\s\-\(\)]/g, ''),
+            college: member.college || registrationData.personal_info.college,
+            department: member.department || registrationData.personal_info.department,
+            year: member.year || registrationData.personal_info.year,
+            role: member.role || 'Team Member'
+          }))
+        },
+        additional_info: {
+          expectations: registrationData.additional_info?.expectations || '',
+          linkedin: registrationData.additional_info?.linkedin || '',
+          github: registrationData.additional_info?.github || ''
+        }
       };
 
       // Check if API URL is loaded
@@ -841,9 +850,6 @@ const hackathonService = {
     return {
       personal_info: formData.personal_info,
       team_info: formData.team_info,
-      technical_info: formData.technical_info,
-      requirements: formData.requirements,
-      commitments: formData.commitments,
       additional_info: formData.additional_info
     };
   },
@@ -851,42 +857,50 @@ const hackathonService = {
   // Development helpers
   getMockData() {
     return {
-      personalInfo: {
+      personal_info: {
         full_name: "John Doe",
         email: "john.doe@example.com",
         phone: "+91 9876543210",
-        college: "Example University",
+        college: "TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)",
+        department: "CSE",
         year: "3rd Year",
-        branch: "Computer Science"
+        roll_number: "20K81A0501"
       },
-      teamInfo: {
+      team_info: {
         team_name: "Code Warriors",
         team_size: 3,
         team_members: [
-          { name: "John Doe", email: "john.doe@example.com", role: "Team Lead" },
-          { name: "Jane Smith", email: "jane.smith@example.com", role: "Developer" },
-          { name: "Bob Johnson", email: "bob.johnson@example.com", role: "Designer" }
+          { 
+            name: "John Doe", 
+            email: "john.doe@example.com", 
+            phone: "+91 9876543210",
+            college: "TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)",
+            department: "CSE",
+            year: "3rd Year",
+            role: "Team Leader" 
+          },
+          { 
+            name: "Jane Smith", 
+            email: "jane.smith@example.com", 
+            phone: "+91 9876543211",
+            college: "TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)",
+            department: "CSE",
+            year: "3rd Year",
+            role: "Developer" 
+          },
+          { 
+            name: "Bob Johnson", 
+            email: "bob.johnson@example.com", 
+            phone: "+91 9876543212",
+            college: "TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)",
+            department: "CSE",
+            year: "3rd Year",
+            role: "Designer" 
+          }
         ]
       },
-      technicalInfo: {
-        programming_languages: ["JavaScript", "Python", "Java"],
-        frameworks: ["React", "Node.js", "Express"],
-        experience: "Intermediate",
-        github: "https://github.com/johndoe"
-      },
-      requirements: {
-        laptop: true,
-        accommodation: false,
-        food: true,
-        transport: false
-      },
-      commitments: {
-        ibm_skillsbuild: true,
-        nasscom_courses: true,
-        full_participation: true
-      },
-      additionalInfo: {
-        expectations: "Looking forward to learning new technologies and networking",
+      additional_info: {
+        expectations: "Looking forward to learning new technologies and networking with industry professionals",
         github: "https://github.com/johndoe",
         linkedin: "https://linkedin.com/in/johndoe"
       }
@@ -2341,25 +2355,6 @@ export const validateRegistrationData = (data) => {
         errors[`teamMember${index}Year`] = `Team member ${index + 1} year is required`;
       }
     });
-  }
-
-  // Technical info validation
-  if (!data.technical_info?.problem_statement) {
-    errors.problemStatement = 'Problem statement selection is required';
-  }
-  if (!data.technical_info?.programming_languages || data.technical_info.programming_languages.length === 0) {
-    errors.programmingLanguages = 'At least one programming language is required';
-  }
-  if (!data.technical_info?.ai_experience) {
-    errors.aiExperience = 'AI experience level is required';
-  }
-
-  // Commitments validation
-  if (!data.commitments?.ibm_skillsbuild) {
-    errors.ibmSkillsBuild = 'IBM SkillsBuild commitment is required';
-  }
-  if (!data.commitments?.nasscom_registration) {
-    errors.nascomRegistration = 'NASSCOM FSP commitment is required';
   }
 
   return {

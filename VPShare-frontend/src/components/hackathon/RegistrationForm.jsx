@@ -9,6 +9,17 @@ import { config, logger } from '../../config/environment';
 import DevNotice from '../DevNotice';
 import '../../styles/Hackathon.css';
 
+/*
+💳 PAYMENT ENABLED 💳
+Payment functionality is active in handleSubmit() function (around line 574)
+Testing mode is commented out and available at the bottom of the payment flow.
+To disable payments for testing:
+1. Comment out the payment block in handleSubmit()
+2. Uncomment the "TESTING MODE: Direct registration" block
+3. Update the submit button text to show testing mode
+4. Add testing notices to success page
+*/
+
 // Helper function for ordinal numbers
 const getOrdinalSuffix = (num) => {
   const number = parseInt(num);
@@ -728,8 +739,72 @@ const RegistrationForm = () => {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
       
+      /* TESTING MODE COMMENTED OUT - UNCOMMENT IF NEEDED FOR TESTING
+      // TESTING MODE: Direct registration without payment
+      console.log('Testing mode: Skipping payment, registering directly...');
+      
+      // Calculate amount for display purposes
+      const teamSize = formData.team_info.team_size;
+      const backendTeamSize = getBackendTeamSize(teamSize);
+      const amount = getTeamPriceInPaise(teamSize);
+      
+      // Register the participant directly with the backend
+      const registrationData = {
+        personal_info: formData.personal_info,
+        team_info: {
+          ...formData.team_info,
+          team_size: backendTeamSize
+        },
+        additional_info: formData.additional_info,
+        user_id: user.uid
+      };
+
+      const registrationResult = await hackathonService.register(registrationData);
+      
+      if (!registrationResult.success) {
+        if (registrationResult.statusCode === 409 || 
+            (registrationResult.message && registrationResult.message.includes('already registered'))) {
+          throw new Error('You have already registered for this hackathon. Please contact support for assistance.');
+        }
+        throw new Error(registrationResult.message || 'Registration failed');
+      }
+      
+      const { registration_id } = registrationResult.data;
+      setRegistrationId(registration_id);
+
+      // Store registration data in Firestore
+      const db = getFirestore();
+      const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
+      await setDoc(registrationDoc, {
+        personal_info: formData.personal_info,
+        team_info: formData.team_info,
+        additional_info: formData.additional_info,
+        payment: {
+          plan: `hackathon_team_${teamSize}`,
+          status: 'testing_mode',
+          startDate: serverTimestamp(),
+          paymentId: 'test_payment_' + Date.now(),
+          orderId: 'test_order_' + Date.now(),
+          amount: amount,
+          actualAmount: getTeamPrice(teamSize),
+          teamSize: teamSize,
+          registrationId: registration_id
+        },
+        registration_date: serverTimestamp(),
+        user_id: user.uid,
+        status: 'active'
+      }, { merge: true });
+      
+      // Clear the draft after successful registration
+      await clearFormDraft();
+      
+      setPaymentStatus('success');
+      setSuccess(true);
+      setStep(5);
+      */
+      
     } catch (error) {
-      console.error('Registration/Payment error:', error);
+      console.error('Registration error:', error);
       
       // Handle specific HTTP errors
       if (error.response?.status === 409) {
@@ -738,50 +813,10 @@ const RegistrationForm = () => {
         });
       } else if (error.response?.status === 400) {
         setErrors({ 
-          payment: 'Payment order creation failed. No registration has been created. Please try again.' 
+          payment: 'Registration failed. Please try again.' 
         });
-      } else if (isDevelopment && (error.message.includes('Order creation failed') || error.message.includes('Network Error'))) {
-        // Development mode: Register directly without payment
-        try {
-          const registrationResult = await hackathonService.register(formData);
-          
-          if (registrationResult.success) {
-            const { registration_id } = registrationResult.data;
-            setRegistrationId(registration_id);
-            
-            const db = getFirestore();
-            const registrationDoc = doc(db, 'hackathon_registrations', user.uid);
-            await setDoc(registrationDoc, {
-              personal_info: formData.personal_info,
-              team_info: formData.team_info,
-              additional_info: formData.additional_info,
-              payment_info: {
-                payment_id: 'dev_test_payment',
-                order_id: 'dev_test_order',
-                amount: getTeamPriceInPaise(formData.team_info.team_size),
-                status: 'development_mode'
-              },
-              registration_date: serverTimestamp(),
-              user_id: user.uid,
-              status: 'active'
-            });
-            
-            // Clear the draft after successful registration
-            await clearFormDraft();
-            
-            setSuccess(true);
-            setStep(5); // Success step
-            setErrors({});
-          } else {
-            throw new Error(registrationResult.message);
-          }
-          
-        } catch (firebaseError) {
-          console.error('Development registration error:', firebaseError);
-          setErrors({ general: 'Development registration failed. Please try again.' });
-        }
       } else {
-        setErrors({ general: `Payment setup failed: ${error.message || 'No registration has been created. Please try again.'}` });
+        setErrors({ general: `Registration failed: ${error.message || 'Please try again.'}` });
       }
     } finally {
       setLoading(false);
@@ -1406,13 +1441,13 @@ const RegistrationForm = () => {
           <h4>📅 Important Dates</h4>
           <div className="dates-list">
             <div className="date-item">
-              <strong>Bootcamp:</strong> 5 days of intensive learning and preparation
+              <strong>Bootcamp:</strong> 4 days of intensive learning and preparation
             </div>
             <div className="date-item">
               <strong>Hackathon:</strong> 2-day continuous coding challenge
             </div>
             <div className="date-item">
-              <strong>Problem Statement:</strong> {formData.technical_info.problem_statement || 'Will be revealed during bootcamp'}
+              <strong>Problem Statement:</strong> You will receive the official mail from noreply@codetapasya.com
             </div>
           </div>
         </div>
@@ -1420,7 +1455,7 @@ const RegistrationForm = () => {
         <div className="contact-info">
           <h4>🤝 Need Help?</h4>
           <div className="contact-details">
-            <p><strong>Email:</strong> <a href="mailto:hackathon@tkrcollege.ac.in">hackathon@tkrcollege.ac.in</a></p>
+            <p><strong>Email:</strong> <a href="mailto:support@codetapasya.com">support@codetapasya.com</a></p>
             <p><strong>Website:</strong> <a href="https://codetapasya.com" target="_blank" rel="noopener noreferrer">codetapasya.com</a></p>
             <p><strong>Event Partner:</strong> SmartBridge & IBM</p>
           </div>
@@ -1437,28 +1472,62 @@ const RegistrationForm = () => {
                 teamSize: formData.team_info.team_size,
                 amountPaid: formatPrice(getTeamPrice(formData.team_info.team_size)),
                 email: formData.personal_info.email,
-                problemStatement: formData.technical_info.problem_statement
+                fullName: formData.personal_info.full_name,
+                phone: formData.personal_info.phone,
+                college: formData.personal_info.college,
+                department: formData.personal_info.department,
+                year: formData.personal_info.year,
+                expectations: formData.additional_info.expectations || 'Not specified',
+                linkedin: formData.additional_info.linkedin || 'Not provided',
+                github: formData.additional_info.github || 'Not provided'
               };
               
               // Create downloadable content
               const content = `
 CognitiveX GenAI Hackathon 2025 - Registration Confirmation
 
+==================================================
+REGISTRATION DETAILS
+==================================================
 Registration ID: ${registrationData.registrationId}
 Team Name: ${registrationData.teamName}
-Team Size: ${registrationData.teamSize}
+Team Size: ${registrationData.teamSize} member(s)
 Amount Paid: ${registrationData.amountPaid}
-Email: ${registrationData.email}
-Problem Statement: ${registrationData.problemStatement}
 
-Next Steps:
+==================================================
+PERSONAL INFORMATION
+==================================================
+Full Name: ${registrationData.fullName}
+Email: ${registrationData.email}
+Phone: ${registrationData.phone}
+College: ${registrationData.college}
+Department: ${registrationData.department}
+Year: ${registrationData.year}
+
+==================================================
+ADDITIONAL INFORMATION
+==================================================
+Expectations: ${registrationData.expectations}
+LinkedIn: ${registrationData.linkedin}
+GitHub: ${registrationData.github}
+
+==================================================
+NEXT STEPS
+==================================================
 1. Check your email for detailed bootcamp information
 2. Join the WhatsApp group for updates
 3. Complete IBM SkillsBuild courses
 4. Register on NASSCOM FSP platform
+5. Complete registration on SmartInternz platform
 
-Contact: hackathon@tkrcollege.ac.in
+==================================================
+CONTACT & SUPPORT
+==================================================
+Email: support@codetapasya.com
 Website: codetapasya.com
+Event Partners: SmartBridge & IBM
+
+Registration Date: ${new Date().toLocaleDateString()}
 `;
               
               const blob = new Blob([content], { type: 'text/plain' });
@@ -1496,7 +1565,7 @@ Website: codetapasya.com
               marginTop: '1rem'
             }}
           >
-            🚀 Complete Registration on SmartInternz
+            Click Here to the next process
           </button>
           
           <button 
