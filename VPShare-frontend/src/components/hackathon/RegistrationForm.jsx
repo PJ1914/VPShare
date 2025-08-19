@@ -716,6 +716,37 @@ const RegistrationForm = () => {
             // Clear the draft after successful registration
             await clearFormDraft();
             
+            // Send confirmation email
+            try {
+              const emailPayload = {
+                recipients: [registration_id],
+                email_type: "confirmation",
+              };
+              
+              const emailResponse = await axios.post(
+                `${import.meta.env.VITE_HACKATHON_UTILS_API_URL}/send-email`,
+                emailPayload,
+                { 
+                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${freshToken}` },
+                  timeout: 10000
+                }
+              );
+              
+              console.log('Confirmation email sent successfully:', emailResponse.data);
+              
+              // Check if there were any failed sends
+              if (emailResponse.data?.data?.failed_count > 0) {
+                console.warn('Some emails failed to send:', emailResponse.data.data.failed_sends);
+              }
+            } catch (emailError) {
+              console.error('Failed to send confirmation email:', emailError);
+              // Log more details for debugging
+              if (emailError.response?.data) {
+                console.error('Email API error details:', emailError.response.data);
+              }
+              // Don't fail the registration process if email fails
+            }
+            
             setPaymentStatus('success');
             setSuccess(true);
             setStep(5);
