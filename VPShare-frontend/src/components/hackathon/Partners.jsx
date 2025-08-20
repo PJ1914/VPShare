@@ -120,7 +120,7 @@ const Partners = () => {
                 <img src={TKRESLogo} alt="TKR College" />
               </div>
               <div className="organizer-info">
-                <h4>TKR College of Engineering & Technology</h4>
+                <h4>TKR Educational Society</h4>
                 <p className="host-badge">🏛️ PROUD HOST INSTITUTION</p>
                 <p>Premier Engineering College driving innovation in AI & Technology</p>
                 <div className="organizer-stats">
@@ -327,7 +327,7 @@ const Partners = () => {
           <div className="contact-details">
             <div className="contact-item">
               <span className="contact-label">Host Institution:</span>
-              <span className="contact-value">TKR College of Engineering & Technology</span>
+              <span className="contact-value">TKR Educational Society</span>
             </div>
             <div className="contact-item">
               <span className="contact-label">EdTech Partner:</span>
