@@ -1,19 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import hackathonService from '../../services/hackathonService';
 import './HackathonAdmin.css';
+
+// Material-UI Icons
+import {
+  Dashboard as DashboardIcon,
+  Group as GroupIcon,
+  Payment as PaymentIcon,
+  Analytics as AnalyticsIcon,
+  Email as EmailIcon,
+  Refresh as RefreshIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayIcon,
+  RocketLaunch as RocketIcon,
+  Description as DescriptionIcon,
+  Search as SearchIcon,
+  CheckCircle as CheckCircleIcon,
+  HourglassEmpty as HourglassIcon,
+  AttachMoney as MoneyIcon,
+  Visibility as VisibilityIcon,
+  Close as CloseIcon,
+  School as SchoolIcon,
+  TrendingUp as TrendingUpIcon,
+  EmojiEvents as CertificateIcon,
+  Send as SendIcon,
+  Keyboard as KeyboardIcon,
+  Announcement as AnnouncementIcon,
+  Schedule as ScheduleIcon,
+  BugReport as TestIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
+
 const HackathonAdmin = () => {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [registrations, setRegistrations] = useState([]);
   const [stats, setStats] = useState({});
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const refreshIntervalRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     teamSize: 'all',
     search: '',
-    dateRange: 'all'
+    dateRange: 'all',
+    college: 'all'
   });
 
   // Bulk operations state
@@ -37,13 +71,18 @@ const HackathonAdmin = () => {
   const [emailModal, setEmailModal] = useState({ show: false, type: 'confirmation', recipients: [] });
   const [certificateModal, setCertificateModal] = useState({ show: false, registrationId: null });
 
-  // Load data on component mount
-  useEffect(() => {
-    loadDashboardData();
+  const showNotification = useCallback((message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
   }, []);
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  // Memoized load function to prevent unnecessary re-renders
+  const loadDashboardData = useCallback(async (showLoader = true) => {
+    if (showLoader) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
     try {
       console.log('Loading hackathon admin data...');
       
@@ -100,39 +139,95 @@ const HackathonAdmin = () => {
         console.error('Failed to load stats:', statsResult.message);
         showNotification(`Failed to load statistics: ${statsResult.message}`, 'error');
       }
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Dashboard data load error:', error);
       showNotification('Failed to load dashboard data', 'error');
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
-  };
-
-  const showNotification = (message, type = 'success') => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
-  };
+  }, [showNotification]);
 
   const testAPIConnection = async () => {
     try {
-      console.log('Testing API connection...');
-      showNotification('Testing API connection...', 'success');
+      console.log('🔍 Testing API connection...');
+      showNotification('🔍 Testing API connection...', 'info');
       
-      // Test individual API calls
-      const registrationsTest = await hackathonService.getAllRegistrations(5);
-      console.log('Registrations API test:', registrationsTest);
+      const results = [];
       
-      const statsTest = await hackathonService.getRegistrationStats();
-      console.log('Stats API test:', statsTest);
+      // Test 1: Registrations API
+      try {
+        const registrationsTest = await hackathonService.getAllRegistrations(5);
+        results.push({ 
+          name: 'Registrations API', 
+          success: registrationsTest.success, 
+          message: registrationsTest.message 
+        });
+        console.log('📊 Registrations API test:', registrationsTest);
+      } catch (error) {
+        results.push({ 
+          name: 'Registrations API', 
+          success: false, 
+          message: error.message 
+        });
+      }
       
-      if (registrationsTest.success && statsTest.success) {
-        showNotification('✅ API connection successful!', 'success');
+      // Test 2: Stats API
+      try {
+        const statsTest = await hackathonService.getRegistrationStats();
+        results.push({ 
+          name: 'Stats API', 
+          success: statsTest.success, 
+          message: statsTest.message 
+        });
+        console.log('📈 Stats API test:', statsTest);
+      } catch (error) {
+        results.push({ 
+          name: 'Stats API', 
+          success: false, 
+          message: error.message 
+        });
+      }
+      
+      // Test 3: Auth Status
+      try {
+        const user = auth.currentUser;
+        const token = user ? await user.getIdToken() : null;
+        results.push({ 
+          name: 'Authentication', 
+          success: !!token, 
+          message: token ? 'User authenticated' : 'Not authenticated' 
+        });
+        console.log('🔐 Auth test:', { hasUser: !!user, hasToken: !!token });
+      } catch (error) {
+        results.push({ 
+          name: 'Authentication', 
+          success: false, 
+          message: error.message 
+        });
+      }
+      
+      // Summary
+      const successCount = results.filter(r => r.success).length;
+      const totalCount = results.length;
+      
+      console.log('🧪 API Test Results:', results);
+      
+      if (successCount === totalCount) {
+        showNotification(`✅ All API tests passed (${successCount}/${totalCount})`, 'success');
       } else {
-        showNotification(`⚠️ API test partial: Reg: ${registrationsTest.success}, Stats: ${statsTest.success}`, 'error');
+        showNotification(`⚠️ API tests: ${successCount}/${totalCount} passed`, 'error');
+        results.filter(r => !r.success).forEach(failed => {
+          console.error(`❌ ${failed.name} failed:`, failed.message);
+        });
       }
     } catch (error) {
-      console.error('API test failed:', error);
-      showNotification('❌ API connection failed', 'error');
+      console.error('❌ API test failed:', error);
+      showNotification('❌ API connection test failed', 'error');
     }
   };
 
@@ -176,54 +271,6 @@ const HackathonAdmin = () => {
     } catch (error) {
       showNotification('Failed to update registration status', 'error');
       console.error('Status update error:', error);
-    }
-  };
-
-  const exportData = async (format = 'csv') => {
-    try {
-      showNotification(`Exporting data as ${format.toUpperCase()}...`, 'success');
-      
-      // Try the API export endpoint first
-      const result = await hackathonService.exportData(format, 'registrations');
-      if (result.success) {
-        // Create download link
-        const blob = new Blob([result.data], { 
-          type: format === 'csv' ? 'text/csv' : 'application/json' 
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.${format}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        showNotification('✅ Data exported successfully', 'success');
-      } else {
-        // Fallback to local CSV generation
-        if (format === 'csv') {
-          const csvData = generateLocalCSV(registrations);
-          const blob = new Blob([csvData], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          window.URL.revokeObjectURL(url);
-          showNotification('✅ Data exported successfully (local)', 'success');
-        } else {
-          const jsonData = JSON.stringify(registrations, null, 2);
-          const blob = new Blob([jsonData], { type: 'application/json' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.json`;
-          a.click();
-          window.URL.revokeObjectURL(url);
-          showNotification('✅ Data exported successfully', 'success');
-        }
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      showNotification('❌ Failed to export data', 'error');
     }
   };
 
@@ -326,7 +373,8 @@ const HackathonAdmin = () => {
       
       const filterParams = {
         status: filters.status !== 'all' ? filters.status : undefined,
-        teamSize: filters.teamSize !== 'all' ? filters.teamSize : undefined
+        teamSize: filters.teamSize !== 'all' ? filters.teamSize : undefined,
+        college: filters.college !== 'all' ? filters.college : undefined
       };
       
       const result = await hackathonService.exportRegistrations(format, filterParams);
@@ -508,216 +556,6 @@ const HackathonAdmin = () => {
     }
   };
 
-  // Simple direct email test with manual registration ID
-  const handleDirectEmailTest = async () => {
-    try {
-      const testRegId = prompt('Enter Registration ID to test (e.g., reg001):');
-      if (!testRegId) {
-        showNotification('❌ Registration ID required for test', 'error');
-        return;
-      }
-      
-      console.log('🧪 Direct email test with registration ID:', testRegId);
-      showNotification(`🧪 Testing direct email for ${testRegId}...`, 'info');
-      
-      // Use the simplified sendEmail function directly
-      const result = await hackathonService.sendEmail([testRegId], 'test', {
-        test_message: 'This is a direct test email from the CognitiveX Admin Panel',
-        sent_at: new Date().toISOString(),
-        test_type: 'manual_admin_test'
-      });
-      
-      console.log('📧 Direct email test result:', result);
-      
-      if (result.success) {
-        showNotification(`✅ Direct email test successful for ${testRegId}`, 'success');
-      } else {
-        console.error('❌ Direct email test failed details:', result);
-        showNotification(`❌ Direct email test failed: ${result.message || 'Unknown error'}`, 'error');
-        
-        // Show detailed failure information if available
-        if (result.data?.failed_sends) {
-          console.error('📋 Failed email details:', result.data.failed_sends);
-          result.data.failed_sends.forEach(failure => {
-            console.error(`❌ ${failure.recipient_id}: ${failure.error}`);
-          });
-        }
-      }
-    } catch (error) {
-      console.error('❌ Direct email test error:', error);
-      showNotification(`❌ Direct email test failed: ${error.message || 'Network error'}`, 'error');
-    }
-  };
-
-  // Debug function to check current registrations
-  const handleDebugRegistrations = async () => {
-    try {
-      console.log('🔍 Current registrations in state:', registrations);
-      console.log('📊 Total registrations loaded:', registrations.length);
-      
-      if (registrations.length > 0) {
-        const firstReg = registrations[0];
-        console.log('📋 Sample registration structure:', firstReg);
-        console.log('🆔 Registration ID field:', firstReg.registrationId || firstReg.registration_id);
-        console.log('📧 Email field:', firstReg.email || firstReg.personal_info?.email);
-        
-        showNotification(`📊 Found ${registrations.length} registrations. Check console for details.`, 'info');
-      } else {
-        showNotification('❌ No registrations loaded yet', 'error');
-      }
-    } catch (error) {
-      console.error('❌ Debug error:', error);
-      showNotification('❌ Debug failed', 'error');
-    }
-  };
-
-  // Test API connectivity separately  
-  const handleTestAPIConnectivity = async () => {
-    try {
-      // Get first registration ID from state
-      let testRegId = '80f24aca-a277-438b-b9e0-e28909bc909d'; // Use known ID from logs
-      
-      if (registrations.length > 0) {
-        testRegId = registrations[0].registration_id || registrations[0].registrationId || testRegId;
-      }
-      
-      console.log('🔍 Testing API connectivity with registration ID:', testRegId);
-      showNotification('🔍 Testing API connectivity...', 'info');
-      
-      // Test 1: Admin API Registration Lookup
-      console.log('📊 Test 1: Admin API registration lookup...');
-      try {
-        const adminResult = await hackathonService.getRegistrationDetails(testRegId);
-        console.log('📊 Admin API result:', adminResult);
-        if (adminResult.success) {
-          console.log('✅ Admin API: Registration found', {
-            id: adminResult.data.registration_id,
-            email: adminResult.data.email,
-            status: adminResult.data.registration_status
-          });
-        } else {
-          console.error('❌ Admin API: Registration not found -', adminResult.message);
-        }
-      } catch (adminError) {
-        console.error('❌ Admin API: Connection failed -', adminError);
-      }
-      
-      // Test 2: Utils API Direct Email Test (bypass DynamoDB lookup)
-      console.log('📧 Test 2: Utils API direct email test...');
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const token = await user.getIdToken();
-          
-          // Test with direct email instead of registration ID
-          const testPayload = {
-            recipients: ['pranay.jumbarthi1905@gmail.com'], // Direct email
-            email_type: 'test',
-            custom_data: { 
-              test: true,
-              recipient_name: 'Pranay Jumbarthi',
-              bypass_lookup: true, // Signal to backend to skip DynamoDB lookup
-              custom_message: 'This is a direct email test bypassing DynamoDB lookup'
-            }
-          };
-          
-          const response = await fetch(`${import.meta.env.VITE_HACKATHON_UTILS_API_URL}/send-email`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(testPayload)
-          });
-          
-          const responseData = await response.json();
-          console.log('📧 Utils API response:', responseData);
-          
-          if (response.ok) {
-            console.log('✅ Utils API: Connection successful');
-            if (responseData.success === false && responseData.message) {
-              console.error('❌ Utils API: Response indicates failure -', responseData.message);
-            } else {
-              console.log('✅ Utils API: Email test successful');
-            }
-          } else {
-            console.error('❌ Utils API: HTTP error -', response.status, responseData);
-          }
-        }
-      } catch (utilsError) {
-        console.error('❌ Utils API: Connection failed -', utilsError);
-      }
-      
-      showNotification('🔍 API connectivity test completed. Check console for details.', 'info');
-      
-    } catch (error) {
-      console.error('API connectivity test error:', error);
-      showNotification(`❌ API test failed: ${error.message}`, 'error');
-    }
-  };
-
-  // Direct API test function with send-email endpoint
-  const handleDirectAPITest = async () => {
-    try {
-      const utilsApiUrl = import.meta.env.VITE_HACKATHON_UTILS_API_URL;
-      
-      if (!utilsApiUrl) {
-        showNotification('❌ UTILS API URL not configured in .env', 'error');
-        console.error('Missing UTILS API URL from environment:', {
-          envValue: import.meta.env.VITE_HACKATHON_UTILS_API_URL
-        });
-        return;
-      }
-      
-      console.log('🔄 Testing direct API connection to:', utilsApiUrl);
-      console.log('📧 Testing /send-email endpoint...');
-      showNotification('🔄 Testing direct /send-email API connection...', 'info');
-      
-      // Get auth token for the request
-      const user = await hackathonService.ensureAuth();
-      const token = await user.getIdToken();
-      
-      // Test the send-email endpoint directly
-      const response = await axios.post(`${utilsApiUrl}/send-email`, {
-        recipients: ['test@example.com'],
-        email_type: 'test',
-        custom_data: {
-          test_message: 'Direct API test from HackathonAdmin',
-          sent_at: new Date().toISOString()
-        }
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000
-      });
-      
-      console.log('✅ Direct API Response:', response.data);
-      showNotification('✅ Direct /send-email API test successful!', 'success');
-      
-    } catch (error) {
-      console.error('❌ Direct API test failed:', error);
-      console.error('❌ API Error details:', {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        status: error.response?.status,
-        url: error.config?.url
-      });
-      
-      if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        showNotification('❌ Network Error: Cannot reach API server', 'error');
-      } else if (error.response?.status === 404) {
-        showNotification('❌ /send-email endpoint not found (404)', 'error');
-      } else if (error.response?.status === 401) {
-        showNotification('❌ Authentication failed (401)', 'error');
-      } else {
-        showNotification(`❌ API test failed: ${error.message}`, 'error');
-      }
-    }
-  };
-
   const generateLocalCSV = (data) => {
     if (!data || data.length === 0) {
       return 'No data available';
@@ -770,6 +608,11 @@ const HackathonAdmin = () => {
       if (filters.teamSize !== teamType) return false;
     }
     
+    if (filters.college !== 'all') {
+      const college = reg.personal_info?.college || reg.college;
+      if (!college || college !== filters.college) return false;
+    }
+    
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const personalInfo = reg.personal_info || {};
@@ -793,12 +636,56 @@ const HackathonAdmin = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRegistrations = filteredRegistrations.slice(startIndex, startIndex + itemsPerPage);
 
+  // Load data on component mount and set up auto-refresh
+  useEffect(() => {
+    loadDashboardData();
+    
+    // Set up auto-refresh if enabled
+    if (autoRefresh) {
+      refreshIntervalRef.current = setInterval(() => {
+        loadDashboardData(false); // Silent refresh
+      }, 30000); // Refresh every 30 seconds
+    }
+    
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
+  }, [autoRefresh, loadDashboardData]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ctrl/Cmd + R: Manual refresh
+      if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
+        event.preventDefault();
+        loadDashboardData(true);
+      }
+      // Ctrl/Cmd + E: Export CSV
+      if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
+        event.preventDefault();
+        if (!isExporting) {
+          handleExport('csv');
+        }
+      }
+      // Ctrl/Cmd + Space: Toggle auto-refresh
+      if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
+        event.preventDefault();
+        setAutoRefresh(prev => !prev);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [loadDashboardData, isExporting, handleExport]);
+
   const sections = [
-    { id: 'dashboard', name: 'Dashboard', icon: '📊' },
-    { id: 'registrations', name: 'Registrations', icon: '👥' },
-    { id: 'payments', name: 'Payments', icon: '💳' },
-    { id: 'analytics', name: 'Analytics', icon: '📈' },
-    { id: 'communications', name: 'Communications', icon: '📧' }
+    { id: 'dashboard', name: 'Dashboard', icon: <DashboardIcon /> },
+    { id: 'registrations', name: 'Registrations', icon: <GroupIcon /> },
+    { id: 'payments', name: 'Payments', icon: <PaymentIcon /> },
+    { id: 'analytics', name: 'Analytics', icon: <AnalyticsIcon /> },
+    { id: 'communications', name: 'Communications', icon: <EmailIcon /> }
   ];
 
   if (loading) {
@@ -827,37 +714,30 @@ const HackathonAdmin = () => {
 
       {/* Header */}
       <div className="hackathon-admin-header">
-        <h1>🚀 CognitiveX GenAI Hackathon Admin</h1>
+        <div className="header-content">
+          <h1><RocketIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> CognitiveX GenAI Hackathon Admin</h1>
+          <div className="header-info">
+            <span className="last-updated">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+              {refreshing && <span className="refreshing-indicator"><RefreshIcon fontSize="small" /></span>}
+            </span>
+            <span className={`auto-refresh-indicator ${autoRefresh ? 'active' : ''}`}>
+              {autoRefresh ? <><RefreshIcon fontSize="small" /> Auto-refresh ON</> : <><PauseIcon fontSize="small" /> Auto-refresh OFF</>}
+            </span>
+            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export), Ctrl+Space (Toggle Auto-refresh)">
+              <KeyboardIcon fontSize="small" style={{marginRight: '4px'}} /> Shortcuts
+            </div>
+          </div>
+        </div>
         <div className="admin-actions">
-          <button onClick={() => exportData('csv')} className="export-btn">
-            📄 Export CSV
+          <button 
+            onClick={() => setAutoRefresh(!autoRefresh)} 
+            className={`refresh-btn ${autoRefresh ? 'active' : ''}`}
+          >
+            {autoRefresh ? <><PauseIcon fontSize="small" style={{marginRight: '4px'}} /> Pause Auto-refresh</> : <><PlayIcon fontSize="small" style={{marginRight: '4px'}} /> Enable Auto-refresh</>}
           </button>
-          <button onClick={() => exportData('json')} className="export-btn">
-            📋 Export JSON
-          </button>
-          <button onClick={() => handleSendPreEventReminders()} className="email-btn">
-            📧 Pre-Event Reminders
-          </button>
-          <button onClick={() => handleTestEmail()} className="test-btn">
-            🧪 Test Email
-          </button>
-          <button onClick={handleDirectEmailTest} className="test-btn">
-            📧 Direct Email Test
-          </button>
-          <button onClick={handleDebugRegistrations} className="test-btn">
-            🔍 Debug Registrations
-          </button>
-          <button onClick={handleTestAPIConnectivity} className="test-btn">
-            🔧 Test API Connectivity
-          </button>
-          <button onClick={handleDirectAPITest} className="test-btn">
-            🌐 Direct API Test
-          </button>
-          <button onClick={loadDashboardData} className="refresh-btn">
-            🔄 Refresh
-          </button>
-          <button onClick={testAPIConnection} className="test-btn">
-            🔍 Test API
+          <button onClick={() => loadDashboardData(true)} className="refresh-btn">
+            <RefreshIcon fontSize="small" style={{marginRight: '4px'}} /> Manual Refresh
           </button>
         </div>
       </div>
@@ -879,7 +759,7 @@ const HackathonAdmin = () => {
       {/* Content */}
       <div className="hackathon-admin-content">
         {activeSection === 'dashboard' && (
-          <DashboardSection stats={stats} />
+          <DashboardSection stats={stats} registrations={registrations} />
         )}
 
         {activeSection === 'registrations' && (
@@ -959,17 +839,17 @@ const HackathonAdmin = () => {
 };
 
 // Dashboard Section Component
-const DashboardSection = ({ stats }) => (
+const DashboardSection = ({ stats, registrations = [] }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="dashboard-section"
   >
-    <h2>📊 Hackathon Overview</h2>
+    <h2><DashboardIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Hackathon Overview</h2>
     
     <div className="stats-grid">
       <div className="stat-card total">
-        <div className="stat-icon">👥</div>
+        <div className="stat-icon"><GroupIcon /></div>
         <div className="stat-info">
           <h3>{stats.total_registrations || 0}</h3>
           <p>Total Registrations</p>
@@ -977,7 +857,7 @@ const DashboardSection = ({ stats }) => (
       </div>
       
       <div className="stat-card confirmed">
-        <div className="stat-icon">✅</div>
+        <div className="stat-icon"><CheckCircleIcon /></div>
         <div className="stat-info">
           <h3>{stats.confirmed_registrations || 0}</h3>
           <p>Confirmed</p>
@@ -985,7 +865,7 @@ const DashboardSection = ({ stats }) => (
       </div>
       
       <div className="stat-card pending">
-        <div className="stat-icon">⏳</div>
+        <div className="stat-icon"><HourglassIcon /></div>
         <div className="stat-info">
           <h3>{stats.pending_payments || stats.pending_registrations || 0}</h3>
           <p>Pending Payment</p>
@@ -993,7 +873,7 @@ const DashboardSection = ({ stats }) => (
       </div>
       
       <div className="stat-card revenue">
-        <div className="stat-icon">💰</div>
+        <div className="stat-icon"><MoneyIcon /></div>
         <div className="stat-info">
           <h3>₹{(stats.total_revenue || 0).toLocaleString()}</h3>
           <p>Total Revenue</p>
@@ -1005,7 +885,7 @@ const DashboardSection = ({ stats }) => (
       <div className="chart-card">
         <h3>Registration Breakdown</h3>
         <div className="chart-placeholder">
-          <p>📈 Registration Distribution</p>
+          <p><TrendingUpIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Registration Distribution</p>
           <p>Individual: {stats.individual_registrations || 0}</p>
           <p>Teams: {stats.group_registrations || 0}</p>
           <p>Failed Payments: {stats.failed_payments || 0}</p>
@@ -1015,7 +895,7 @@ const DashboardSection = ({ stats }) => (
       <div className="chart-card">
         <h3>College Distribution</h3>
         <div className="chart-placeholder">
-          <p>🏫 Top Participating Colleges</p>
+          <p><SchoolIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Top Participating Colleges</p>
           {stats.college_wise_stats && Object.entries(stats.college_wise_stats)
             .slice(0, 5)
             .map(([college, count]) => (
@@ -1026,27 +906,48 @@ const DashboardSection = ({ stats }) => (
       </div>
 
       <div className="chart-card">
-        <h3>Technical Skills</h3>
+        <h3>TKR College Breakdown</h3>
         <div className="chart-placeholder">
-          <p>💻 Popular Programming Languages</p>
-          {stats.programming_language_stats && Object.entries(stats.programming_language_stats)
-            .slice(0, 5)
-            .map(([lang, count]) => (
-              <p key={lang}>{lang}: {count}</p>
-            ))
-          }
+          <p><SchoolIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)</p>
+          {(() => {
+            const tkrRegs = registrations.filter(reg => 
+              (reg.personal_info?.college || reg.college) === 'TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)'
+            );
+            const tkrIndividuals = tkrRegs.filter(reg => (reg.team_info?.teamSize || reg.teamSize || 1) === 1).length;
+            const tkrTeams = tkrRegs.filter(reg => (reg.team_info?.teamSize || reg.teamSize || 1) > 1).length;
+            const tkrTotal = tkrRegs.length;
+            
+            return (
+              <>
+                <p>Total Registrations: {tkrTotal}</p>
+                <p>Individual: {tkrIndividuals}</p>
+                <p>Team: {tkrTeams}</p>
+              </>
+            );
+          })()}
         </div>
       </div>
 
       <div className="chart-card">
-        <h3>AI Experience Levels</h3>
+        <h3>TEEGALA Krishna Reddy Breakdown</h3>
         <div className="chart-placeholder">
-          <p>🤖 AI Experience Distribution</p>
-          {stats.ai_experience_stats && Object.entries(stats.ai_experience_stats)
-            .map(([level, count]) => (
-              <p key={level}>{level}: {count}</p>
-            ))
-          }
+          <p><SchoolIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)</p>
+          {(() => {
+            const teeRegs = registrations.filter(reg => 
+              (reg.personal_info?.college || reg.college) === 'TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)'
+            );
+            const teeIndividuals = teeRegs.filter(reg => (reg.team_info?.teamSize || reg.teamSize || 1) === 1).length;
+            const teeTeams = teeRegs.filter(reg => (reg.team_info?.teamSize || reg.teamSize || 1) > 1).length;
+            const teeTotal = teeRegs.length;
+            
+            return (
+              <>
+                <p>Total Registrations: {teeTotal}</p>
+                <p>Individual: {teeIndividuals}</p>
+                <p>Team: {teeTeams}</p>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -1086,29 +987,8 @@ const RegistrationsSection = ({
     className="registrations-section"
   >
     <div className="section-header-with-actions">
-      <h2>👥 Registration Management</h2>
+      <h2><GroupIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Registration Management</h2>
       <div className="export-actions">
-        <button 
-          onClick={() => handleExport('csv')} 
-          disabled={isExporting}
-          className="btn-export"
-        >
-          {isExporting ? '⏳' : '📄'} Export CSV
-        </button>
-        <button 
-          onClick={() => handleExport('excel')} 
-          disabled={isExporting}
-          className="btn-export"
-        >
-          {isExporting ? '⏳' : '📊'} Export Excel
-        </button>
-        <button 
-          onClick={() => handleExport('pdf')} 
-          disabled={isExporting}
-          className="btn-export"
-        >
-          {isExporting ? '⏳' : '📑'} Export PDF
-        </button>
         <button 
           onClick={() => setEmailModal({ 
             show: true, 
@@ -1118,7 +998,7 @@ const RegistrationsSection = ({
           disabled={selectedRegistrations.size === 0}
           className="btn-email"
         >
-          📧 Send Emails ({selectedRegistrations.size})
+          <EmailIcon fontSize="small" style={{marginRight: '4px'}} /> Send Emails ({selectedRegistrations.size})
         </button>
       </div>
     </div>
@@ -1152,6 +1032,16 @@ const RegistrationsSection = ({
         <option value="all">All Types</option>
         <option value="individual">Individual</option>
         <option value="team">Team</option>
+      </select>
+      
+      <select
+        value={filters.college}
+        onChange={(e) => setFilters(prev => ({ ...prev, college: e.target.value }))}
+        className="filter-select"
+      >
+        <option value="all">All Colleges</option>
+        <option value="TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)">TKR COLLEGE (K9)</option>
+        <option value="TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)">TEEGALA KRISHNA REDDY (R9)</option>
       </select>
     </div>
 
@@ -1292,7 +1182,7 @@ const RegistrationsSection = ({
                 className="view-btn"
                 title="View Details"
               >
-                👁️
+                <VisibilityIcon fontSize="small" />
               </button>
               <select
                 value={frontendStatus}
@@ -1350,10 +1240,10 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
   const frontendStatus = status === 'pending_payment' ? 'pending' : status;
 
   const emailTypes = [
-    { value: 'confirmation', label: '✅ Confirmation Email', description: 'Send registration confirmation' },
-    { value: 'reminder', label: '⏰ Reminder Email', description: 'Send payment or event reminder' },
-    { value: 'announcement', label: '📢 Announcement', description: 'Send important announcement' },
-    { value: 'test', label: '🧪 Test Email', description: 'Test email functionality' }
+    { value: 'confirmation', label: <><CheckCircleIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Confirmation Email</>, description: 'Send registration confirmation' },
+    { value: 'reminder', label: <><ScheduleIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Reminder Email</>, description: 'Send payment or event reminder' },
+    { value: 'announcement', label: <><AnnouncementIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Announcement</>, description: 'Send important announcement' },
+    { value: 'test', label: <><TestIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Test Email</>, description: 'Test email functionality' }
   ];
 
   const handleSendCustomEmail = () => {
@@ -1380,7 +1270,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
       >
         <div className="modal-header">
           <h2>Registration Details</h2>
-          <button onClick={onClose} className="close-btn">✕</button>
+          <button onClick={onClose} className="close-btn"><CloseIcon /></button>
         </div>
         
         <div className="modal-content">
@@ -1482,31 +1372,31 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
                   onClick={() => onGenerateCertificate && onGenerateCertificate(registration.registration_id || registration.registrationId, 'participation')}
                   className="btn-utility"
                 >
-                  🏆 Generate Certificate
+                  <CertificateIcon fontSize="small" style={{marginRight: '4px'}} /> Generate Certificate
                 </button>
                 <button 
                   onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'confirmation')}
                   className="btn-utility"
                 >
-                  📧 Quick Confirmation
+                  <EmailIcon fontSize="small" style={{marginRight: '4px'}} /> Quick Confirmation
                 </button>
                 <button 
                   onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'reminder')}
                   className="btn-utility"
                 >
-                  ⏰ Quick Reminder
+                  <ScheduleIcon fontSize="small" style={{marginRight: '4px'}} /> Quick Reminder
                 </button>
                 <button 
                   onClick={() => onSendEmail && onSendEmail(registration.registration_id || registration.registrationId, 'test')}
                   className="btn-utility test"
                 >
-                  🧪 Test Email
+                  <TestIcon fontSize="small" style={{marginRight: '4px'}} /> Test Email
                 </button>
               </div>
 
               {/* Custom Email Section */}
               <div className="custom-email-section">
-                <h4>📧 Send Custom Email</h4>
+                <h4><EmailIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Send Custom Email</h4>
                 <div className="email-compose-form">
                   <div className="email-type-selector">
                     <label>Email Type:</label>
@@ -1541,7 +1431,7 @@ const RegistrationDetailModal = ({ registration, onClose, onStatusUpdate, onGene
                     onClick={handleSendCustomEmail}
                     className="btn-send-custom-email"
                   >
-                    📧 Send Custom Email
+                    <EmailIcon fontSize="small" style={{marginRight: '4px'}} /> Send Custom Email
                   </button>
                 </div>
               </div>
@@ -1570,7 +1460,7 @@ const PaymentsSection = ({ registrations }) => {
       animate={{ opacity: 1, y: 0 }}
       className="payments-section"
     >
-      <h2>💳 Payment Management</h2>
+      <h2><PaymentIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Payment Management</h2>
       
       <div className="payment-stats">
         <div className="stat-card">
@@ -1607,7 +1497,7 @@ const AnalyticsSection = ({ registrations, stats }) => (
     animate={{ opacity: 1, y: 0 }}
     className="analytics-section"
   >
-    <h2>📈 Analytics & Insights</h2>
+    <h2><TrendingUpIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Analytics & Insights</h2>
     
     <div className="analytics-grid">
       <div className="analytics-card">
@@ -1644,7 +1534,7 @@ const CommunicationsSection = ({ registrations }) => (
     animate={{ opacity: 1, y: 0 }}
     className="communications-section"
   >
-    <h2>📧 Communications</h2>
+    <h2><EmailIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Communications</h2>
     
     <div className="communication-tools">
       <div className="email-compose">
@@ -1668,7 +1558,7 @@ const CommunicationsSection = ({ registrations }) => (
             rows="8"
           />
           
-          <button className="send-email-btn">📧 Send Email</button>
+          <button className="send-email-btn"><EmailIcon fontSize="small" style={{marginRight: '4px'}} /> Send Email</button>
         </div>
       </div>
       
@@ -1691,10 +1581,10 @@ const EmailModal = ({ emailType, recipients, onSend, onClose }) => {
   const [selectedEmailType, setSelectedEmailType] = useState(emailType);
 
   const emailTypes = [
-    { value: 'confirmation', label: '✅ Confirmation Email' },
-    { value: 'reminder', label: '⏰ Reminder Email' },
-    { value: 'announcement', label: '📢 Announcement' },
-    { value: 'certificate', label: '🏆 Certificate Notification' }
+    { value: 'confirmation', label: <><CheckCircleIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Confirmation Email</> },
+    { value: 'reminder', label: <><ScheduleIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Reminder Email</> },
+    { value: 'announcement', label: <><AnnouncementIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Announcement</> },
+    { value: 'certificate', label: <><CertificateIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Certificate Notification</> }
   ];
 
   const handleSend = () => {
@@ -1718,8 +1608,8 @@ const EmailModal = ({ emailType, recipients, onSend, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>📧 Send Emails</h2>
-          <button onClick={onClose} className="close-btn">✕</button>
+          <h2><EmailIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Send Emails</h2>
+          <button onClick={onClose} className="close-btn"><CloseIcon /></button>
         </div>
         
         <div className="modal-content">
@@ -1760,7 +1650,7 @@ const EmailModal = ({ emailType, recipients, onSend, onClose }) => {
               Cancel
             </button>
             <button onClick={handleSend} className="btn-send">
-              📧 Send Emails
+              <SendIcon fontSize="small" style={{marginRight: '4px'}} /> Send Emails
             </button>
           </div>
         </div>
