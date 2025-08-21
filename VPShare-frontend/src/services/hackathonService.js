@@ -2321,7 +2321,11 @@ export const validateRegistrationData = (data) => {
   if (!data.personal_info?.college?.trim()) errors.college = 'College name is required';
   if (!data.personal_info?.department?.trim()) errors.department = 'Department is required';
   if (!data.personal_info?.year) errors.year = 'Year of study is required';
-  if (!data.personal_info?.roll_number?.trim()) errors.rollNumber = 'Roll number is required';
+  
+  // Roll number is optional for 1st year students, required for others
+  if (data.personal_info?.year !== '1st Year' && !data.personal_info?.roll_number?.trim()) {
+    errors.rollNumber = 'Roll number is required';
+  }
 
   // Team info validation
   if (!data.team_info?.team_name?.trim()) errors.teamName = 'Team name is required';

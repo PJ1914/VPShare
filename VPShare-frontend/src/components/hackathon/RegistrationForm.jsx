@@ -955,14 +955,18 @@ const RegistrationForm = () => {
       </div>
 
       <div className="form-group">
-        <label>Roll Number/Student ID *</label>
+        <label>
+          Roll Number/Student ID 
+          {formData.personal_info.year !== '1st Year' && <span style={{color: '#e74c3c'}}> *</span>}
+          {formData.personal_info.year === '1st Year' && <span style={{color: '#7f8c8d', fontSize: '0.9em'}}> (Optional for 1st year)</span>}
+        </label>
         <input
           type="text"
           name="roll_number"
           value={formData.personal_info.roll_number}
           onChange={(e) => handleInputChange(e, 'personal_info')}
           className={errors.rollNumber ? 'error' : ''}
-          placeholder="Enter your roll number"
+          placeholder={formData.personal_info.year === '1st Year' ? "Enter your roll number (if available)" : "Enter your roll number"}
         />
         {errors.rollNumber && <span className="error-message">{errors.rollNumber}</span>}
       </div>
