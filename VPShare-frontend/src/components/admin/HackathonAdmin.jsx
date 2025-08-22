@@ -87,7 +87,7 @@ const HackathonAdmin = () => {
       console.log('Loading hackathon admin data...');
       
       const [registrationsResult, statsResult] = await Promise.all([
-        hackathonService.getAllRegistrations(100), // Load more for filtering
+        hackathonService.getAllRegistrations(1000), // Load more registrations to handle growth
         hackathonService.getRegistrationStats()
       ]);
 
@@ -1049,9 +1049,18 @@ const RegistrationsSection = ({
     <div className="results-summary-section">
       <div className="results-summary">
         Showing {registrations.length} of {totalRegistrations} registrations
+        {/* Warning if we might be hitting the limit */}
+        {registrations.length >= 1000 && (
+          <span style={{color: 'orange', fontSize: '12px', display: 'block', marginTop: '4px'}}>
+            ⚠️ Showing first 1000 registrations. Some registrations may not be displayed.
+          </span>
+        )}
         {selectedRegistrations.size > 0 && (
           <span className="selection-info">
             • {selectedRegistrations.size} selected
+            {selectedRegistrations.size === filteredRegistrations.length && filteredRegistrations.length > 0 && (
+              <span style={{color: 'var(--primary)', fontWeight: 'bold'}}> (All filtered)</span>
+            )}
           </span>
         )}
       </div>
@@ -1072,6 +1081,11 @@ const RegistrationsSection = ({
           <button onClick={handleBulkAction} className="bulk-action-btn" disabled={!bulkAction}>
             Apply to {selectedRegistrations.size} items
           </button>
+          <button onClick={selectAllFilteredRegistrations} className="select-all-btn" 
+                  disabled={filteredRegistrations.length === 0 || 
+                           (selectedRegistrations.size === filteredRegistrations.length && filteredRegistrations.length > 0)}>
+            Select All Filtered ({filteredRegistrations.length})
+          </button>
           <button onClick={clearSelection} className="clear-selection-btn">
             Clear Selection
           </button>
@@ -1085,24 +1099,26 @@ const RegistrationsSection = ({
         <div className="select-column">
           <input
             type="checkbox"
-            checked={selectedRegistrations.size > 0 && 
-                     registrations.length > 0 && 
-                     registrations.every(reg => selectedRegistrations.has(reg.registrationId))}
-            onChange={(e) => {
-              if (e.target.checked) {
-                // Select all on current page
-                const currentPageIds = new Set(registrations.map(reg => reg.registrationId));
-                setSelectedRegistrations(prev => new Set([...prev, ...currentPageIds]));
-              } else {
-                // Deselect all on current page
-                const currentPageIds = new Set(registrations.map(reg => reg.registrationId));
-                setSelectedRegistrations(prev => {
-                  const newSet = new Set(prev);
-                  currentPageIds.forEach(id => newSet.delete(id));
-                  return newSet;
-                });
+            ref={(checkbox) => {
+              if (checkbox) {
+                const allFilteredSelected = filteredRegistrations.length > 0 && 
+                                          filteredRegistrations.every(reg => selectedRegistrations.has(reg.registrationId));
+                const someFilteredSelected = filteredRegistrations.some(reg => selectedRegistrations.has(reg.registrationId));
+                
+                checkbox.checked = allFilteredSelected;
+                checkbox.indeterminate = someFilteredSelected && !allFilteredSelected;
               }
             }}
+            onChange={(e) => {
+              if (e.target.checked) {
+                // Select all filtered registrations (all registrations matching current filters)
+                selectAllFilteredRegistrations();
+              } else {
+                // Deselect all registrations
+                clearSelection();
+              }
+            }}
+            title={`Select all ${filteredRegistrations.length} filtered registrations`}
           />
         </div>
         <div>Registration ID</div>
@@ -1130,7 +1146,7 @@ const RegistrationsSection = ({
             transition={{ delay: index * 0.05 }}
             className={`table-row ${selectedRegistrations.has(registration.registrationId) ? 'selected' : ''}`}
           >
-            <div className="select-column">
+            <div className="select-column" data-label="Select">
               <input
                 type="checkbox"
                 checked={selectedRegistrations.has(registration.registrationId)}
@@ -1147,16 +1163,16 @@ const RegistrationsSection = ({
                 }}
               />
             </div>
-            <div className="registration-id">
+            <div className="registration-id" data-label="Registration ID">
               {registration.registrationId?.slice(-8) || 'N/A'}
             </div>
-            <div className="name">
+            <div className="name" data-label="Name">
               <div>{personalInfo.fullName || registration.fullName || 'N/A'}</div>
             </div>
-            <div className="email">
+            <div className="email" data-label="Email">
               <div>{personalInfo.email || registration.email || 'N/A'}</div>
             </div>
-            <div className="team">
+            <div className="team" data-label="Team">
               <div className="team-name">
                 {teamInfo.teamName || registration.teamName || 'Individual'}
               </div>
@@ -1166,17 +1182,17 @@ const RegistrationsSection = ({
                 </div>
               )}
             </div>
-            <div className="status">
+            <div className="status" data-label="Status">
               <span className={`status-badge ${frontendStatus}`}>
                 {frontendStatus}
               </span>
             </div>
-            <div className="payment">
+            <div className="payment" data-label="Payment">
               <span className={`payment-badge ${paymentStatus}`}>
                 {paymentStatus}
               </span>
             </div>
-            <div className="actions">
+            <div className="actions" data-label="Actions">
               <button
                 onClick={() => setSelectedRegistration(registration)}
                 className="view-btn"
