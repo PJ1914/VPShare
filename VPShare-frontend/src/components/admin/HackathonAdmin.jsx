@@ -29,7 +29,9 @@ import {
   Announcement as AnnouncementIcon,
   Schedule as ScheduleIcon,
   BugReport as TestIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  Business as BusinessIcon,
+  Summarize as SummaryIcon
 } from '@mui/icons-material';
 
 const HackathonAdmin = () => {
@@ -47,13 +49,21 @@ const HackathonAdmin = () => {
     teamSize: 'all',
     search: '',
     dateRange: 'all',
-    college: 'all'
+    college: 'all',
+    department: 'all'
   });
 
   // Bulk operations state
   const [selectedRegistrations, setSelectedRegistrations] = useState(new Set());
   const [bulkAction, setBulkAction] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
+
+  // Gallery-style selection state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartIndex, setDragStartIndex] = useState(null);
+  const [dragEndIndex, setDragEndIndex] = useState(null);
+  const [selectionMode, setSelectionMode] = useState('add'); // 'add' or 'remove'
+  const tableRef = useRef(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -365,6 +375,126 @@ const HackathonAdmin = () => {
     setSelectedRegistrations(new Set());
   };
 
+  // Gallery-style drag selection functionality
+  const handleMouseDown = (e, registrationId, index) => {
+    // Prevent text selection during drag
+    e.preventDefault();
+    
+    // Check if it's a left click
+    if (e.button !== 0) return;
+    
+    // Don't start drag if clicking on interactive elements
+    if (e.target.closest('button, select, input, .view-btn, .status-select')) {
+      return;
+    }
+
+    setIsDragging(true);
+    setDragStartIndex(index);
+    setDragEndIndex(index);
+    
+    // Determine selection mode based on current state
+    const isCurrentlySelected = selectedRegistrations.has(registrationId);
+    setSelectionMode(isCurrentlySelected ? 'remove' : 'add');
+    
+    // Apply initial selection
+    if (isCurrentlySelected) {
+      setSelectedRegistrations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(registrationId);
+        return newSet;
+      });
+    } else {
+      setSelectedRegistrations(prev => new Set([...prev, registrationId]));
+    }
+  };
+
+  const handleMouseEnter = (registrationId, index) => {
+    if (!isDragging) return;
+    
+    setDragEndIndex(index);
+    
+    // Calculate the range of items to select
+    const startIdx = Math.min(dragStartIndex, index);
+    const endIdx = Math.max(dragStartIndex, index);
+    
+    // Get the registration IDs in the range
+    const rangeIds = paginatedRegistrations
+      .slice(startIdx, endIdx + 1)
+      .map(reg => reg.registrationId);
+    
+    // Apply selection based on mode
+    setSelectedRegistrations(prev => {
+      const newSet = new Set(prev);
+      
+      // First, reset the previously dragged selection
+      paginatedRegistrations.forEach((reg, idx) => {
+        if (idx !== dragStartIndex) { // Don't reset the initial clicked item
+          const wasInPreviousRange = Math.min(dragStartIndex, dragEndIndex) <= idx && 
+                                   idx <= Math.max(dragStartIndex, dragEndIndex);
+          
+          if (wasInPreviousRange) {
+            if (selectionMode === 'add') {
+              newSet.delete(reg.registrationId);
+            } else {
+              newSet.add(reg.registrationId);
+            }
+          }
+        }
+      });
+      
+      // Apply new selection
+      rangeIds.forEach(id => {
+        if (selectionMode === 'add') {
+          newSet.add(id);
+        } else {
+          newSet.delete(id);
+        }
+      });
+      
+      return newSet;
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStartIndex(null);
+    setDragEndIndex(null);
+    setSelectionMode('add');
+  };
+
+  // Add global mouse up event listener to handle mouse up outside the table
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleMouseUp();
+      }
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('mouseleave', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mouseleave', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
+  // Prevent text selection during drag
+  useEffect(() => {
+    if (isDragging) {
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+    } else {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    }
+    
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    };
+  }, [isDragging]);
+
   // Export functionality
   const handleExport = async (format) => {
     try {
@@ -613,6 +743,11 @@ const HackathonAdmin = () => {
       if (!college || college !== filters.college) return false;
     }
     
+    if (filters.department !== 'all') {
+      const department = reg.personal_info?.department || reg.department;
+      if (!department || department !== filters.department) return false;
+    }
+    
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const personalInfo = reg.personal_info || {};
@@ -625,7 +760,9 @@ const HackathonAdmin = () => {
         reg.email?.toLowerCase().includes(searchLower) ||
         reg.registrationId?.toLowerCase().includes(searchLower) ||
         teamInfo.teamName?.toLowerCase().includes(searchLower) ||
-        reg.teamName?.toLowerCase().includes(searchLower)
+        reg.teamName?.toLowerCase().includes(searchLower) ||
+        personalInfo.department?.toLowerCase().includes(searchLower) ||
+        reg.department?.toLowerCase().includes(searchLower)
       );
     }
     return true;
@@ -724,7 +861,7 @@ const HackathonAdmin = () => {
             <span className={`auto-refresh-indicator ${autoRefresh ? 'active' : ''}`}>
               {autoRefresh ? <><RefreshIcon fontSize="small" /> Auto-refresh ON</> : <><PauseIcon fontSize="small" /> Auto-refresh OFF</>}
             </span>
-            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export), Ctrl+Space (Toggle Auto-refresh)">
+            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export), Ctrl+Space (Toggle Auto-refresh) • Gallery Selection: Click and drag to select multiple rows">
               <KeyboardIcon fontSize="small" style={{marginRight: '4px'}} /> Shortcuts
             </div>
           </div>
@@ -790,6 +927,14 @@ const HackathonAdmin = () => {
             setSelectedRegistrations={setSelectedRegistrations}
             handleSendEmails={handleSendEmails}
             handleTestEmail={handleTestEmail}
+            // Gallery-style drag selection props
+            isDragging={isDragging}
+            dragStartIndex={dragStartIndex}
+            dragEndIndex={dragEndIndex}
+            selectionMode={selectionMode}
+            handleMouseDown={handleMouseDown}
+            handleMouseEnter={handleMouseEnter}
+            tableRef={tableRef}
           />
         )}
 
@@ -979,7 +1124,15 @@ const RegistrationsSection = ({
   bulkAction,
   setBulkAction,
   handleBulkAction,
-  setSelectedRegistrations 
+  setSelectedRegistrations,
+  // Gallery-style drag selection props
+  isDragging,
+  dragStartIndex,
+  dragEndIndex,
+  selectionMode,
+  handleMouseDown,
+  handleMouseEnter,
+  tableRef
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -987,7 +1140,17 @@ const RegistrationsSection = ({
     className="registrations-section"
   >
     <div className="section-header-with-actions">
-      <h2><GroupIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Registration Management</h2>
+      <h2>
+        <GroupIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> 
+        Registration Management
+        <span 
+          className="gallery-selection-tip" 
+          title="💡 Gallery Selection: Click and drag across rows to select multiple items, just like selecting photos in a gallery!"
+          style={{marginLeft: '8px', fontSize: '12px', opacity: 0.7, cursor: 'help'}}
+        >
+          📸
+        </span>
+      </h2>
       <div className="export-actions">
         <button 
           onClick={() => setEmailModal({ 
@@ -1007,7 +1170,7 @@ const RegistrationsSection = ({
     <div className="filters-row">
       <input
         type="text"
-        placeholder="Search by name, email, or registration ID..."
+        placeholder="Search by name, email, registration ID, or department..."
         value={filters.search}
         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
         className="search-input"
@@ -1043,6 +1206,19 @@ const RegistrationsSection = ({
         <option value="TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)">TKR COLLEGE (K9)</option>
         <option value="TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)">TEEGALA KRISHNA REDDY (R9)</option>
       </select>
+      
+      <select
+        value={filters.department}
+        onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value }))}
+        className="filter-select"
+      >
+        <option value="all">All Departments</option>
+        {[...new Set(registrations.map(reg => 
+          reg.personal_info?.department || reg.department || 'Not Specified'
+        ))].sort().map(dept => (
+          <option key={dept} value={dept}>{dept}</option>
+        ))}
+      </select>
     </div>
 
     {/* Results summary and bulk actions */}
@@ -1061,6 +1237,11 @@ const RegistrationsSection = ({
             {selectedRegistrations.size === filteredRegistrations.length && filteredRegistrations.length > 0 && (
               <span style={{color: 'var(--primary)', fontWeight: 'bold'}}> (All filtered)</span>
             )}
+          </span>
+        )}
+        {isDragging && (
+          <span className="drag-selection-info">
+            • 🖱️ Gallery selection mode: {selectionMode === 'add' ? 'Adding' : 'Removing'} items
           </span>
         )}
       </div>
@@ -1094,7 +1275,7 @@ const RegistrationsSection = ({
     </div>
 
     {/* Registrations Table */}
-    <div className="registrations-table">
+    <div className="registrations-table" ref={tableRef}>
       <div className="table-header">
         <div className="select-column">
           <input
@@ -1144,13 +1325,26 @@ const RegistrationsSection = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`table-row ${selectedRegistrations.has(registration.registrationId) ? 'selected' : ''}`}
+            className={`table-row ${selectedRegistrations.has(registration.registrationId) ? 'selected' : ''} ${isDragging ? 'drag-mode' : ''}`}
+            onMouseDown={(e) => handleMouseDown(e, registration.registrationId, index)}
+            onMouseEnter={() => handleMouseEnter(registration.registrationId, index)}
+            style={{ 
+              cursor: isDragging ? 'grabbing' : 'default',
+              backgroundColor: isDragging && 
+                              dragStartIndex !== null && 
+                              dragEndIndex !== null && 
+                              index >= Math.min(dragStartIndex, dragEndIndex) && 
+                              index <= Math.max(dragStartIndex, dragEndIndex) ? 
+                              (selectionMode === 'add' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.2)') : 
+                              undefined
+            }}
           >
             <div className="select-column" data-label="Select">
               <input
                 type="checkbox"
                 checked={selectedRegistrations.has(registration.registrationId)}
                 onChange={(e) => {
+                  e.stopPropagation(); // Prevent drag selection
                   if (e.target.checked) {
                     setSelectedRegistrations(prev => new Set([...prev, registration.registrationId]));
                   } else {
@@ -1161,6 +1355,7 @@ const RegistrationsSection = ({
                     });
                   }
                 }}
+                onMouseDown={(e) => e.stopPropagation()} // Prevent drag selection on checkbox
               />
             </div>
             <div className="registration-id" data-label="Registration ID">
@@ -1507,41 +1702,339 @@ const PaymentsSection = ({ registrations }) => {
 };
 
 // Analytics Section Component  
-const AnalyticsSection = ({ registrations, stats }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="analytics-section"
-  >
-    <h2><TrendingUpIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Analytics & Insights</h2>
-    
-    <div className="analytics-grid">
-      <div className="analytics-card">
-        <h3>Registration Timeline</h3>
-        <p>Track registration growth over time</p>
-        {/* Chart component would go here */}
-      </div>
+const AnalyticsSection = ({ registrations, stats }) => {
+  // Calculate department statistics
+  const getDepartmentStats = () => {
+    const deptStats = {};
+    registrations.forEach(reg => {
+      const dept = reg.personal_info?.department || reg.department || 'Not Specified';
+      const college = reg.personal_info?.college || reg.college || 'Unknown College';
       
-      <div className="analytics-card">
-        <h3>Geographic Distribution</h3>
-        <p>Where participants are coming from</p>
-        {/* Map or chart component */}
-      </div>
+      if (!deptStats[dept]) {
+        deptStats[dept] = { total: 0, colleges: {} };
+      }
+      deptStats[dept].total++;
       
-      <div className="analytics-card">
-        <h3>College Participation</h3>
-        <p>Top participating institutions</p>
-        {/* List or chart of colleges */}
-      </div>
+      if (!deptStats[dept].colleges[college]) {
+        deptStats[dept].colleges[college] = 0;
+      }
+      deptStats[dept].colleges[college]++;
+    });
+    return deptStats;
+  };
+
+  // Calculate college-wise department breakdown
+  const getCollegeDepartmentStats = () => {
+    const collegeStats = {};
+    registrations.forEach(reg => {
+      const college = reg.personal_info?.college || reg.college || 'Unknown College';
+      const dept = reg.personal_info?.department || reg.department || 'Not Specified';
+      const teamSize = reg.team_info?.teamSize || reg.teamSize || 1;
+      const status = reg.registration_status || reg.status || 'pending';
       
-      <div className="analytics-card">
-        <h3>Technology Preferences</h3>
-        <p>Popular programming languages and tools</p>
-        {/* Technology usage statistics */}
+      if (!collegeStats[college]) {
+        collegeStats[college] = {
+          total: 0,
+          departments: {},
+          individuals: 0,
+          teams: 0,
+          confirmed: 0,
+          pending: 0
+        };
+      }
+      
+      collegeStats[college].total++;
+      collegeStats[college][teamSize === 1 ? 'individuals' : 'teams']++;
+      collegeStats[college][status === 'confirmed' ? 'confirmed' : 'pending']++;
+      
+      if (!collegeStats[college].departments[dept]) {
+        collegeStats[college].departments[dept] = 0;
+      }
+      collegeStats[college].departments[dept]++;
+    });
+    return collegeStats;
+  };
+
+  // Calculate year-wise statistics
+  const getYearWiseStats = () => {
+    const yearStats = {};
+    registrations.forEach(reg => {
+      const year = reg.personal_info?.year || reg.year || 'Not Specified';
+      const dept = reg.personal_info?.department || reg.department || 'Not Specified';
+      
+      if (!yearStats[year]) {
+        yearStats[year] = { total: 0, departments: {} };
+      }
+      yearStats[year].total++;
+      
+      if (!yearStats[year].departments[dept]) {
+        yearStats[year].departments[dept] = 0;
+      }
+      yearStats[year].departments[dept]++;
+    });
+    return yearStats;
+  };
+
+  // Calculate gender distribution
+  const getGenderStats = () => {
+    const genderStats = {};
+    registrations.forEach(reg => {
+      const gender = reg.personal_info?.gender || reg.gender || 'Not Specified';
+      const dept = reg.personal_info?.department || reg.department || 'Not Specified';
+      
+      if (!genderStats[gender]) {
+        genderStats[gender] = { total: 0, departments: {} };
+      }
+      genderStats[gender].total++;
+      
+      if (!genderStats[gender].departments[dept]) {
+        genderStats[gender].departments[dept] = 0;
+      }
+      genderStats[gender].departments[dept]++;
+    });
+    return genderStats;
+  };
+
+  // Calculate registration timeline
+  const getTimelineStats = () => {
+    const timeline = {};
+    registrations.forEach(reg => {
+      const date = new Date(reg.created_at || reg.createdAt || Date.now()).toDateString();
+      if (!timeline[date]) {
+        timeline[date] = 0;
+      }
+      timeline[date]++;
+    });
+    return timeline;
+  };
+
+  // Get top performing departments
+  const getTopDepartments = (limit = 5) => {
+    const deptStats = getDepartmentStats();
+    return Object.entries(deptStats)
+      .sort(([,a], [,b]) => b.total - a.total)
+      .slice(0, limit);
+  };
+
+  const departmentStats = getDepartmentStats();
+  const collegeDepartmentStats = getCollegeDepartmentStats();
+  const yearWiseStats = getYearWiseStats();
+  const genderStats = getGenderStats();
+  const timelineStats = getTimelineStats();
+  const topDepartments = getTopDepartments();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="analytics-section"
+    >
+      <h2><TrendingUpIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Advanced Analytics & Insights</h2>
+      
+      {/* Department Analytics */}
+      <div className="analytics-section-group">
+        <h3><SchoolIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Department-wise Analysis</h3>
+        <div className="analytics-grid">
+          <div className="analytics-card large">
+            <h4>Department Participation Overview</h4>
+            <div className="department-stats">
+              {Object.entries(departmentStats)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .map(([dept, data]) => (
+                  <div key={dept} className="dept-stat-row">
+                    <div className="dept-name">{dept}</div>
+                    <div className="dept-count">{data.total} participants</div>
+                    <div className="dept-bar">
+                      <div 
+                        className="dept-bar-fill" 
+                        style={{width: `${(data.total / registrations.length) * 100}%`}}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <h4>Top 5 Departments</h4>
+            <div className="top-departments">
+              {topDepartments.map(([dept, data], index) => (
+                <div key={dept} className="top-dept-item">
+                  <span className="rank">#{index + 1}</span>
+                  <span className="dept-name">{dept}</span>
+                  <span className="dept-count">{data.total}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <h4>Department Distribution</h4>
+            <div className="dept-distribution">
+              {Object.entries(departmentStats).map(([dept, data]) => {
+                const percentage = ((data.total / registrations.length) * 100).toFixed(1);
+                return (
+                  <div key={dept} className="dept-percentage">
+                    <span className="dept-name">{dept.length > 15 ? dept.substring(0, 15) + '...' : dept}</span>
+                    <span className="percentage">{percentage}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+
+      {/* College-wise Department Analysis */}
+      <div className="analytics-section-group">
+        <h3><BusinessIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> College-wise Department Breakdown</h3>
+        <div className="analytics-grid">
+          {Object.entries(collegeDepartmentStats)
+            .sort(([,a], [,b]) => b.total - a.total)
+            .map(([college, data]) => (
+              <div key={college} className="analytics-card college-card">
+                <h4>{college.length > 30 ? college.substring(0, 30) + '...' : college}</h4>
+                <div className="college-summary">
+                  <div className="summary-stat">
+                    <span className="stat-label">Total:</span>
+                    <span className="stat-value">{data.total}</span>
+                  </div>
+                  <div className="summary-stat">
+                    <span className="stat-label">Confirmed:</span>
+                    <span className="stat-value confirmed">{data.confirmed}</span>
+                  </div>
+                  <div className="summary-stat">
+                    <span className="stat-label">Pending:</span>
+                    <span className="stat-value pending">{data.pending}</span>
+                  </div>
+                </div>
+                <div className="college-departments">
+                  {Object.entries(data.departments)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5)
+                    .map(([dept, count]) => (
+                      <div key={dept} className="college-dept-row">
+                        <span className="dept-name">{dept.length > 20 ? dept.substring(0, 20) + '...' : dept}</span>
+                        <span className="dept-count">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Additional Analytics */}
+      <div className="analytics-section-group">
+        <h3><AnalyticsIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Additional Insights</h3>
+        <div className="analytics-grid">
+          <div className="analytics-card">
+            <h4>Year-wise Distribution</h4>
+            <div className="year-stats">
+              {Object.entries(yearWiseStats)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .map(([year, data]) => (
+                  <div key={year} className="year-stat-row">
+                    <span className="year-label">{year}</span>
+                    <span className="year-count">{data.total}</span>
+                    <div className="year-depts">
+                      {Object.entries(data.departments)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 3)
+                        .map(([dept, count]) => (
+                          <span key={dept} className="dept-tag">{dept}: {count}</span>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <h4>Gender Distribution</h4>
+            <div className="gender-stats">
+              {Object.entries(genderStats).map(([gender, data]) => (
+                <div key={gender} className="gender-stat-row">
+                  <span className="gender-label">{gender}</span>
+                  <span className="gender-count">{data.total}</span>
+                  <div className="gender-percentage">
+                    {((data.total / registrations.length) * 100).toFixed(1)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <h4>Registration Timeline</h4>
+            <div className="timeline-stats">
+              {Object.entries(timelineStats)
+                .sort(([a], [b]) => new Date(a) - new Date(b))
+                .slice(-7) // Last 7 days
+                .map(([date, count]) => (
+                  <div key={date} className="timeline-row">
+                    <span className="timeline-date">{new Date(date).toLocaleDateString()}</span>
+                    <span className="timeline-count">{count}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          <div className="analytics-card">
+            <h4>Team vs Individual by Department</h4>
+            <div className="team-individual-stats">
+              {Object.entries(departmentStats)
+                .sort(([,a], [,b]) => b.total - a.total)
+                .slice(0, 8)
+                .map(([dept]) => {
+                  const deptRegs = registrations.filter(reg => 
+                    (reg.personal_info?.department || reg.department) === dept
+                  );
+                  const individuals = deptRegs.filter(reg => 
+                    (reg.team_info?.teamSize || reg.teamSize || 1) === 1
+                  ).length;
+                  const teams = deptRegs.length - individuals;
+                  
+                  return (
+                    <div key={dept} className="team-individual-row">
+                      <div className="dept-name">{dept.length > 15 ? dept.substring(0, 15) + '...' : dept}</div>
+                      <div className="team-individual-counts">
+                        <span className="individual-count">Individual: {individuals}</span>
+                        <span className="team-count">Team: {teams}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Statistics Summary */}
+      <div className="analytics-summary">
+        <h3><SummaryIcon style={{marginRight: '8px', verticalAlign: 'middle'}} /> Quick Summary</h3>
+        <div className="summary-grid">
+          <div className="summary-item">
+            <span className="summary-label">Total Departments:</span>
+            <span className="summary-value">{Object.keys(departmentStats).length}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Total Colleges:</span>
+            <span className="summary-value">{Object.keys(collegeDepartmentStats).length}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Most Popular Dept:</span>
+            <span className="summary-value">{topDepartments[0]?.[0] || 'N/A'}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Avg per Department:</span>
+            <span className="summary-value">{(registrations.length / Object.keys(departmentStats).length).toFixed(1)}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 // Communications Section Component
 const CommunicationsSection = ({ registrations }) => (
