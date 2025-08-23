@@ -223,7 +223,7 @@ function AdminPanel() {
     if (currentUser) {
       setUser(currentUser);
       // Check if user is admin (you can modify this logic)
-      const adminEmails = ['admin@codetapasya.com', 'pranay.jumbarthi1905@gmail.com', 'yelsanimahalaxmi@gmail.com', 'vishnutej49@gmail.com', 'swathi.badrinaryanan@gmail.com', 'macherlarohith2004@gmail.com'];
+      const adminEmails = ['admin@codetapasya.com', 'pranay.jumbarthi1905@gmail.com', 'yelsanimahalaxmi@gmail.com', 'vishnutej49@gmail.com', 'swathi.badrinaryanan@gmail.com', 'macherlarohith2004@gmail.com', 'pravalika15yalala@gmail.com'];
       setIsAdmin(adminEmails.includes(currentUser.email));
     }
     setLoading(false);
