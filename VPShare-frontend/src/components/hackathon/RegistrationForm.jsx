@@ -127,6 +127,7 @@ const RegistrationForm = () => {
   }, [isDevelopment]);
 
   const collegeOptions = [
+    'TKR COLLEGE OF ENGINEERING AND TECHNOLOGY (K9)',
     'TEEGALA KRISHNA REDDY ENGINEERING COLLEGE (R9)'
   ];
 
