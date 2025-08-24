@@ -161,7 +161,7 @@ function App() {
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         
         {/* Hackathon Page */}
-        <Route path="/cognetivexhackathon" element={<Hackathon />} />
+        <Route path="/hackathon" element={<Hackathon />} />
       </Routes>
       </ApiErrorBoundary>
 
