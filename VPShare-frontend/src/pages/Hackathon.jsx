@@ -1,396 +1,255 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import HackathonHero from '../components/hackathon/HackathonHero';
-import RegistrationForm from '../components/hackathon/RegistrationForm';
-import Timeline from '../components/hackathon/Timeline';
-import Bootcamp from '../components/hackathon/Bootcamp';
-import Partners from '../components/hackathon/Partners';
-import Responsibilities from '../components/hackathon/Responsibilities';
-import MobileSidebar from '../components/hackathon/MobileSidebar';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useHackathon } from '../contexts/HackathonContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useResponsive } from '../hooks/useResponsive';
 import { useNotification } from '../contexts/NotificationContext';
-import '../styles/Hackathon.css';
+import DynamicHackathonLanding from '../components/hackathon/DynamicHackathonLanding';
+import RegistrationPage from '../components/hackathon/RegistrationPage';
+import HackathonDashboard from '../components/hackathon/HackathonDashboard';
+// Icon imports
+import { Sword, Sparkles } from 'lucide-react';
+import '../styles/DynamicHackathon.css';
 
 const Hackathon = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('about');
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState('Initializing');
-  const { isMobile, isTablet, deviceType } = useResponsive();
+  const { isMobile } = useResponsive();
   const { showNotification } = useNotification();
-  const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
+  const { currentHackathon } = useHackathon();
+  const { user } = useAuth();
 
-  // Show mobile disclaimer for mobile users instead of blocking
+  // Determine current view based on URL
+  const getCurrentView = () => {
+    const path = location.pathname;
+    if (path.includes('/registration')) return 'registration';
+    if (path.includes('/dashboard')) return 'dashboard';
+    return 'landing';
+  };
+
+  const [currentView, setCurrentView] = useState(getCurrentView());
+
+  // Update view when URL changes
   useEffect(() => {
-    if (isMobile || isTablet) {
-      // Show disclaimer modal after a short delay
-      setTimeout(() => {
-        setShowMobileDisclaimer(true);
-      }, 1000);
-    }
-  }, [isMobile, isTablet]);
+    setCurrentView(getCurrentView());
+  }, [location.pathname]);
 
-  const sections = [
-    { id: 'about', label: 'About' },
-    { id: 'timeline', label: 'Timeline' },
-    { id: 'bootcamp', label: 'Bootcamp' },
-    { id: 'partners', label: 'Partners' },
-    { id: 'responsibilities', label: 'Guidelines' },
-    { id: 'register', label: 'Register' }
-  ];
-
-  // Show welcome notification when hackathon page loads
   useEffect(() => {
     const timer = setTimeout(() => {
-      showNotification({
-        type: 'hackathon',
-        title: 'Welcome to CognitiveX!',
-        message: 'Explore the hackathon details and register to join the ultimate GenAI experience.',
-        duration: 6000
-      });
-    }, 2000);
+      setIsLoading(false);
+      if (currentHackathon) {
+        showNotification({
+          message: `Welcome to ${currentHackathon.name}! Prepare for the ultimate coding battle.`,
+          type: 'info',
+          duration: 5000
+        });
+      }
+    }, 1500);
 
     return () => clearTimeout(timer);
-  }, [showNotification]);
+  }, [showNotification, currentHackathon]);
 
-  // Loading sequence for all users
-  useEffect(() => {
-    // Initialize loading sequence
-    const initializeApp = async () => {
-      setLoadingStage('Initializing');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setLoadingStage('Loading');
-      await new Promise(resolve => setTimeout(resolve, 600));
-      
-      setLoadingStage('Ready');
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setIsLoading(false);
-    };
-
-    initializeApp();
-  }, []);
-
-  // Handle navigation with smooth scrolling - Enhanced for mobile
-  const handleNavigation = (sectionId) => {
-    setActiveSection(sectionId);
-    
-    // Show section-specific notifications
-    if (sectionId === 'register') {
-      showNotification({
-        type: 'info',
-        title: 'Ready to Register?',
-        message: 'Fill out the registration form to secure your spot in the hackathon!',
-        duration: 4000
-      });
-    }
-    
-    // Smooth scroll to section with mobile offset
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = isMobile ? 120 : 80;
-      const elementPosition = element.offsetTop - offset;
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: 'smooth'
-      });
-      
-      // Add haptic feedback for mobile devices
-      if (isMobile && 'vibrate' in navigator) {
-        navigator.vibrate(50);
-      }
-    }
-  };
-
-  // Handle home navigation
-  const handleHomeNavigation = () => {
-    navigate('/');
-  };
-
-  // Toggle mobile sidebar
-  const toggleMobileSidebar = () => {
-    setMobileSidebarOpen(!mobileSidebarOpen);
-    
-    // Haptic feedback
-    if ('vibrate' in navigator) {
-      navigator.vibrate(30);
-    }
-  };
-
-  // Update active section based on scroll position
-  React.useEffect(() => {
-    const handleScroll = () => {
-      const sections = ['about', 'timeline', 'bootcamp', 'partners', 'responsibilities', 'register'];
-      const scrollPosition = window.scrollY + 150;
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const offsetBottom = offsetTop + element.offsetHeight;
-
-          if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className={`hackathon-page ${deviceType}`}>
-      {/* Mobile Disclaimer Modal */}
-      {showMobileDisclaimer && (isMobile || isTablet) && (
-        <div className="mobile-disclaimer-overlay" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          zIndex: 10000,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '1rem'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-            maxWidth: '400px',
-            width: '100%',
-            textAlign: 'center',
-            animation: 'fadeInScale 0.3s ease-out'
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💻</div>
-            <h2 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: '1.5rem' }}>
-              Better Experience on Desktop
-            </h2>
-            <p style={{ color: '#7f8c8d', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-              While you can browse the hackathon details on mobile, we recommend using a 
-              desktop or laptop for registration and the best experience.
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-              <button
-                onClick={() => setShowMobileDisclaimer(false)}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#3498db',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: '600'
-                }}
-              >
-                Continue on Mobile
-              </button>
-              <button
-                onClick={handleHomeNavigation}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: 'transparent',
-                  color: '#7f8c8d',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem'
-                }}
-              >
-                Go to Home Page
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content - Available for all devices */}
-      <div style={{ position: 'relative' }}>
-        {/* Mobile Menu Button */}
-        {(isMobile || isTablet) && (
-          <button
-            className={`hackathon-mobile-menu-btn ${mobileSidebarOpen ? 'open' : ''}`}
-            onClick={toggleMobileSidebar}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileSidebarOpen ? '✕' : '☰'}
-          </button>
-        )}
-
-        {/* Mobile Sidebar */}
-        <MobileSidebar
-          isOpen={mobileSidebarOpen}
-          onClose={() => setMobileSidebarOpen(false)}
-          activeSection={activeSection}
-          onNavigate={handleNavigation}
-        />
-
-        {/* Navigation */}
-        <nav className="hackathon-nav">
-        <div className="nav-container">
-          <div className="nav-logo">
-            <button 
-              className="home-icon-btn"
-              onClick={handleHomeNavigation}
-              aria-label="Navigate to home page"
-              title="Go to Home"
-            >
-              <HomeIcon />
-            </button>
-            <div className="logo-text">
-              <h2>CognitiveX</h2>
-              <span>GenAI Hackathon</span>
-            </div>
-          </div>
-
-          {/* Desktop Navigation - Hidden on Mobile */}
-          {!isMobile && !isTablet && (
-            <div className="nav-links">
-              {sections.map((section) => (
-                <button
-                  key={section.id}
-                  className={`nav-link ${activeSection === section.id ? 'active' : ''}`}
-                  onClick={() => handleNavigation(section.id)}
-                  aria-label={`Navigate to ${section.label} section`}
-                >
-                  {section.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <HackathonHero />
-
-      {/* Main Content */}
-      <main className="hackathon-main">
-        <section id="about" className={activeSection === 'about' ? 'active' : ''}>
+  if (isLoading) {
+    return (
+      <div className="hackathon-loading">
+        <div className="loading-container">
+          {/* Animated Logo */}
           <motion.div
+            className="loading-logo"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.div
+              className="sword-container"
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            >
+              <div className="sword-wrapper">
+                <motion.div
+                  className="sword"
+                  animate={{ 
+                    rotateY: [0, 180, 360],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <Sword size={48} />
+                </motion.div>
+              </div>
+              
+              {/* Glowing rings */}
+              <div className="loading-rings">
+                <motion.div
+                  className="ring ring-1"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="ring ring-2"
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="ring ring-3"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Loading Text */}
+          <motion.div
+            className="loading-text"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="section about-section"
+            transition={{ delay: 0.5, duration: 0.8 }}
           >
-            <div className="container">
-              <div className="about-grid">
-                <div className="about-smartbridge">
-                  <h2>About SmartBridge</h2>
-                  <p>
-                    SmartBridge, founded in 2015, is a leading EdTech solutions provider bridging 
-                    academia & industry. Our mission is to create a sustainable talent pipeline for 
-                    emerging industries by fostering strong industry-academia collaborations.
-                  </p>
-                  <p>
-                    We offer project-based learning, credit courses, virtual internship programs, 
-                    global certifications in technologies like AI, Machine Learning, Data Science, 
-                    IoT, Cloud Computing, Cybersecurity etc., providing hands-on experience to build 
-                    critical, job-ready skills.
-                  </p>
-                  
-                  <div className="impact-stats">
-                    <div className="stat">
-                      <h3>1.25M+</h3>
-                      <p>Students Skilled</p>
-                    </div>
-                    <div className="stat">
-                      <h3>580K+</h3>
-                      <p>Virtual Internships</p>
-                    </div>
-                    <div className="stat">
-                      <h3>35K+</h3>
-                      <p>Educators Upskilled</p>
-                    </div>
-                    <div className="stat">
-                      <h3>2.7K+</h3>
-                      <p>Colleges Benefitted</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="about-cognitivex">
-                  <h2>What is CognitiveX?</h2>
-                  <p>
-                    CognitiveX is an initiative by SmartBridge, launched in collaboration with 
-                    IBM SkillsBuild. The program features a 4-day bootcamp followed by a 2-day 
-                    hackathon, offering students a unique opportunity to work on real-world 
-                    challenges while gaining hands-on experience with IBM tools.
-                  </p>
-                  <p>
-                    This initiative aims to enhance practical skills and industry exposure in 
-                    the field of generative AI.
-                  </p>
-
-                  <div className="hackathon-journey">
-                    <h3>Hackathon Journey</h3>
-                    <div className="journey-steps">
-                      <div className="step">
-                        <div className="step-number">1</div>
-                        <div className="step-content">
-                          <h4>Registration & Problem Statement Selection</h4>
-                          <p>Register for the event and select your problem statement</p>
-                        </div>
-                      </div>
-                      <div className="step">
-                        <div className="step-number">2</div>
-                        <div className="step-content">
-                          <h4>Attend Bootcamps & Complete Badge</h4>
-                          <p>4-day bootcamp with hands-on IBM Cloud Services experience</p>
-                        </div>
-                      </div>
-                      <div className="step">
-                        <div className="step-number">3</div>
-                        <div className="step-content">
-                          <h4>Work on Problem Statement</h4>
-                          <p>Develop your solution based on the selected problem statement</p>
-                        </div>
-                      </div>
-                      <div className="step">
-                        <div className="step-number">4</div>
-                        <div className="step-content">
-                          <h4>Evaluation & Awards</h4>
-                          <p>Submit solutions and compete for innovative prototype prizes</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <h2 className="loading-title">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+              >
+                कोड कुरुक्षेत्र
+              </motion.span>
+            </h2>
+            <h3 className="loading-subtitle">CodeKurukshetra</h3>
+            
+            <motion.p
+              className="loading-message"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Preparing the battlefield...
+            </motion.p>
           </motion.div>
-        </section>
 
-        <section id="timeline" className={activeSection === 'timeline' ? 'active' : ''}>
-          <Timeline />
-        </section>
-        
-        <section id="bootcamp" className={activeSection === 'bootcamp' ? 'active' : ''}>
-          <Bootcamp />
-        </section>
-        
-        <section id="partners" className={activeSection === 'partners' ? 'active' : ''}>
-          <Partners />
-        </section>
-        
-        <section id="responsibilities" className={activeSection === 'responsibilities' ? 'active' : ''}>
-          <Responsibilities />
-        </section>
-        
-        <section id="register" className={activeSection === 'register' ? 'active' : ''}>
-          <RegistrationForm />
-        </section>
-      </main>
+          {/* Loading Progress Bar */}
+          <motion.div
+            className="loading-progress"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <div className="progress-bar">
+              <motion.div
+                className="progress-fill"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+              />
+            </div>
+            <motion.div
+              className="progress-dots"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="dot"
+                  animate={{ 
+                    scale: [0.8, 1.2, 0.8],
+                    opacity: [0.4, 1, 0.4]
+                  }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity,
+                    delay: i * 0.2
+                  }}
+                />
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* Floating Particles */}
+          <div className="particles">
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="particle"
+                animate={{
+                  y: [-20, -60, -20],
+                  x: [0, Math.random() * 40 - 20, 0],
+                  opacity: [0, 1, 0],
+                  scale: [0.5, 1, 0.5]
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 2,
+                  repeat: Infinity,
+                  delay: Math.random() * 2
+                }}
+                style={{
+                  left: `${10 + (i * 10)}%`,
+                  bottom: '20%'
+                }}
+              >
+                <Sparkles size={16} />
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
+    );
+  }
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'registration':
+        return <RegistrationPage onBack={() => navigate('/hackathon')} />;
+      case 'dashboard':
+        if (!user) {
+          showNotification({
+            message: 'Please login to access the dashboard',
+            type: 'warning',
+            duration: 3000
+          });
+          navigate('/hackathon');
+          return null;
+        }
+        return <HackathonDashboard user={user} onBack={() => navigate('/hackathon')} />;
+      default:
+        return (
+          <DynamicHackathonLanding 
+            onNavigateToRegistration={() => navigate('/hackathon/registration')}
+            onNavigateToDashboard={() => {
+              if (user) {
+                navigate('/hackathon/dashboard');
+              } else {
+                showNotification({
+                  message: 'Please login to access the dashboard',
+                  type: 'warning',
+                  duration: 3000
+                });
+              }
+            }}
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="dynamic-hackathon">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentView}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+        >
+          {renderView()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

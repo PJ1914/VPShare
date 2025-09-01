@@ -160,8 +160,17 @@ function App() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         
-        {/* Hackathon Page */}
+        {/* Hackathon Routes */}
         <Route path="/hackathon" element={<Hackathon />} />
+        <Route path="/hackathon/registration" element={<Hackathon />} />
+        <Route 
+          path="/hackathon/dashboard" 
+          element={
+            <PrivateRoute>
+              <Hackathon />
+            </PrivateRoute>
+          } 
+        />
       </Routes>
       </ApiErrorBoundary>
 

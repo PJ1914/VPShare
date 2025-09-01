@@ -8,6 +8,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { HackathonProvider } from './contexts/HackathonContext';
 import serviceWorkerManager from './utils/serviceWorkerManager';
 import './styles/index.css';
 import './styles/ModernGlobal.css';
@@ -40,7 +41,9 @@ root.render(
         <NotificationProvider>
           <AuthProvider>
             <SubscriptionProvider>
-              <App />
+              <HackathonProvider>
+                <App />
+              </HackathonProvider>
             </SubscriptionProvider>
           </AuthProvider>
         </NotificationProvider>

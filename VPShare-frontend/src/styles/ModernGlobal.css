@@ -110,7 +110,7 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   overflow-x: hidden;
-  padding-top: 85px; /* Global spacing for fixed navbar */
+  padding-top: 55px; /* Global spacing for fixed navbar */
 }
 
 /* Ensure no double padding for pages that already handle it */
@@ -668,17 +668,6 @@ main, .main-content, .dashboard-main, .page-content {
   to {
     opacity: 1;
     transform: translateX(0);
-  }
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
   }
 }
 
@@ -1559,6 +1548,7 @@ main, .main-content, .dashboard-main, .page-content {
 
 /* Professional Hero Carousel Styles */
 .professional-hero-carousel {
+  width: 100%;
   max-width: 1400px;
   margin: 2rem auto 4rem auto;
   position: relative;

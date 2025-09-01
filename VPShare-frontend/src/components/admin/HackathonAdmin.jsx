@@ -23,6 +23,7 @@ import {
   Close as CloseIcon,
   School as SchoolIcon,
   TrendingUp as TrendingUpIcon,
+  Person as PersonIcon,
   EmojiEvents as CertificateIcon,
   Send as SendIcon,
   Keyboard as KeyboardIcon,
@@ -496,23 +497,83 @@ const HackathonAdmin = () => {
   }, [isDragging]);
 
   // Export functionality
-  const handleExport = async (format) => {
+  const handleExport = async (format, exportType = 'detailed') => {
     try {
       setIsExporting(true);
-      showNotification(`📊 Exporting data as ${format.toUpperCase()}...`, 'info');
+      showNotification(`📊 Exporting ${exportType} data as ${format.toUpperCase()}...`, 'info');
       
-      const filterParams = {
-        status: filters.status !== 'all' ? filters.status : undefined,
-        teamSize: filters.teamSize !== 'all' ? filters.teamSize : undefined,
-        college: filters.college !== 'all' ? filters.college : undefined
-      };
+      let csvContent = '';
+      let filename = '';
+      const timestamp = new Date().toISOString().split('T')[0];
       
-      const result = await hackathonService.exportRegistrations(format, filterParams);
-      
-      if (result.success) {
-        showNotification(`✅ ${result.message}`, 'success');
+      if (format === 'csv') {
+        // Use filtered registrations for export
+        const dataToExport = filteredRegistrations.length > 0 ? filteredRegistrations : registrations;
+        
+        if (exportType === 'detailed') {
+          csvContent = generateLocalCSV(dataToExport);
+          filename = `hackathon_registrations_detailed_${timestamp}.csv`;
+        } else if (exportType === 'analytics') {
+          csvContent = generateAnalyticsCSV(dataToExport);
+          filename = `hackathon_analytics_summary_${timestamp}.csv`;
+        } else if (exportType === 'selected') {
+          if (selectedRegistrations.size === 0) {
+            showNotification('❌ No registrations selected for export', 'error');
+            return;
+          }
+          const selectedData = registrations.filter(reg => selectedRegistrations.has(reg.registrationId));
+          csvContent = generateLocalCSV(selectedData);
+          filename = `hackathon_selected_registrations_${timestamp}.csv`;
+        } else if (exportType === 'participant-details') {
+          // Get participant details from API
+          console.log('Fetching participant details from API...');
+          const participantResponse = await hackathonService.getParticipantDetails();
+          console.log('Received participant response:', participantResponse);
+          
+          if (participantResponse.success) {
+            csvContent = generateParticipantDetailsCSV(participantResponse.data);
+            filename = `hackathon_participant_details_${timestamp}.csv`;
+          } else {
+            showNotification(`❌ Failed to fetch participant details: ${participantResponse.message}`, 'error');
+            return;
+          }
+        } else if (exportType === 'participant-analytics') {
+          // Get participant details from API and generate analytics
+          console.log('Fetching participant details for analytics from API...');
+          const participantResponse = await hackathonService.getParticipantDetails();
+          console.log('Received participant response for analytics:', participantResponse);
+          
+          if (participantResponse.success) {
+            csvContent = generateParticipantAnalyticsCSV(participantResponse.data);
+            filename = `hackathon_participant_analytics_${timestamp}.csv`;
+          } else {
+            showNotification(`❌ Failed to fetch participant details: ${participantResponse.message}`, 'error');
+            return;
+          }
+        }
+        
+        if (csvContent) {
+          downloadCSV(csvContent, filename);
+          showNotification(`✅ ${exportType} data exported successfully as ${filename}`, 'success');
+        } else {
+          showNotification('❌ No data to export', 'error');
+        }
       } else {
-        showNotification(`❌ Export failed: ${result.message}`, 'error');
+        // Try backend export for other formats
+        const filterParams = {
+          status: filters.status !== 'all' ? filters.status : undefined,
+          teamSize: filters.teamSize !== 'all' ? filters.teamSize : undefined,
+          college: filters.college !== 'all' ? filters.college : undefined,
+          department: filters.department !== 'all' ? filters.department : undefined
+        };
+        
+        const result = await hackathonService.exportRegistrations(format, filterParams);
+        
+        if (result.success) {
+          showNotification(`✅ ${result.message}`, 'success');
+        } else {
+          showNotification(`❌ Export failed: ${result.message}`, 'error');
+        }
       }
     } catch (error) {
       console.error('Export error:', error);
@@ -691,38 +752,395 @@ const HackathonAdmin = () => {
       return 'No data available';
     }
 
+    // Comprehensive headers for detailed export
     const headers = [
-      'Registration ID', 'Full Name', 'Email', 'Phone', 'College', 'Department', 
-      'Year', 'Team Name', 'Team Size', 'Problem Statement', 'Programming Languages',
-      'AI Experience', 'Previous Hackathons', 'Status', 'Payment Status', 'Registration Date'
+      // Basic Information
+      'Registration ID', 'Full Name', 'Email', 'Phone', 'College', 'Department', 'Year',
+      
+      // Team Information
+      'Team Name', 'Team Size', 'Team Type', 'Team Members',
+      
+      // Technical Information
+      'Problem Statement', 'Programming Languages', 'AI Experience', 'Previous Hackathons',
+      
+      // Status & Payment
+      'Registration Status', 'Payment Status', 'Payment Amount', 'Payment ID', 'Order ID',
+      
+      // Timestamps
+      'Registration Date', 'Last Updated',
+      
+      // Analytics Fields
+      'College Code', 'Department Category', 'Experience Level', 'Team Formation',
+      
+      // Additional Fields
+      'Additional Skills', 'Expectations', 'Admin Notes'
     ];
 
     const csvRows = [headers.join(',')];
 
     data.forEach(reg => {
+      const personalInfo = reg.personal_info || {};
+      const teamInfo = reg.team_info || {};
+      const paymentInfo = reg.payment_info || {};
+      const skills = reg.skills || {};
+      
+      // Extract team members info
+      const teamMembers = (teamInfo.teamMembers || reg.team_members || [])
+        .map(member => `${member.name || member.fullName || 'N/A'} (${member.email || 'N/A'})`)
+        .join('; ');
+      
+      // Determine experience level
+      const getExperienceLevel = (aiExp, prevHack) => {
+        const ai = (aiExp || '').toLowerCase();
+        const hack = (prevHack || '').toLowerCase();
+        
+        if (ai.includes('expert') || ai.includes('advanced') || hack.includes('5+') || hack.includes('many')) {
+          return 'Expert';
+        } else if (ai.includes('intermediate') || ai.includes('good') || hack.includes('2-4') || hack.includes('few')) {
+          return 'Intermediate';
+        } else if (ai.includes('beginner') || ai.includes('basic') || hack.includes('0-1') || hack.includes('none')) {
+          return 'Beginner';
+        }
+        return 'Not Specified';
+      };
+      
+      // Categorize department
+      const categorizeDepartment = (dept) => {
+        const department = (dept || '').toLowerCase();
+        if (department.includes('cse') || department.includes('computer science') || department.includes('it') || department.includes('information technology')) {
+          return 'Computer Science & IT';
+        } else if (department.includes('ece') || department.includes('electronics') || department.includes('electrical')) {
+          return 'Electronics & Electrical';
+        } else if (department.includes('mech') || department.includes('mechanical')) {
+          return 'Mechanical';
+        } else if (department.includes('civil')) {
+          return 'Civil';
+        } else if (department.includes('aiml') || department.includes('ai') || department.includes('ml') || department.includes('data science')) {
+          return 'AI & Data Science';
+        } else if (department.includes('bio') || department.includes('chemical')) {
+          return 'Bio & Chemical';
+        }
+        return 'Other';
+      };
+      
+      // Extract college code
+      const getCollegeCode = (college) => {
+        if (college && college.includes('(') && college.includes(')')) {
+          return college.match(/\(([^)]+)\)/)?.[1] || '';
+        }
+        return '';
+      };
+      
       const row = [
+        // Basic Information
         reg.registrationId || '',
-        reg.fullName || '',
-        reg.email || '',
-        reg.phone || '',
-        reg.college || '',
-        reg.department || '',
-        reg.year || '',
-        reg.teamName || 'Individual',
-        reg.teamSize || 1,
+        personalInfo.fullName || reg.fullName || '',
+        personalInfo.email || reg.email || '',
+        personalInfo.phone || reg.phone || '',
+        personalInfo.college || reg.college || '',
+        personalInfo.department || reg.department || '',
+        personalInfo.year || reg.year || '',
+        
+        // Team Information
+        teamInfo.teamName || reg.teamName || 'Individual',
+        teamInfo.teamSize || reg.teamSize || 1,
+        (teamInfo.teamSize || reg.teamSize || 1) === 1 ? 'Individual' : 'Team',
+        teamMembers,
+        
+        // Technical Information
         reg.problemStatement || '',
-        (reg.programmingLanguages || []).join('; '),
-        reg.aiExperience || '',
-        reg.previousHackathons || '',
-        reg.status || 'pending',
-        reg.paymentStatus || 'pending',
-        reg.createdAt || reg.registrationDate || ''
-      ].map(field => `"${field}"`);
+        (skills.programmingLanguages || reg.programmingLanguages || []).join('; '),
+        skills.aiExperience || reg.aiExperience || '',
+        skills.previousHackathons || reg.previousHackathons || '',
+        
+        // Status & Payment
+        reg.registration_status || reg.status || 'pending',
+        paymentInfo.status || reg.paymentStatus || 'pending',
+        paymentInfo.amount || reg.amount || '',
+        paymentInfo.razorpay_payment_id || reg.payment_id || '',
+        paymentInfo.razorpay_order_id || reg.order_id || '',
+        
+        // Timestamps
+        reg.createdAt || reg.registrationDate || '',
+        reg.updatedAt || reg.lastUpdated || '',
+        
+        // Analytics Fields
+        getCollegeCode(personalInfo.college || reg.college || ''),
+        categorizeDepartment(personalInfo.department || reg.department || ''),
+        getExperienceLevel(skills.aiExperience || reg.aiExperience || '', skills.previousHackathons || reg.previousHackathons || ''),
+        (teamInfo.teamSize || reg.teamSize || 1) > 1 ? 'Team Registration' : 'Individual Registration',
+        
+        // Additional Fields
+        skills.additionalSkills || reg.additionalSkills || '',
+        skills.expectations || reg.expectations || '',
+        reg.admin_notes || reg.adminNotes || ''
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`); // Proper CSV escaping
       
       csvRows.push(row.join(','));
     });
 
     return csvRows.join('\n');
+  };
+
+  // Enhanced export with analytics summary
+  const generateAnalyticsCSV = (data) => {
+    if (!data || data.length === 0) {
+      return 'No data available for analytics';
+    }
+
+    // Calculate analytics
+    const analytics = {
+      departmentStats: {},
+      collegeStats: {},
+      yearStats: {},
+      experienceStats: {},
+      teamStats: { individual: 0, team: 0 },
+      statusStats: {},
+      total: data.length
+    };
+
+    data.forEach(reg => {
+      const personalInfo = reg.personal_info || {};
+      const teamInfo = reg.team_info || {};
+      const skills = reg.skills || {};
+      
+      const dept = personalInfo.department || reg.department || 'Not Specified';
+      const college = personalInfo.college || reg.college || 'Not Specified';
+      const year = personalInfo.year || reg.year || 'Not Specified';
+      const status = reg.registration_status || reg.status || 'pending';
+      const teamSize = teamInfo.teamSize || reg.teamSize || 1;
+      
+      // Department stats
+      analytics.departmentStats[dept] = (analytics.departmentStats[dept] || 0) + 1;
+      
+      // College stats
+      analytics.collegeStats[college] = (analytics.collegeStats[college] || 0) + 1;
+      
+      // Year stats
+      analytics.yearStats[year] = (analytics.yearStats[year] || 0) + 1;
+      
+      // Team stats
+      if (teamSize === 1) {
+        analytics.teamStats.individual++;
+      } else {
+        analytics.teamStats.team++;
+      }
+      
+      // Status stats
+      analytics.statusStats[status] = (analytics.statusStats[status] || 0) + 1;
+      
+      // Experience stats
+      const aiExp = (skills.aiExperience || reg.aiExperience || '').toLowerCase();
+      let expLevel = 'Not Specified';
+      if (aiExp.includes('expert') || aiExp.includes('advanced')) {
+        expLevel = 'Expert';
+      } else if (aiExp.includes('intermediate') || aiExp.includes('good')) {
+        expLevel = 'Intermediate';
+      } else if (aiExp.includes('beginner') || aiExp.includes('basic')) {
+        expLevel = 'Beginner';
+      }
+      analytics.experienceStats[expLevel] = (analytics.experienceStats[expLevel] || 0) + 1;
+    });
+
+    // Create analytics CSV
+    const analyticsRows = [
+      '=== HACKATHON REGISTRATION ANALYTICS SUMMARY ===',
+      '',
+      'OVERVIEW',
+      `Total Registrations,${analytics.total}`,
+      `Export Date,${new Date().toLocaleString()}`,
+      '',
+      'DEPARTMENT WISE BREAKDOWN',
+      'Department,Count,Percentage'
+    ];
+
+    Object.entries(analytics.departmentStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([dept, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${dept}",${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('COLLEGE WISE BREAKDOWN');
+    analyticsRows.push('College,Count,Percentage');
+
+    Object.entries(analytics.collegeStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([college, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${college}",${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('REGISTRATION TYPE');
+    analyticsRows.push('Type,Count,Percentage');
+    analyticsRows.push(`Individual,${analytics.teamStats.individual},${((analytics.teamStats.individual / analytics.total) * 100).toFixed(1)}%`);
+    analyticsRows.push(`Team,${analytics.teamStats.team},${((analytics.teamStats.team / analytics.total) * 100).toFixed(1)}%`);
+
+    analyticsRows.push('');
+    analyticsRows.push('REGISTRATION STATUS');
+    analyticsRows.push('Status,Count,Percentage');
+
+    Object.entries(analytics.statusStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([status, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`${status},${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('EXPERIENCE LEVEL');
+    analyticsRows.push('Level,Count,Percentage');
+
+    Object.entries(analytics.experienceStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([level, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`${level},${count},${percentage}%`);
+      });
+
+    return analyticsRows.join('\n');
+  };
+
+  // New function to generate CSV from participant details API
+  const generateParticipantDetailsCSV = (data) => {
+    console.log('generateParticipantDetailsCSV received data:', data);
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error('Invalid or empty data for participant details:', data);
+      return 'No participant details available';
+    }
+
+    // Headers for participant details CSV
+    const headers = [
+      'Name', 'Team', 'Phone', 'Email', 'Department', 'Year', 'College'
+    ];
+
+    const csvRows = [headers.join(',')];
+
+    data.forEach(participant => {
+      const row = [
+        participant.name || '',
+        participant.team || '',
+        participant.phone || '',
+        participant.email || '',
+        participant.department || '',
+        participant.year || '',
+        participant.college || ''
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`); // Proper CSV escaping
+      
+      csvRows.push(row.join(','));
+    });
+
+    return csvRows.join('\n');
+  };
+
+  // Function to generate analytics from participant details API
+  const generateParticipantAnalyticsCSV = (data) => {
+    console.log('generateParticipantAnalyticsCSV received data:', data);
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      console.error('Invalid or empty data for participant analytics:', data);
+      return 'No data available for participant analytics';
+    }
+
+    // Calculate analytics from participant details
+    const analytics = {
+      departmentStats: {},
+      collegeStats: {},
+      yearStats: {},
+      teamStats: {},
+      total: data.length
+    };
+
+    data.forEach(participant => {
+      const dept = participant.department || 'Not Specified';
+      const college = participant.college || 'Not Specified';
+      const year = participant.year || 'Not Specified';
+      const team = participant.team || 'Individual';
+      
+      // Department stats
+      analytics.departmentStats[dept] = (analytics.departmentStats[dept] || 0) + 1;
+      
+      // College stats
+      analytics.collegeStats[college] = (analytics.collegeStats[college] || 0) + 1;
+      
+      // Year stats
+      analytics.yearStats[year] = (analytics.yearStats[year] || 0) + 1;
+      
+      // Team stats
+      analytics.teamStats[team] = (analytics.teamStats[team] || 0) + 1;
+    });
+
+    // Create participant analytics CSV
+    const analyticsRows = [
+      '=== PARTICIPANT DETAILS ANALYTICS SUMMARY ===',
+      '',
+      'OVERVIEW',
+      `Total Participants,${analytics.total}`,
+      `Export Date,${new Date().toLocaleString()}`,
+      `Data Source,Participant Details API`,
+      '',
+      'DEPARTMENT WISE BREAKDOWN',
+      'Department,Count,Percentage'
+    ];
+
+    Object.entries(analytics.departmentStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([dept, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${dept}",${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('COLLEGE WISE BREAKDOWN');
+    analyticsRows.push('College,Count,Percentage');
+
+    Object.entries(analytics.collegeStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([college, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${college}",${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('YEAR WISE BREAKDOWN');
+    analyticsRows.push('Year,Count,Percentage');
+
+    Object.entries(analytics.yearStats)
+      .sort(([,a], [,b]) => b - a)
+      .forEach(([year, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${year}",${count},${percentage}%`);
+      });
+
+    analyticsRows.push('');
+    analyticsRows.push('TEAM WISE BREAKDOWN');
+    analyticsRows.push('Team,Count,Percentage');
+
+    Object.entries(analytics.teamStats)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10) // Top 10 teams
+      .forEach(([team, count]) => {
+        const percentage = ((count / analytics.total) * 100).toFixed(1);
+        analyticsRows.push(`"${team}",${count},${percentage}%`);
+      });
+
+    return analyticsRows.join('\n');
+  };
+
+  // Enhanced download function
+  const downloadCSV = (csvContent, filename) => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Filter registrations based on current filters
@@ -799,11 +1217,18 @@ const HackathonAdmin = () => {
         event.preventDefault();
         loadDashboardData(true);
       }
-      // Ctrl/Cmd + E: Export CSV
+      // Ctrl/Cmd + E: Export detailed CSV
       if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
         event.preventDefault();
         if (!isExporting) {
-          handleExport('csv');
+          handleExport('csv', 'detailed');
+        }
+      }
+      // Ctrl/Cmd + Shift + E: Export analytics CSV
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'E') {
+        event.preventDefault();
+        if (!isExporting) {
+          handleExport('csv', 'analytics');
         }
       }
       // Ctrl/Cmd + Space: Toggle auto-refresh
@@ -861,7 +1286,7 @@ const HackathonAdmin = () => {
             <span className={`auto-refresh-indicator ${autoRefresh ? 'active' : ''}`}>
               {autoRefresh ? <><RefreshIcon fontSize="small" /> Auto-refresh ON</> : <><PauseIcon fontSize="small" /> Auto-refresh OFF</>}
             </span>
-            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export), Ctrl+Space (Toggle Auto-refresh) • Gallery Selection: Click and drag to select multiple rows">
+            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export Detailed), Ctrl+Shift+E (Export Analytics), Ctrl+Space (Toggle Auto-refresh) • Gallery Selection: Click and drag to select multiple rows">
               <KeyboardIcon fontSize="small" style={{marginRight: '4px'}} /> Shortcuts
             </div>
           </div>
@@ -1095,6 +1520,23 @@ const DashboardSection = ({ stats, registrations = [] }) => (
           })()}
         </div>
       </div>
+
+      <div className="chart-card">
+        <h3>📊 Export Data</h3>
+        <div className="chart-placeholder">
+          <p><DescriptionIcon fontSize="small" style={{marginRight: '4px', verticalAlign: 'middle'}} /> Available Export Options</p>
+          <div className="export-summary">
+            <p>• Detailed CSV with all fields ({registrations.length} records)</p>
+            <p>• Analytics summary with statistics</p>
+            <p>• Department-wise breakdown</p>
+            <p>• College-wise analysis</p>
+            <p>• Payment and status reports</p>
+          </div>
+          <small style={{color: '#94a3b8', fontSize: '11px'}}>
+            💡 Go to Registrations section for export options
+          </small>
+        </div>
+      </div>
     </div>
   </motion.div>
 );
@@ -1152,6 +1594,75 @@ const RegistrationsSection = ({
         </span>
       </h2>
       <div className="export-actions">
+        <div className="export-dropdown">
+          <button className="export-main-btn" disabled={isExporting}>
+            <DescriptionIcon fontSize="small" style={{marginRight: '4px'}} />
+            {isExporting ? 'Exporting...' : 'Export Data'}
+          </button>
+          <div className="export-dropdown-content">
+            <button 
+              onClick={() => handleExport('csv', 'detailed')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <DescriptionIcon fontSize="small" style={{marginRight: '4px'}} />
+              Detailed CSV ({filteredRegistrations.length} records)
+            </button>
+            <button 
+              onClick={() => handleExport('csv', 'analytics')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <AnalyticsIcon fontSize="small" style={{marginRight: '4px'}} />
+              Analytics Summary CSV
+            </button>
+            {selectedRegistrations.size > 0 && (
+              <button 
+                onClick={() => handleExport('csv', 'selected')}
+                className="export-option"
+                disabled={isExporting}
+              >
+                <CheckCircleIcon fontSize="small" style={{marginRight: '4px'}} />
+                Selected Only CSV ({selectedRegistrations.size} records)
+              </button>
+            )}
+            <hr />
+            <div className="export-section-title">📡 API Data Exports</div>
+            <button 
+              onClick={() => handleExport('csv', 'participant-details')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <PersonIcon fontSize="small" style={{marginRight: '4px'}} />
+              Participant Details CSV (from API)
+            </button>
+            <button 
+              onClick={() => handleExport('csv', 'participant-analytics')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <AnalyticsIcon fontSize="small" style={{marginRight: '4px'}} />
+              Participant Analytics CSV (from API)
+            </button>
+            <hr />
+            <button 
+              onClick={() => handleExport('xlsx')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <DescriptionIcon fontSize="small" style={{marginRight: '4px'}} />
+              Excel (XLSX)
+            </button>
+            <button 
+              onClick={() => handleExport('pdf')}
+              className="export-option"
+              disabled={isExporting}
+            >
+              <DescriptionIcon fontSize="small" style={{marginRight: '4px'}} />
+              PDF Report
+            </button>
+          </div>
+        </div>
         <button 
           onClick={() => setEmailModal({ 
             show: true, 

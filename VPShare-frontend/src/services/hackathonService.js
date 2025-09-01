@@ -1176,7 +1176,7 @@ const hackathonService = {
               status: 'confirmed',
               updated_at: new Date().toISOString()
             },
-            message: 'Hackathon payment verified and registration confirmed'
+            message: 'CodeKurukshetra payment verified and warrior registration confirmed'
           };
         } else {
           throw new Error('Failed to update registration status');
@@ -1307,6 +1307,33 @@ const hackathonService = {
       return {
         success: false,
         message: error.response?.data?.message || error.message || 'Failed to fetch stats',
+        error: error.response?.data
+      };
+    }
+  },
+
+  // New function to fetch participant details from the details API
+  async getParticipantDetails() {
+    try {
+      // Direct API call to the details endpoint
+      const response = await axios.get('https://krkdsz226l.execute-api.us-east-1.amazonaws.com/admin/details');
+      
+      if (response.data?.success) {
+        return {
+          success: true,
+          data: response.data.data || []
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Failed to fetch participant details'
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching participant details:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Failed to fetch participant details',
         error: error.response?.data
       };
     }
@@ -1612,7 +1639,7 @@ const hackathonService = {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+        link.download = `codekurukshetra_registrations_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1622,7 +1649,7 @@ const hackathonService = {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `hackathon_registrations_${new Date().toISOString().split('T')[0]}.pdf`;
+        link.download = `codekurukshetra_registrations_${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1786,25 +1813,25 @@ const hackathonService = {
         payment_amount: paymentDetails.payment_amount || 0,
         team_size: paymentDetails.team_size || 1,
         custom_message: `
-          🎉 Congratulations! Your registration for CognitiveX GenAI Hackathon is now confirmed.
+          ⚔️ Victory! Your warrior registration for CodeKurukshetra (कोड कुरुक्षेत्र) is confirmed!
           
           💳 Payment Confirmation:
           • Payment ID: ${paymentDetails.payment_id || 'N/A'}
           • Amount Paid: ₹${paymentDetails.payment_amount ? (paymentDetails.payment_amount / 100) : 'N/A'}
           • Status: ✅ Confirmed
           
-          📅 What's Next:
-          • Complete your IBM SkillsBuild courses
-          • Register for NASSCOM FutureSkills Prime
-          • Join our Discord community for updates
-          • Prepare your development environment
+          🏹 Warrior's Next Mission:
+          • Master essential technologies and frameworks
+          • Sharpen your coding weapons
+          • Join our CodeKurukshetra Discord battlefield
+          • Prepare your development arsenal
           
-          🔗 Important Links:
-          • IBM SkillsBuild: https://skillsbuild.org/
-          • NASSCOM FSP: https://futureskillsprime.in/
-          • Hackathon Website: https://codetapasya.com/
+          🏰 Battle Resources:
+          • Training Ground: https://skillsbuild.org/
+          • Advanced Skills: https://futureskillsprime.in/
+          • Battlefield HQ: https://codetapasya.com/
           
-          We're excited to see what you'll build! Good luck! 🚀
+          We're excited to see what you'll build! May your code be strong! ⚔️
         `
       };
 
@@ -1837,16 +1864,16 @@ const hackathonService = {
     try {
       const customData = {
         reminder_type: reminderType,
-        custom_message: customMessage || 'Don\'t forget about the upcoming CognitiveX GenAI Hackathon! Make sure you\'re prepared and ready to innovate.',
+        custom_message: customMessage || 'Warriors! The CodeKurukshetra battlefield awaits! Sharpen your coding weapons for the ultimate programming conquest.',
         hackathon_date: 'February 2025',
         preparation_checklist: `
-          ✅ Checklist for the Hackathon:
-          • Complete IBM SkillsBuild courses
-          • Register for NASSCOM FutureSkills Prime
-          • Set up your development environment
-          • Review the problem statements
-          • Prepare your team collaboration tools
-          • Join our Discord community for live updates
+          ⚔️ Warrior's Battle Preparation Checklist:
+          • Master essential development technologies
+          • Forge advanced programming skills
+          • Set up your coding arsenal and tools
+          • Study the battlefield (problem statements)
+          • Prepare your team's battle formation
+          • Join our CodeKurukshetra Discord war room for live updates
         `
       };
 
@@ -1877,7 +1904,7 @@ const hackathonService = {
       const customData = {
         announcement_subject: subject,
         custom_message: message,
-        sent_by: 'CognitiveX Team',
+        sent_by: 'CodeKurukshetra Team',
         sent_at: new Date().toLocaleString('en-IN', { 
           timeZone: 'Asia/Kolkata',
           dateStyle: 'full',
@@ -1915,20 +1942,20 @@ const hackathonService = {
         case 'pending':
           // Send reminder to complete payment if status is pending
           await this.sendReminderEmail(registrationId, 'payment', 
-            'Your registration is pending payment. Please complete the payment to confirm your participation in CognitiveX GenAI Hackathon.');
+            'Your registration is pending payment. Please complete the payment to confirm your participation in CodeKurukshetra.');
           emailSent = true;
           break;
           
         case 'waitlisted':
           await this.sendEmail([registrationId], 'announcement', {
-            custom_message: `Your registration for CognitiveX GenAI Hackathon has been waitlisted. We'll notify you if a spot becomes available. Thank you for your interest!`
+            custom_message: `Your registration for CodeKurukshetra has been waitlisted. We'll notify you if a spot becomes available. Thank you for your interest!`
           });
           emailSent = true;
           break;
           
         case 'rejected':
           await this.sendEmail([registrationId], 'announcement', {
-            custom_message: `We regret to inform you that your registration for CognitiveX GenAI Hackathon was not successful this time. We encourage you to participate in future events. Thank you for your interest!`
+            custom_message: `We regret to inform you that your registration for CodeKurukshetra was not successful this time. We encourage you to participate in future events. Thank you for your interest!`
           });
           emailSent = true;
           break;
@@ -1971,27 +1998,27 @@ const hackathonService = {
       }
       
       const defaultMessage = `
-        🚀 The CognitiveX GenAI Hackathon is approaching fast!
+        ⚔️ The CodeKurukshetra battlefield approaches! Warriors, prepare for battle!
         
-        📅 Event Details:
+        🏰 Battle Details:
         • Date: February 2025
-        • Duration: 48 hours
-        • Format: Hybrid (Virtual + On-site)
+        • Duration: 48 hours of intense coding warfare
+        • Format: Hybrid Battlefield (Virtual + On-site)
         
-        ✅ Final Preparation Checklist:
-        • ✅ Complete your IBM SkillsBuild courses
-        • ✅ Register for NASSCOM FutureSkills Prime
-        • ✅ Set up your development environment
-        • ✅ Review the problem statements
-        • ✅ Prepare your team collaboration tools
-        • ✅ Join our Discord community
+        ⚔️ Final Warrior Preparation Checklist:
+        • ✅ Master essential programming technologies
+        • ✅ Strengthen your coding skills arsenal
+        • ✅ Set up your development battle station
+        • ✅ Study the battlefield (problem statements)
+        • ✅ Prepare your team's battle formation
+        • ✅ Join our CodeKurukshetra Discord war room
         
-        📱 Stay Connected:
-        • Discord: [Link will be shared soon]
-        • Email: support@codetapasya.com
-        • Website: codetapasya.com
+        🏹 Battle Communications:
+        • Discord War Room: [Link will be shared soon]
+        • Command Center: support@codetapasya.com
+        • Battlefield HQ: codetapasya.com
         
-        We can't wait to see what innovative solutions you'll create! 🎯
+        May your code be strong and your algorithms swift! The victory awaits! ⚔️ �
       `;
       
       const emailResult = await this.sendBulkEmails(
@@ -2056,10 +2083,10 @@ const hackathonService = {
           });
           
         case 'reminder':
-          return await this.sendReminderEmail(registrationId, 'test', 'This is a test reminder email from the CognitiveX system.');
+          return await this.sendReminderEmail(registrationId, 'test', 'This is a test reminder email from the CodeKurukshetra system.');
           
         case 'announcement':
-          return await this.sendAnnouncementEmail([registrationId], 'Test Announcement', 'This is a test announcement email from the CognitiveX system.');
+          return await this.sendAnnouncementEmail([registrationId], 'Test Announcement', 'This is a test announcement email from the CodeKurukshetra system.');
           
         case 'test':
           // Direct test email call
@@ -2072,7 +2099,7 @@ const hackathonService = {
             recipients: [registrationId],
             email_type: 'test',
             custom_data: {
-              test_message: 'This is a test email from the CognitiveX Hackathon Admin Panel',
+              test_message: 'This is a test email from the CodeKurukshetra Hackathon Admin Panel',
               sent_at: new Date().toISOString()
             }
           }, {
@@ -2152,8 +2179,8 @@ export const initiateRazorpayPayment = async (paymentData, onSuccess, onFailure)
       key: paymentData.key_id,
       amount: paymentData.amount,
       currency: paymentData.currency,
-      name: 'CognitiveX GenAI Hackathon',
-      description: `Hackathon Registration - ${paymentData.registration_details?.team_size === 1 ? 'Individual' : 'Team'}`,
+      name: 'CodeKurukshetra - कोड कुरुक्षेत्र',
+      description: `CodeKurukshetra Registration - ${paymentData.registration_details?.team_size === 1 ? 'Individual Warrior' : 'Team Alliance'}`,
       order_id: paymentData.order_id,
       prefill: {
         name: paymentData.prefill?.name || '',
@@ -2203,7 +2230,7 @@ export const initiateRazorpayPayment = async (paymentData, onSuccess, onFailure)
                   payment_id: response.razorpay_payment_id,
                   payment_amount: paymentData.amount,
                   team_size: paymentData.registration_details?.team_size || 1,
-                  custom_message: `Welcome to CognitiveX! Your payment of ₹${paymentData.amount / 100} has been confirmed.`
+                  custom_message: `Welcome to CodeKurukshetra! Your payment of ₹${paymentData.amount / 100} has been confirmed.`
                 }
               );
               
@@ -2329,8 +2356,8 @@ export const validateRegistrationData = (data) => {
 
   // Team info validation
   if (!data.team_info?.team_name?.trim()) errors.teamName = 'Team name is required';
-  if (!data.team_info?.team_size || data.team_info.team_size < 1 || data.team_info.team_size > 4) {
-    errors.teamSize = 'Team size must be between 1 or 3 members';
+  if (!data.team_info?.team_size || (data.team_info.team_size !== 1 && data.team_info.team_size !== 3)) {
+    errors.teamSize = 'Team size must be either 1 (Individual Warrior) or 3 (Team Alliance)';
   }
 
   // Team members validation

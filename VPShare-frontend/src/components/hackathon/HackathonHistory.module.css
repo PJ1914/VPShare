@@ -1,0 +1,391 @@
+/* Hackathon History Styles */
+.hackathon-history-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  color: #ffffff;
+  padding: 4rem 0;
+}
+
+.history-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.history-header h2 {
+  font-size: 3rem;
+  color: #FF8C00;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #FF8C00, #FFD700);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.history-header p {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Event Selector */
+.event-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3rem;
+  gap: 1rem;
+}
+
+.event-btn {
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.event-btn:hover {
+  background: rgba(255, 140, 0, 0.1);
+  border-color: #FF8C00;
+}
+
+.event-btn.active {
+  background: rgba(255, 140, 0, 0.2);
+  border-color: #FF8C00;
+  color: #FF8C00;
+}
+
+/* Event Details */
+.event-details {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.event-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.event-title h3 {
+  font-size: 3rem;
+  color: #FF8C00;
+  margin-bottom: 0.5rem;
+}
+
+.event-subtitle {
+  display: block;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.event-year {
+  background: rgba(255, 140, 0, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #FF8C00;
+}
+
+.participant-count {
+  text-align: center;
+}
+
+.participant-count .count {
+  display: block;
+  font-size: 3rem;
+  font-weight: 900;
+  color: #FFD700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.participant-count .label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Event Description */
+.event-description {
+  margin-bottom: 3rem;
+}
+
+.event-description p {
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Event Statistics */
+.event-stats {
+  margin-bottom: 3rem;
+}
+
+.event-stats h4 {
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem 1rem;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 140, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-color: #FF8C00;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #FFD700;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Event Highlights */
+.event-highlights {
+  margin-bottom: 3rem;
+}
+
+.event-highlights h4 {
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.highlight-icon {
+  font-size: 1.5rem;
+  color: #FFD700;
+}
+
+.highlight-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Technologies */
+.technologies-used {
+  margin-bottom: 3rem;
+}
+
+.technologies-used h4 {
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tech-tag {
+  background: rgba(255, 140, 0, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  color: #FF8C00;
+  font-weight: 600;
+  border: 1px solid #FF8C00;
+  transition: all 0.3s ease;
+}
+
+.tech-tag:hover {
+  background: rgba(255, 140, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Winners Section */
+.winners-section {
+  margin-bottom: 3rem;
+}
+
+.winners-section h4 {
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.winners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.winner-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.winner-card:hover {
+  transform: translateY(-5px);
+  border-color: #FFD700;
+}
+
+.winner-position {
+  background: rgba(255, 215, 0, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: #FFD700;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.winner-card h5 {
+  color: #FF8C00;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.winner-card p {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+}
+
+.winner-prize {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Testimonials */
+.testimonials {
+  margin-bottom: 2rem;
+}
+
+.testimonials h4 {
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border-left: 4px solid #FF8C00;
+  position: relative;
+}
+
+.testimonial-card::before {
+  content: '"';
+  font-size: 4rem;
+  color: #FF8C00;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  opacity: 0.3;
+}
+
+.testimonial-card p {
+  font-style: italic;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  z-index: 1;
+}
+
+.testimonial-author {
+  color: #FF8C00;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .history-header h2 {
+    font-size: 2rem;
+  }
+  
+  .event-hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .event-title h3 {
+    font-size: 2rem;
+  }
+  
+  .participant-count .count {
+    font-size: 2rem;
+  }
+  
+  .stats-grid,
+  .highlights-grid,
+  .winners-grid,
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .event-selector {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .event-details {
+    padding: 2rem;
+  }
+  
+  .tech-tags {
+    justify-content: center;
+  }
+}

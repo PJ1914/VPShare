@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NotificationContext = createContext();
+export { NotificationContext };
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
@@ -158,21 +159,6 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   }, []);
 
-  const showHackathonNotification = useCallback(() => {
-    showNotification({
-      type: 'hackathon',
-      title: '🚀 TKR College Hackathon Live!',
-      message: 'Join CognitiveX - GenAI Hackathon powered by SmartBridge & IBM. Register now!',
-      duration: 8000,
-      action: {
-        label: 'Register Now',
-        onClick: () => {
-          window.location.href = '/hackathon';
-        }
-      }
-    });
-  }, [showNotification]);
-
   const showLoginPrompt = useCallback((context = 'general') => {
     // Don't show login prompts if user is already logged in
     // This will be checked by the component using this function
@@ -185,6 +171,21 @@ export const NotificationProvider = ({ children }) => {
         label: 'Login',
         onClick: () => {
           window.location.href = '/login';
+        }
+      }
+    });
+  }, [showNotification]);
+
+  const showHackathonNotification = useCallback(() => {
+    showNotification({
+      type: 'hackathon',
+      title: 'CodeKurukshetra 2025',
+      message: 'Join the ultimate 48-hour coding battlefield! Register now for exciting prizes and challenges.',
+      duration: 8000,
+      action: {
+        label: 'Register Now',
+        onClick: () => {
+          window.location.href = '/hackathon';
         }
       }
     });

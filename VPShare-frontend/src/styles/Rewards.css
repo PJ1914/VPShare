@@ -1,0 +1,77 @@
+.rewards-section {
+  padding: 4rem 0;
+}
+
+.rewards-title {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 3rem;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.rewards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.reward-card {
+  background: #1A1A2E;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.reward-card:hover {
+  transform: translateY(-5px);
+}
+
+.reward-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.reward-rank {
+  font-family: 'Sanskrit Text', 'Inter', sans-serif;
+  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.reward-title {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.reward-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 1rem 0;
+}
+
+.reward-description {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .rewards-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .reward-card {
+    padding: 1.5rem;
+  }
+}

@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }) => {
     const prompts = {
       hackathon: {
         title: '🚀 Join the Hackathon!',
-        message: 'Sign in to register for CognitiveX GenAI Hackathon and compete for amazing prizes!',
+        message: 'Sign in to register for CodeKurukshetra Hackathon and compete for amazing prizes!',
         action: { label: 'Sign In to Register', onClick: () => window.location.href = '/login' }
       },
       courses: {

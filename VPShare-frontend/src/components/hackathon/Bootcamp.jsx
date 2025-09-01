@@ -7,94 +7,98 @@ const Bootcamp = () => {
   const bootcampContent = [
     {
       day: 1,
-      title: 'Getting Started with IBM Granite & Prompt-Driven Generation',
+      title: 'Kurukshetra Chronicles: Introduction to AI Warfare',
       topics: [
-        'Introduction to IBM Granite & GenAI Fundamentals',
-        'Environment Setup',
-        'Basic Prompt-Driven Generation (Demo)'
+        'The Epic of AI: Understanding Modern Artificial Intelligence',
+        'Setting up Your Digital Arsenal (Environment & Tools)',
+        'First Battle: Basic AI Model Integration',
+        'Warriors Assembly: Team Formation Strategies'
       ],
-      icon: '🚀',
-      color: '#4CAF50'
+      icon: '⚔️',
+      color: '#D2691E'
     },
     {
       day: 2,
-      title: 'Frontend for GenAI – Streamlit UI',
+      title: 'Dharma of Code: Building Ethical AI Solutions',
       topics: [
-        'Intro to Streamlit',
-        'Building a Simple LLM Chat Interface',
-        'Deploying a Basic App'
+        'Principles of Responsible AI Development',
+        'Frontend Battlefield: React & Modern UI Frameworks',
+        'Creating Intuitive AI Interfaces',
+        'User Experience in AI Applications'
       ],
-      icon: '🎨',
-      color: '#2196F3'
+      icon: '�️',
+      color: '#8B4513'
     },
     {
       day: 3,
-      title: 'Wrapping Models with UI Variants + Shareable Demos',
+      title: 'Weapons of Mass Innovation: Advanced AI Techniques',
       topics: [
-        'Gradio for GenAI Interfaces',
-        'Comparing Streamlit vs Gradio UX',
-        'Packaging as Web Demos'
+        'Machine Learning Models & Deep Learning',
+        'Natural Language Processing Mastery',
+        'Computer Vision & Image Processing',
+        'Integration Strategies for Multi-modal AI'
       ],
-      icon: '🔧',
-      color: '#FF9800'
+      icon: '�️',
+      color: '#B8860B'
     },
     {
       day: 4,
-      title: 'RAG, Vector DBs & Advanced GenAI Patterns',
+      title: 'Strategizing Victory: AI Architecture & Deployment',
       topics: [
-        'Introduction to RAG (Retrieval-Augmented Generation)',
-        'Embedding & Vector DB Integration',
-        'Multimodal & Agentic Patterns (Advanced)'
+        'Scalable AI System Architecture',
+        'Cloud Integration & Deployment Strategies',
+        'Performance Optimization Techniques',
+        'Real-world Problem Analysis'
       ],
-      icon: '🧠',
-      color: '#9C27B0'
+      icon: '🏹',
+      color: '#CD853F'
     },
     {
       day: 5,
-      title: '2-Day Hackathon Challenge',
+      title: 'The Great War: 48-Hour CodeKurukshetra Battle',
       topics: [
-        'Team Formation & Problem Statement Selection',
-        'Solution Design & Architecture Planning',
-        'Development Sprint with Mentorship',
-        'Testing & Performance Optimization',
-        'Final Presentation & Demo',
-        'Judging & Awards Ceremony'
+        'Battle Begins: Problem Statement Revelation',
+        'Forming Your Warrior Alliance (Team Strategy)',
+        'Day 1: Architecture Planning & Initial Development',
+        'Night Guard: Continuous Development & Testing',
+        'Day 2: Final Sprint & Solution Refinement',
+        'Victory Presentation: Demo to the Council of Judges'
       ],
-      icon: '🏆',
-      color: '#E91E63'
+      icon: '👑',
+      color: '#A0522D'
     }
   ];
 
   const hackathonPhases = [
     {
       phase: 'Phase 1',
-      title: 'Team Formation & Ideation',
-      description: 'Form teams and brainstorm innovative solutions for selected problem statements.'
+      title: 'The Call to Arms: Registration & Team Assembly',
+      description: 'Warriors register for battle and form strategic alliances with fellow innovators.'
     },
     {
-      phase: 'Phase 2',
-      title: 'Solution Architecture',
-      description: 'Design the technical architecture and create development roadmap.'
+      phase: 'Phase 2', 
+      title: 'War Council: Strategy & Architecture Planning',
+      description: 'Teams analyze the battlefield, plan their approach, and design their solution architecture.'
     },
     {
       phase: 'Phase 3',
-      title: 'Development Sprint',
-      description: 'Build your AI solution with continuous mentorship and guidance.'
+      title: 'First Day of Battle: Development Sprint',
+      description: 'The coding war begins! Teams start building their innovative solutions with mentor guidance.'
     },
     {
       phase: 'Phase 4',
-      title: 'Integration & Testing',
-      description: 'Integrate components and perform comprehensive testing.'
+      title: 'Night Watch: Continuous Development',
+      description: 'The battle continues through the night with testing, integration, and refinement.'
     },
     {
       phase: 'Phase 5',
-      title: 'Final Presentation',
-      description: 'Present your solution to judges and demonstrate functionality.'
+      title: 'Final Assault: Solution Completion',
+      description: 'Last sprint to complete, test, and polish the final solution for presentation.'
     },
     {
       phase: 'Phase 6',
-      title: 'Evaluation & Awards',
-      description: 'Final judging and awards ceremony for winning solutions.'
+      title: 'Victory Ceremony: Presentation & Judgment',
+      description: 'Teams present their solutions to the council of judges for final evaluation and awards.'
     }
   ];
 
@@ -106,8 +110,8 @@ const Bootcamp = () => {
     >
       <div className="container">
         <div className="bootcamp-header">
-          <h2>4-Day Comprehensive Bootcamp + Hackathon</h2>
-          <p>Master Generative AI concepts with hands-on experience using IBM tools, culminating in a 2-day hackathon challenge</p>
+          <h2>CodeKurukshetra: The Ultimate AI Battle</h2>
+          <p>Inspired by the epic Mahabharata, embark on a 4-day journey of learning and a 48-hour hackathon battle to create revolutionary AI solutions</p>
         </div>
 
         <div className="bootcamp-nav">

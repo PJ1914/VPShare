@@ -1,0 +1,509 @@
+/* CodeKurukshetra Hackathon Styles */
+.codekurukshetra-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  padding: 2rem 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Hero Section */
+.hackathon-hero {
+  text-align: center;
+  padding: 4rem 0;
+  background: linear-gradient(45deg, #7B241C, #FF8C00);
+  background-clip: text;
+  -webkit-background-clip: text;
+  margin-bottom: 4rem;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #7B241C, #FF8C00);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: #FF8C00;
+  font-weight: 600;
+}
+
+.hero-details {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.detail-item {
+  background: rgba(255, 140, 0, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  border: 1px solid #FF8C00;
+  font-weight: 600;
+}
+
+.detail-separator {
+  color: #FF8C00;
+  font-size: 1.2rem;
+}
+
+/* About Section */
+.about-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3rem;
+  border-radius: 15px;
+  margin-bottom: 4rem;
+  backdrop-filter: blur(10px);
+}
+
+.about-section h2 {
+  color: #FF8C00;
+  margin-bottom: 1.5rem;
+  font-size: 2.5rem;
+}
+
+.about-section p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.legacy-mention {
+  background: rgba(123, 36, 28, 0.1);
+  padding: 2rem;
+  border-radius: 10px;
+  border-left: 4px solid #7B241C;
+  margin-top: 2rem;
+}
+
+.legacy-mention h3 {
+  color: #7B241C;
+  margin-bottom: 1rem;
+}
+
+/* Timeline Navigation */
+.timeline-nav {
+  margin-bottom: 3rem;
+}
+
+.timeline-nav h2 {
+  text-align: center;
+  color: #FF8C00;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+}
+
+.phase-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.phase-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.phase-btn:hover {
+  background: rgba(255, 140, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.phase-btn.active {
+  background: rgba(255, 140, 0, 0.2);
+  border-color: #FF8C00;
+}
+
+.phase-icon {
+  font-size: 2rem;
+}
+
+.phase-text {
+  font-weight: 600;
+}
+
+/* Timeline Content */
+.timeline-content {
+  margin-bottom: 4rem;
+}
+
+.day-content {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.day-icon-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: white;
+}
+
+.day-info h3 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.day-time {
+  color: #FF8C00;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.day-duration {
+  background: rgba(255, 140, 0, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  color: #FF8C00;
+}
+
+.day-activities h5 {
+  color: #FF8C00;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.day-activities ul {
+  list-style: none;
+  padding: 0;
+}
+
+.day-activities li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-left: 2rem;
+  position: relative;
+}
+
+.day-activities li:before {
+  content: "⚡";
+  position: absolute;
+  left: 0;
+  color: #FF8C00;
+}
+
+/* Battle Phases */
+.battle-phases {
+  margin-bottom: 4rem;
+}
+
+.battle-phases h2 {
+  text-align: center;
+  color: #FF8C00;
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+}
+
+.phases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.phase-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 140, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.phase-card:hover {
+  transform: translateY(-5px);
+  border-color: #FF8C00;
+}
+
+.phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.phase-header h4 {
+  color: #7B241C;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.phase-time {
+  background: rgba(255, 140, 0, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: #FF8C00;
+}
+
+/* Tracks */
+.tracks-section {
+  margin-bottom: 4rem;
+}
+
+.tracks-section h2 {
+  text-align: center;
+  color: #FF8C00;
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+}
+
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.track-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.track-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.track-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 1rem;
+  color: white;
+}
+
+.track-card h4 {
+  margin-bottom: 1rem;
+  color: #FF8C00;
+}
+
+/* Prizes */
+.prizes-section {
+  margin-bottom: 4rem;
+}
+
+.prizes-section h2 {
+  text-align: center;
+  color: #FF8C00;
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+}
+
+.prizes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+}
+
+.prize-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease;
+}
+
+.prize-card:hover {
+  transform: translateY(-5px);
+}
+
+.prize-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.prize-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FF8C00;
+}
+
+/* Requirements */
+.requirements-section {
+  margin-bottom: 4rem;
+}
+
+.requirements-section h2 {
+  text-align: center;
+  color: #FF8C00;
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+}
+
+.requirements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.req-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+/* Registration CTA */
+.registration-cta {
+  text-align: center;
+  background: linear-gradient(135deg, #7B241C, #FF8C00);
+  padding: 4rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+}
+
+.registration-cta h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.registration-cta p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.cta-btn {
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cta-btn.primary {
+  background: white;
+  color: #7B241C;
+}
+
+.cta-btn.primary:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.cta-btn.secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.cta-btn.secondary:hover {
+  background: white;
+  color: #7B241C;
+}
+
+.registration-note {
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+  
+  .day-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .day-icon-large {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+  
+  .phases-grid,
+  .tracks-grid,
+  .prizes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .about-section,
+  .day-content {
+    padding: 2rem;
+  }
+  
+  .requirements-grid {
+    grid-template-columns: 1fr;
+  }
+}

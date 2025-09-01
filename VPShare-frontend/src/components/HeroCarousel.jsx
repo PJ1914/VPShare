@@ -15,12 +15,12 @@ const slides = [
     features: ['Expert Instructors', 'Real Projects', 'Career Support']
   },
   {
-    title: 'TKR College Hackathon - CognitiveX',
-    subtitle: 'Powered by SmartBridge & IBM',
-    description: '4-Day Bootcamp + 2-Day- Challenge • GenAI Development • Industry Mentorship',
-    cta: 'Register Now',
+    title: 'CodeKurukshetra 2024',
+    subtitle: 'The Ultimate 48-Hour Coding Battle',
+    description: 'Mahabharata-Inspired Hackathon • AI/Web/Mobile/IoT Tracks • ₹1.75L Prize Pool',
+    cta: 'Join Battle',
     type: 'hackathon',
-    features: ['₹30,000 Prize Pool', 'IBM Certification', 'Industry Exposure']
+    features: ['₹1,00,000 Grand Prize', 'Battle Tracks', 'Epic Code Warriors']
   },
   {
     title: 'Full-Stack Development',
