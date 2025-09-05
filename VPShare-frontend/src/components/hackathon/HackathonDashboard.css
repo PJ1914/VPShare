@@ -110,7 +110,6 @@
   padding: 0 2rem;
   display: flex;
   gap: 1rem;
-  overflow-x: auto;
 }
 
 .nav-tab {
@@ -897,7 +896,6 @@
 
 /* Success/Error States */
 .success-message {
-  background: rgba(76, 175, 80, 0.1);
   border: 1px solid rgba(76, 175, 80, 0.3);
   border-radius: 8px;
   padding: 1rem;

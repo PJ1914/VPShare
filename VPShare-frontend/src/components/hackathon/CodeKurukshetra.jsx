@@ -9,7 +9,7 @@ const CodeKurukshetra = () => {
     {
       phase: 1,
       title: 'Day 1: The Battle Begins',
-      time: 'September 2025 - 10:00 AM',
+      time: 'September 27, 2025 - 10:00 AM',
       duration: '24 Hours',
       activities: [
         'Opening Ceremony & Problem Statement Revelation',
@@ -44,7 +44,7 @@ const CodeKurukshetra = () => {
     {
       phase: 'Registration',
       title: 'Assembling Your Army',
-      description: 'Form teams of 2-4 warriors. Only team entries allowed - ₹999 per team.',
+      description: 'Form teams of 1-4 warriors. Registration fee ₹250 per person.',
       timeframe: 'Before Event'
     },
     {
@@ -171,11 +171,11 @@ const CodeKurukshetra = () => {
           >
             <span className="detail-item">48 Hours</span>
             <span className="detail-separator">•</span>
-            <span className="detail-item">September 2025</span>
+            <span className="detail-item">September 27-28, 2025</span>
             <span className="detail-separator">•</span>
             <span className="detail-item">Teams Only</span>
             <span className="detail-separator">•</span>
-            <span className="detail-item">₹999/team</span>
+            <span className="detail-item">₹250/person</span>
           </motion.div>
         </div>
 
@@ -351,7 +351,7 @@ const CodeKurukshetra = () => {
             </div>
             <div className="requirement">
               <span className="req-icon">💰</span>
-              <span>Registration fee: ₹999 per team</span>
+              <span>Registration fee: ₹250 per person</span>
             </div>
             <div className="requirement">
               <span className="req-icon">🏫</span>
@@ -366,7 +366,7 @@ const CodeKurukshetra = () => {
           <p>Assemble your team and register for CodeKurukshetra</p>
           <div className="cta-buttons">
             <button className="cta-btn primary">
-              Register Team - ₹999
+              Register Team - ₹250/person
             </button>
             <button className="cta-btn secondary">
               View Rules & Guidelines

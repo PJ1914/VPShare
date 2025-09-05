@@ -26,11 +26,15 @@ const isDevelopment = config.isDevelopment;// Team pricing configuration with La
 const getTeamPrice = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 199; // ₹199 for individual
+      return 250; // ₹250 for individual
+    case 2:
+      return 500; // ₹500 for team of 2 (250 × 2)
     case 3:
-      return 549; // ₹549 for team of 3
+      return 750; // ₹750 for team of 3 (250 × 3)
+    case 4:
+      return 1000; // ₹1000 for team of 4 (250 × 4)
     default:
-      return 199; // Default to individual pricing
+      return 250; // Default to individual pricing
   }
 };
 
@@ -38,17 +42,25 @@ const getTeamPrice = (teamSize) => {
 const getTeamPriceInPaise = (teamSize) => {
   switch (teamSize) {
     case 1:
-      return 19900; // ₹199 = 19900 paise (Individual)
+      return 25000; // ₹250 = 25000 paise (Individual)
+    case 2:
+      return 50000; // ₹500 = 50000 paise (Team of 2)
     case 3:
-      return 54900; // ₹549 = 54900 paise (Team of 3)
+      return 75000; // ₹750 = 75000 paise (Team of 3)
+    case 4:
+      return 100000; // ₹1000 = 100000 paise (Team of 4)
     default:
-      return 19900; // Default to individual pricing
+      return 25000; // Default to individual pricing
   }
 };
 
-// Map team sizes to what the Lambda expects (only supports 1 and 3)
+// Map team sizes to what the Lambda expects (supports 1, 2, 3, and 4)
 const getBackendTeamSize = (frontendTeamSize) => {
-  return frontendTeamSize === 1 ? 1 : 3; // Only 1 (individual) and 3 (team) are supported
+  // Support all team sizes from 1 to 4
+  if (frontendTeamSize >= 1 && frontendTeamSize <= 4) {
+    return frontendTeamSize;
+  }
+  return 1; // Default to individual if invalid size
 };
 
 // Map hackathon plans to existing payment plans that Lambda recognizes
@@ -56,11 +68,15 @@ const getHackathonPlanMapping = (teamSize) => {
   // Use exact amounts that Lambda expects (in paise)
   switch (teamSize) {
     case 1:
-      return { plan: 'one-member', amount: 19900 }; // ₹199 = 19900 paise
+      return { plan: 'one-member', amount: 25000 }; // ₹250 = 25000 paise
+    case 2:
+      return { plan: 'two-member', amount: 50000 }; // ₹500 = 50000 paise
     case 3:
-      return { plan: 'team-member', amount: 54900 }; // ₹549 = 54900 paise
+      return { plan: 'team-member', amount: 75000 }; // ₹750 = 75000 paise
+    case 4:
+      return { plan: 'four-member', amount: 100000 }; // ₹1000 = 100000 paise
     default:
-      return { plan: 'one-member', amount: 19900 }; // Default to individual
+      return { plan: 'one-member', amount: 25000 }; // Default to individual
   }
 };
 
@@ -2078,7 +2094,7 @@ const hackathonService = {
         case 'confirmation':
           return await this.sendConfirmationEmail(registrationId, {
             payment_id: 'test_payment_123',
-            payment_amount: 19900, // ₹199 in paise
+            payment_amount: 25000, // ₹250 in paise
             team_size: 1
           });
           

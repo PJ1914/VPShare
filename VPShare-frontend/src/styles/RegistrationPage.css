@@ -156,7 +156,6 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
   font-size: 1rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
@@ -179,21 +178,6 @@
 .form-group input.error {
   border-color: #FF4444;
   box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
-}
-
-.error-message {
-  color: #FF6B6B;
-  font-size: 0.9rem;
-  margin-top: 0.3rem;
-  display: block;
-}
-
-.success-message {
-  color: #4ADE80;
-  font-size: 0.9rem;
-  margin-top: 0.3rem;
-  display: block;
-  font-weight: 500;
 }
 
 .form-row {
@@ -569,4 +553,276 @@
   .track-option .track-icon {
     font-size: 2rem;
   }
+}
+
+/* Email Suggestion Styles */
+.email-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 235, 59, 0.1));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.suggestion-text {
+  color: #FFC107;
+  font-weight: 500;
+}
+
+.suggestion-button {
+  background: linear-gradient(135deg, #FFC107, #FFD54F);
+  color: #1a1a1a;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.suggestion-button:hover {
+  background: linear-gradient(135deg, #FFB300, #FFC107);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.suggestion-hint {
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Enhanced Error Messages */
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: block;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid #ff6b6b;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Enhanced Success Messages */
+.success-message {
+  color: #4CAF50;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive Email Suggestions */
+@media (max-width: 768px) {
+  .email-suggestion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  
+  .suggestion-button {
+    align-self: flex-start;
+  }
+}
+
+/* Team Size and Enhanced Layout Styles */
+.team-basic-info {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-size-info {
+  margin-top: 0.5rem;
+}
+
+.team-size-info small {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.team-lead-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.team-lead-section h4 {
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.single-member-notice {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.info-box {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.info-box h4 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.info-box p {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.team-members-section {
+  margin-bottom: 2rem;
+}
+
+.members-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.members-header h4 {
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.members-header p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.team-member-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.team-member-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.team-member-card h5 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-cost-summary {
+  background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 100, 200, 0.05));
+  border: 2px solid rgba(0, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.cost-breakdown p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cost-breakdown strong {
+  color: #ffffff;
+}
+
+.cost-breakdown small {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Enhanced select styling for team size */
+.form-group select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  height: 44px;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.form-group select option {
+  background: #2a2a2a;
+  color: #ffffff;
+  padding: 0.5rem;
+}
+
+/* Problem selection styling enhancements */
+.problem-selection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.problem-selection h4 {
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.3rem;
 }

@@ -19,7 +19,6 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Logo from '../assets/CT Logo.png';
 import LoginImg from '../assets/Login-Img.png';
-import HackathonLogo from '../assets/Hackathon Logo.png';
 import '../styles/Login.css';
 
 // Professional animation variants
@@ -469,7 +468,7 @@ function Login() {
               {/* Brand Section */}
               <motion.div className="brand-section" variants={itemVariants}>
                 <img 
-                  src={isHackathonContext ? HackathonLogo : Logo} 
+                  src={Logo} 
                   alt={isHackathonContext ? "CognitiveX Hackathon" : "CodeTapasya"} 
                   className="brand-logo" 
                   style={{ 
