@@ -18,6 +18,13 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
+// Import hackathon images
+import tkrHack1 from '../assets/tkr-hack-1.jpeg';
+import tkrHack2 from '../assets/tkr-hack-2.jpeg';
+import tkrHack3 from '../assets/tkr-hack-3.jpeg';
+import tkrHack4 from '../assets/tkr-hack-4.jpeg';
+import tkrHackWinners from '../assets/tkr-hack-winners.jpeg';
+
 // Animation variants for sections
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -461,25 +468,25 @@ function Home() {
               <div className="hackathon-gallery hackathon-gallery-grid">
                 <div className="hackathon-gallery-small-grid">
                   <img 
-                    src="/src/assets/tkr-hack-1.jpeg" 
+                    src={tkrHack1} 
                     alt="TKR Hackathon - Opening Ceremony"
                     className="hackathon-gallery-image"
                     loading="lazy"
                   />
                   <img 
-                    src="/src/assets/tkr-hack-2.jpeg" 
+                    src={tkrHack2} 
                     alt="TKR Hackathon - Participants Working"
                     className="hackathon-gallery-image"
                     loading="lazy"
                   />
                   <img 
-                    src="/src/assets/tkr-hack-3.jpeg" 
+                    src={tkrHack3} 
                     alt="TKR Hackathon - Team Collaboration"
                     className="hackathon-gallery-image"
                     loading="lazy"
                   />
                   <img 
-                    src="/src/assets/tkr-hack-4.jpeg" 
+                    src={tkrHack4} 
                     alt="TKR Hackathon - Project Presentations"
                     className="hackathon-gallery-image"
                     loading="lazy"
@@ -487,7 +494,7 @@ function Home() {
                 </div>
                 <div>
                   <img 
-                    src="/src/assets/tkr-hack-winners.jpeg" 
+                    src={tkrHackWinners} 
                     alt="TKR Hackathon - Winners Celebration"
                     className="hackathon-gallery-main-image"
                     loading="lazy"
