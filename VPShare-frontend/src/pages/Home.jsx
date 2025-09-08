@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import '../styles/ModernGlobal.css';
+import '../styles/HackathonGallery.css';
 import SubscriptionBanner from '../components/SubscriptionBanner';
 import HeroCarousel from '../components/HeroCarousel';
 import SEO from '../components/SEO';
@@ -421,7 +422,7 @@ function Home() {
             </div>
           </motion.section>
 
-          {/* Hackathon Information Section */}
+          {/* Successfully Completed Hackathon Section */}
           <motion.section
             className="modern-section"
             initial="hidden"
@@ -429,14 +430,13 @@ function Home() {
             viewport={{ once: true, amount: 0.3 }}
             variants={sectionVariants}
           >
-            <div className="modern-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))' }}>
+            <div className="modern-card" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1))' }}>
               <div className="modern-flex-between" style={{ marginBottom: '2rem' }}>
                 <div>
                   <motion.div
-                    className="modern-badge modern-badge-primary"
+                    className="modern-badge modern-badge-success"
                     animate={{ 
                       scale: [1, 1.05, 1],
-                      rotate: [0, 2, -2, 0]
                     }}
                     transition={{ 
                       duration: 2,
@@ -445,89 +445,164 @@ function Home() {
                     }}
                     style={{ marginBottom: '1rem', display: 'inline-block' }}
                   >
-                    🚀 LIVE NOW
+                    ✅ SUCCESSFULLY COMPLETED
                   </motion.div>
                   <h2 className="modern-heading-lg">TKR College Hackathon - CognitiveX</h2>
                   <p className="modern-text">
                     Powered by <strong>SmartBridge</strong> & <strong>IBM</strong>
                   </p>
+                  <p className="modern-text-sm" style={{ opacity: 0.8, marginTop: '0.5rem' }}>
+                    A landmark achievement in GenAI education and innovation
+                  </p>
+                </div>
+              </div>
+
+              {/* Image Gallery */}
+              <div className="hackathon-gallery hackathon-gallery-grid">
+                <div className="hackathon-gallery-small-grid">
+                  <img 
+                    src="/src/assets/tkr-hack-1.jpeg" 
+                    alt="TKR Hackathon - Opening Ceremony"
+                    className="hackathon-gallery-image"
+                    loading="lazy"
+                  />
+                  <img 
+                    src="/src/assets/tkr-hack-2.jpeg" 
+                    alt="TKR Hackathon - Participants Working"
+                    className="hackathon-gallery-image"
+                    loading="lazy"
+                  />
+                  <img 
+                    src="/src/assets/tkr-hack-3.jpeg" 
+                    alt="TKR Hackathon - Team Collaboration"
+                    className="hackathon-gallery-image"
+                    loading="lazy"
+                  />
+                  <img 
+                    src="/src/assets/tkr-hack-4.jpeg" 
+                    alt="TKR Hackathon - Project Presentations"
+                    className="hackathon-gallery-image"
+                    loading="lazy"
+                  />
+                </div>
+                <div>
+                  <img 
+                    src="/src/assets/tkr-hack-winners.jpeg" 
+                    alt="TKR Hackathon - Winners Celebration"
+                    className="hackathon-gallery-main-image"
+                    loading="lazy"
+                  />
                 </div>
               </div>
 
               <div className="modern-grid modern-grid-2" style={{ marginBottom: '2rem' }}>
                 <div>
-                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>The Ultimate GenAI Experience</h3>
+                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>Event Highlights</h3>
                   <div className="modern-flex-col">
                     <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
-                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📚</span>
+                      <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎓</span>
                       <div>
                         <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>4-Day Intensive Bootcamp</h4>
-                        <p className="modern-text-sm">Master IBM Granite & GenAI fundamentals with hands-on experience</p>
+                        <p className="modern-text-sm">Comprehensive training on IBM Granite & GenAI fundamentals</p>
                       </div>
                     </div>
                     <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>⚡</span>
                       <div>
-                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>2-Day Hackathon Challenge</h4>
-                        <p className="modern-text-sm">Build innovative solutions with cutting-edge AI technologies</p>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>2-Day Hackathon Marathon</h4>
+                        <p className="modern-text-sm">Innovative solutions built with cutting-edge AI technologies</p>
                       </div>
                     </div>
                     <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🏆</span>
                       <div>
-                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Amazing Prizes & Recognition</h4>
-                        <p className="modern-text-sm">Win exciting rewards and industry recognition for your innovations</p>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Outstanding Winners</h4>
+                        <p className="modern-text-sm">Amazing prizes awarded to exceptional innovations</p>
                       </div>
                     </div>
                     <div className="modern-flex" style={{ alignItems: 'flex-start' }}>
                       <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🤝</span>
                       <div>
-                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Industry Collaboration</h4>
-                        <p className="modern-text-sm">Work with real-world problem statements from leading companies</p>
+                        <h4 className="modern-text" style={{ fontWeight: '600', margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>Industry Recognition</h4>
+                        <p className="modern-text-sm">Real-world problem solving with industry mentorship</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>Event Statistics</h3>
+                  <h3 className="modern-heading-sm" style={{ marginBottom: '1.5rem' }}>Success Metrics</h3>
                   <div className="modern-grid modern-grid-3">
-                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>100+</div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>1500+</div>
                       <div className="modern-text-sm">Participants</div>
                     </div>
-                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>5+</div>
-                      <div className="modern-text-sm">Problem Statements</div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>250+</div>
+                      <div className="modern-text-sm">Teams</div>
                     </div>
-                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(255, 255, 255, 0.5)' }}>
-                      <div className="modern-heading-md" style={{ color: 'var(--primary)', margin: '0 0 0.5rem 0' }}>₹30k</div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>₹50k</div>
                       <div className="modern-text-sm">Prize Pool</div>
+                    </div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>15+</div>
+                      <div className="modern-text-sm">Mentors</div>
+                    </div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>100%</div>
+                      <div className="modern-text-sm">Completion</div>
+                    </div>
+                    <div className="modern-card modern-card-compact" style={{ textAlign: 'center', background: 'rgba(34, 197, 94, 0.2)' }}>
+                      <div className="modern-heading-md" style={{ color: 'var(--success)', margin: '0 0 0.5rem 0' }}>5⭐</div>
+                      <div className="modern-text-sm">Rating</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div style={{ marginBottom: '2rem' }}>
-                <h3 className="modern-heading-sm" style={{ marginBottom: '1rem' }}>Event Timeline</h3>
+                <h3 className="modern-heading-sm" style={{ marginBottom: '1rem' }}>Event Journey</h3>
                 <div className="modern-flex" style={{ gap: '1rem', flexWrap: 'wrap' }}>
                   {[
-                    { number: '1', title: 'Registration', subtitle: 'Open Now' },
-                    { number: '2', title: 'Bootcamp', subtitle: '4 Days Training' },
-                    { number: '3', title: 'Hackathon', subtitle: '2 Days Challenge' },
-                    { number: '4', title: 'Results', subtitle: 'Awards Ceremony' }
+                    { number: '✅', title: 'Registration', subtitle: 'Massive Response', status: 'completed' },
+                    { number: '✅', title: 'Bootcamp', subtitle: '4 Days Excellence', status: 'completed' },
+                    { number: '✅', title: 'Hackathon', subtitle: '48 Hours Innovation', status: 'completed' },
+                    { number: '🏆', title: 'Results', subtitle: 'Grand Success', status: 'completed' }
                   ].map((step, index) => (
                     <div key={index} className="modern-flex" style={{ alignItems: 'center', flex: '1', minWidth: '200px' }}>
-                      <div className="modern-card-icon" style={{ marginRight: '1rem', fontSize: '1rem' }}>
+                      <div 
+                        className="modern-card-icon" 
+                        style={{ 
+                          marginRight: '1rem', 
+                          fontSize: '1rem',
+                          background: 'linear-gradient(135deg, var(--success), #10b981)',
+                          color: 'white'
+                        }}
+                      >
                         {step.number}
                       </div>
                       <div>
                         <div className="modern-text" style={{ fontWeight: '600', margin: '0', color: 'var(--text-primary)' }}>{step.title}</div>
-                        <div className="modern-text-sm">{step.subtitle}</div>
+                        <div className="modern-text-sm" style={{ color: 'var(--success)' }}>{step.subtitle}</div>
                       </div>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                <h3 className="modern-heading-sm" style={{ marginBottom: '1rem', color: 'var(--success)' }}>🎉 Legacy Achievement</h3>
+                <p className="modern-text">
+                  The TKR College Hackathon - CognitiveX stands as a testament to the power of collaborative learning and innovation in AI. 
+                  With <strong>1500+ participants</strong> from diverse backgrounds, this event successfully demonstrated the potential of 
+                  GenAI technologies in solving real-world problems. The overwhelming participation and exceptional project outcomes 
+                  have set a new benchmark for future hackathons.
+                </p>
+                <p className="modern-text-sm" style={{ marginTop: '1rem', fontStyle: 'italic' }}>
+                  "This hackathon exceeded all expectations and showcased the incredible talent in AI development among our students." 
+                  - TKR College Leadership
+                </p>
               </div>
 
               <div className="modern-flex-center" style={{ flexDirection: 'column', gap: '1rem' }}>
@@ -536,12 +611,12 @@ function Home() {
                   whileHover="hover"
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Link to="/hackathon" className="modern-btn modern-btn-primary modern-btn-lg">
-                    🚀 Register for Hackathon
+                  <Link to="/hackathon" className="modern-btn modern-btn-success modern-btn-lg">
+                    🏆 View Success Story
                   </Link>
                 </motion.div>
                 <p className="modern-text-sm" style={{ textAlign: 'center', opacity: 0.8 }}>
-                  Limited seats available • Registration closes soon
+                  Celebrating innovation, collaboration, and AI excellence
                 </p>
               </div>
             </div>

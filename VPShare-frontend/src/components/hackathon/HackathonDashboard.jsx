@@ -47,6 +47,7 @@ const HackathonDashboard = ({ user, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [teamData, setTeamData] = useState(null);
+  const [countdown, setCountdown] = useState('');
 
   // Submission form state
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
@@ -70,6 +71,52 @@ const HackathonDashboard = ({ user, onBack }) => {
       loadDashboardData();
     }
   }, [user]);
+
+  // Countdown calculation
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (!currentHackathon) return;
+      
+      const now = new Date();
+      const hackathonStart = new Date(currentHackathon.startDate);
+      const hackathonEnd = new Date(currentHackathon.endDate);
+      
+      let targetDate;
+      let description;
+      
+      if (now < hackathonStart) {
+        targetDate = hackathonStart;
+        description = 'Until hackathon begins';
+      } else if (now < hackathonEnd) {
+        targetDate = hackathonEnd;
+        description = 'Until submission deadline';
+      } else {
+        setCountdown('Event completed');
+        return;
+      }
+      
+      const timeDiff = targetDate - now;
+      
+      if (timeDiff <= 0) {
+        setCountdown('Event completed');
+        return;
+      }
+      
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      setCountdown({
+        time: `${days}d ${hours}h ${minutes}m`,
+        description
+      });
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [currentHackathon]);
 
   const loadDashboardData = async () => {
     setLoading(true);
@@ -205,8 +252,8 @@ const HackathonDashboard = ({ user, onBack }) => {
           </div>
           <div className="card-content">
             <h3>Time Remaining</h3>
-            <p className="time">18d 14h 46m</p>
-            <span className="time-description">Until submission deadline</span>
+            <p className="time">{countdown?.time || 'Calculating...'}</p>
+            <span className="time-description">{countdown?.description || 'Until submission deadline'}</span>
           </div>
         </motion.div>
       </div>

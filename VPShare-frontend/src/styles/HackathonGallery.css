@@ -1,0 +1,171 @@
+/* Hackathon Image Gallery Styles */
+.hackathon-gallery {
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.hackathon-gallery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.hackathon-gallery-small-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.hackathon-gallery-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.hackathon-gallery-image:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hackathon-gallery-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.hackathon-gallery-main-image:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hackathon-gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .hackathon-gallery-small-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  
+  .hackathon-gallery-image {
+    height: 120px;
+    border-radius: 10px;
+  }
+  
+  .hackathon-gallery-main-image {
+    height: 200px;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hackathon-gallery {
+    margin-bottom: 1.5rem;
+    gap: 0.75rem;
+  }
+  
+  .hackathon-gallery-grid {
+    gap: 0.75rem;
+  }
+  
+  .hackathon-gallery-small-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .hackathon-gallery-image {
+    height: 140px;
+    border-radius: 8px;
+  }
+  
+  .hackathon-gallery-main-image {
+    height: 180px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 320px) {
+  .hackathon-gallery-image {
+    height: 100px;
+  }
+  
+  .hackathon-gallery-main-image {
+    height: 150px;
+  }
+}
+
+/* Additional enhancements */
+.hackathon-gallery-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.hackathon-gallery-image,
+.hackathon-gallery-main-image {
+  position: relative;
+  z-index: 1;
+}
+
+.hackathon-gallery-image::before,
+.hackathon-gallery-main-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+.hackathon-gallery-image:hover::before,
+.hackathon-gallery-main-image:hover::before {
+  opacity: 1;
+}
+
+/* Loading state */
+.hackathon-gallery-image.loading,
+.hackathon-gallery-main-image.loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus styles for accessibility */
+.hackathon-gallery-image:focus,
+.hackathon-gallery-main-image:focus {
+  outline: 2px solid var(--primary, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .hackathon-gallery-image,
+  .hackathon-gallery-main-image {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+}

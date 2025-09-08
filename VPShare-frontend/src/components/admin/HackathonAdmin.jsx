@@ -42,8 +42,6 @@ const HackathonAdmin = () => {
   const [registrations, setRegistrations] = useState([]);
   const [stats, setStats] = useState({});
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const refreshIntervalRef = useRef(null);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
@@ -1191,23 +1189,10 @@ const HackathonAdmin = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRegistrations = filteredRegistrations.slice(startIndex, startIndex + itemsPerPage);
 
-  // Load data on component mount and set up auto-refresh
+  // Load data on component mount
   useEffect(() => {
     loadDashboardData();
-    
-    // Set up auto-refresh if enabled
-    if (autoRefresh) {
-      refreshIntervalRef.current = setInterval(() => {
-        loadDashboardData(false); // Silent refresh
-      }, 30000); // Refresh every 30 seconds
-    }
-    
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
-  }, [autoRefresh, loadDashboardData]);
+  }, [loadDashboardData]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1230,11 +1215,6 @@ const HackathonAdmin = () => {
         if (!isExporting) {
           handleExport('csv', 'analytics');
         }
-      }
-      // Ctrl/Cmd + Space: Toggle auto-refresh
-      if ((event.ctrlKey || event.metaKey) && event.code === 'Space') {
-        event.preventDefault();
-        setAutoRefresh(prev => !prev);
       }
     };
 
@@ -1283,21 +1263,12 @@ const HackathonAdmin = () => {
               Last updated: {lastUpdated.toLocaleTimeString()}
               {refreshing && <span className="refreshing-indicator"><RefreshIcon fontSize="small" /></span>}
             </span>
-            <span className={`auto-refresh-indicator ${autoRefresh ? 'active' : ''}`}>
-              {autoRefresh ? <><RefreshIcon fontSize="small" /> Auto-refresh ON</> : <><PauseIcon fontSize="small" /> Auto-refresh OFF</>}
-            </span>
-            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export Detailed), Ctrl+Shift+E (Export Analytics), Ctrl+Space (Toggle Auto-refresh) • Gallery Selection: Click and drag to select multiple rows">
+            <div className="keyboard-shortcuts" title="Keyboard Shortcuts: Ctrl+R (Refresh), Ctrl+E (Export Detailed), Ctrl+Shift+E (Export Analytics) • Gallery Selection: Click and drag to select multiple rows">
               <KeyboardIcon fontSize="small" style={{marginRight: '4px'}} /> Shortcuts
             </div>
           </div>
         </div>
         <div className="admin-actions">
-          <button 
-            onClick={() => setAutoRefresh(!autoRefresh)} 
-            className={`refresh-btn ${autoRefresh ? 'active' : ''}`}
-          >
-            {autoRefresh ? <><PauseIcon fontSize="small" style={{marginRight: '4px'}} /> Pause Auto-refresh</> : <><PlayIcon fontSize="small" style={{marginRight: '4px'}} /> Enable Auto-refresh</>}
-          </button>
           <button onClick={() => loadDashboardData(true)} className="refresh-btn">
             <RefreshIcon fontSize="small" style={{marginRight: '4px'}} /> Manual Refresh
           </button>

@@ -1550,7 +1550,7 @@ main, .main-content, .dashboard-main, .page-content {
 .professional-hero-carousel {
   width: 100%;
   max-width: 1400px;
-  margin: 2rem auto 4rem auto;
+  margin: 1rem auto 2rem auto;
   position: relative;
   background: #ffffff;
   border-radius: 16px;
@@ -1576,6 +1576,7 @@ main, .main-content, .dashboard-main, .page-content {
   display: flex;
   align-items: center;
   position: relative;
+  min-height: 350px;
 }
 
 .professional-carousel-slide.hackathon-slide {
@@ -1586,7 +1587,8 @@ main, .main-content, .dashboard-main, .page-content {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 2rem;
+  box-sizing: border-box;
 }
 
 .carousel-content {
@@ -1594,22 +1596,31 @@ main, .main-content, .dashboard-main, .page-content {
   grid-template-columns: 1fr;
   align-items: center;
   gap: 2rem;
-  min-height: 400px;
+  min-height: 300px;
+  justify-items: center;
 }
 
 .content-wrapper {
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-title {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(1.75rem, 5vw, 3.5rem);
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   line-height: 1.1;
   letter-spacing: -0.025em;
+  text-align: center;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 .hackathon-slide .carousel-title {
@@ -1617,11 +1628,13 @@ main, .main-content, .dashboard-main, .page-content {
 }
 
 .carousel-subtitle {
-  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-size: clamp(1rem, 3vw, 1.5rem);
   color: #4b5563;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
+  text-align: center;
+  max-width: 100%;
 }
 
 .hackathon-slide .carousel-subtitle {
@@ -1629,31 +1642,36 @@ main, .main-content, .dashboard-main, .page-content {
 }
 
 .carousel-description {
-  font-size: 1.125rem;
+  font-size: clamp(0.95rem, 2.5vw, 1.125rem);
   color: #6b7280;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   line-height: 1.6;
-  max-width: 600px;
+  max-width: 90%;
   margin-left: auto;
   margin-right: auto;
+  text-align: center;
 }
 
 .feature-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
   justify-content: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .feature-pill {
   background: #f3f4f6;
   color: #374151;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 100px;
-  font-size: 0.875rem;
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
   font-weight: 500;
   border: 1px solid #e5e7eb;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .hackathon-slide .feature-pill {
@@ -1666,16 +1684,20 @@ main, .main-content, .dashboard-main, .page-content {
   background: #2563eb;
   color: white;
   border: none;
-  padding: 1rem 2.5rem;
+  padding: clamp(0.75rem, 3vw, 1rem) clamp(1.5rem, 5vw, 2.5rem);
   border-radius: 12px;
-  font-size: 1.125rem;
+  font-size: clamp(0.95rem, 3vw, 1.125rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.5rem;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  min-width: 150px;
+  max-width: 280px;
+  width: auto;
 }
 
 .carousel-cta-button:hover {
@@ -1760,77 +1782,308 @@ main, .main-content, .dashboard-main, .page-content {
   background: #7c3aed;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Enhanced Responsive Design */
+@media (max-width: 1024px) {
   .professional-hero-carousel {
     margin: 1rem auto 2rem auto;
+  }
+  
+  .carousel-container {
+    padding: 1.5rem;
+  }
+  
+  .professional-carousel-slide {
+    height: 450px;
+  }
+}
+
+@media (max-width: 768px) {
+  .professional-hero-carousel {
+    margin: 0.5rem auto 1.5rem auto;
     border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   }
   
   .professional-carousel-slide {
     height: 400px;
+    min-height: 350px;
   }
   
   .carousel-container {
-    padding: 0 1.5rem;
+    padding: 1rem;
+  }
+  
+  .carousel-content {
+    gap: 1rem;
+    min-height: 300px;
+  }
+  
+  .content-wrapper {
+    max-width: 100%;
   }
   
   .carousel-title {
-    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
   }
   
   .carousel-subtitle {
-    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
   }
   
   .carousel-description {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    max-width: 95%;
   }
   
   .feature-pills {
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+    gap: 0.4rem;
+  }
+  
+  .feature-pill {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
   }
   
   .carousel-cta-button {
-    padding: 0.875rem 2rem;
+    padding: 0.75rem 1.5rem;
     font-size: 1rem;
+    gap: 0.5rem;
+    min-width: 140px;
   }
   
-  .carousel-arrow {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .carousel-arrow-prev {
-    left: 1rem;
-  }
-  
+  /* Hide navigation arrows on mobile screens */
+  .carousel-arrow,
+  .carousel-arrow-prev,
   .carousel-arrow-next {
-    right: 1rem;
+    display: none !important;
+  }
+  
+  .modern-hero-carousel .carousel .control-arrow {
+    display: none !important;
+  }
+  
+  /* Enhance dots for mobile navigation */
+  .professional-hero-carousel .control-dots {
+    bottom: 30px !important;
+    padding: 12px 20px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 20px !important;
+    backdrop-filter: blur(10px) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 0 8px !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot.selected {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    transform: scale(1.3) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .professional-hero-carousel {
+    margin: 0.25rem auto 1rem auto;
+    border-radius: 8px;
+  }
+  
+  .professional-carousel-slide {
+    height: 380px;
+    min-height: 320px;
+  }
+  
+  .carousel-container {
+    padding: 0.75rem;
+  }
+  
+  .carousel-content {
+    gap: 0.75rem;
+    min-height: 280px;
+  }
+  
+  .carousel-title {
+    margin-bottom: 0.4rem;
+  }
+  
+  .carousel-subtitle {
+    margin-bottom: 0.4rem;
+  }
+  
+  .carousel-description {
+    margin-bottom: 0.75rem;
+  }
+  
+  .feature-pills {
+    margin-bottom: 1rem;
+    gap: 0.3rem;
+  }
+  
+  /* Hide navigation arrows on smaller mobile screens */
+  .carousel-arrow,
+  .carousel-arrow-prev,
+  .carousel-arrow-next {
+    display: none !important;
+  }
+  
+  .modern-hero-carousel .carousel .control-arrow {
+    display: none !important;
+  }
+  
+  /* Enhanced dots for smaller mobile screens */
+  .professional-hero-carousel .control-dots {
+    bottom: 25px !important;
+    padding: 10px 16px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot {
+    width: 12px !important;
+    height: 12px !important;
+    margin: 0 6px !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot.selected {
+    transform: scale(1.4) !important;
   }
 }
 
 @media (max-width: 480px) {
   .professional-hero-carousel {
-    margin: 1rem 0.5rem 2rem 0.5rem;
+    margin: 0.25rem 0.5rem 1rem 0.5rem;
+    border-radius: 8px;
   }
   
   .professional-carousel-slide {
     height: 350px;
+    min-height: 300px;
   }
   
   .carousel-container {
-    padding: 0 1rem;
+    padding: 0.5rem;
+  }
+  
+  .carousel-content {
+    gap: 0.5rem;
+    min-height: 250px;
+  }
+  
+  .content-wrapper {
+    padding: 0 0.25rem;
+  }
+  
+  .carousel-title {
+    margin-bottom: 0.3rem;
+    line-height: 1.1;
+  }
+  
+  .carousel-subtitle {
+    margin-bottom: 0.3rem;
+  }
+  
+  .carousel-description {
+    margin-bottom: 0.5rem;
+    max-width: 100%;
   }
   
   .feature-pills {
-    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    gap: 0.25rem;
+    flex-direction: row;
+    justify-content: center;
   }
   
   .feature-pill {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    flex: 0 0 auto;
+    min-width: fit-content;
+  }
+  
+  .carousel-cta-button {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+    min-width: 120px;
+    gap: 0.4rem;
+  }
+  
+  .carousel-cta-button svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Hide navigation arrows on small mobile screens */
+  .carousel-arrow,
+  .carousel-arrow-prev,
+  .carousel-arrow-next {
+    display: none !important;
+  }
+  
+  .carousel-arrow svg {
+    display: none !important;
+  }
+  
+  .modern-hero-carousel .carousel .control-arrow {
+    display: none !important;
+  }
+  
+  /* Enhanced dots for very small screens */
+  .professional-hero-carousel .control-dots {
+    bottom: 20px !important;
+    padding: 8px 12px !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    border-radius: 14px !important;
+  }
+  
+  .professional-hero-carousel .control-dots .dot {
+    width: 10px !important;
+    height: 10px !important;
+    margin: 0 5px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .professional-hero-carousel {
+    margin: 0.25rem 0.25rem 1rem 0.25rem;
+  }
+  
+  .professional-carousel-slide {
+    height: 320px;
+    min-height: 280px;
+  }
+  
+  .carousel-container {
+    padding: 0.25rem;
+  }
+  
+  .content-wrapper {
+    padding: 0;
+  }
+  
+  .feature-pills {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .feature-pill {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .carousel-cta-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-width: 100px;
   }
 }
 
@@ -2022,17 +2275,9 @@ main, .main-content, .dashboard-main, .page-content {
     margin-bottom: 2rem;
   }
   
+  /* Hide navigation arrows on mobile screens */
   .modern-hero-carousel .carousel .control-arrow {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .modern-hero-carousel .carousel .control-arrow.control-prev {
-    left: 15px;
-  }
-  
-  .modern-hero-carousel .carousel .control-arrow.control-next {
-    right: 15px;
+    display: none !important;
   }
   
   .modern-hero-carousel .carousel .control-dots {
