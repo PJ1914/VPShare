@@ -21,20 +21,11 @@ const RegistrationPage = ({ onBack }) => {
   const [formData, setFormData] = useState({
     teamName: '',
     teamSize: 1, // Add team size field
-    teamLead: {
-      name: '',
-      email: '',
-      phone: '',
-      college: '',
-      rollNumber: '',
-      year: '',
-      branch: '',
-      role: 'Team Leader' // Default role for team lead
-    },
     members: [
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: '' },
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: '' },
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: '' }
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Leader' }, // First member is always team leader
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' },
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' },
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' }
     ],
     selectedTrack: '',
     projectIdea: '',
@@ -49,30 +40,23 @@ const RegistrationPage = ({ onBack }) => {
 
   // Transform form data to match API schema
   const transformFormDataToAPISchema = (formData) => {
-    // Filter out empty team members
-    const validMembers = formData.members.filter(member => member.name.trim());
-    
-    // Create members array including team lead
-    const allMembers = [
-      {
-        name: formData.teamLead.name,
-        email: formData.teamLead.email,
-        phonenumber: formData.teamLead.phone.replace(/\D/g, ''), // Remove non-digits
-        college: formData.teamLead.college,
-        branch: formData.teamLead.branch,
-        year: formData.teamLead.year,
-        role: formData.teamLead.role || 'Team Leader'
-      },
-      ...validMembers.map(member => ({
+    // Filter out empty team members (excluding the first member which is team leader)
+    const allMembers = formData.members
+      .slice(0, formData.teamSize) // Only take required number of members
+      .filter((member, index) => {
+        if (index === 0) return member.name.trim(); // Team leader must have name
+        return member.name.trim(); // Other members must have name
+      })
+      .map(member => ({
         name: member.name,
         email: member.email,
         phonenumber: member.phone.replace(/\D/g, ''), // Remove non-digits
         college: member.college,
         branch: member.branch,
         year: member.year,
-        role: member.role || 'Team Member'
-      }))
-    ];
+        rollNumber: member.rollNumber,
+        role: member.role
+      }));
 
     return {
       leaderUid: user?.uid || '',
@@ -275,7 +259,7 @@ const RegistrationPage = ({ onBack }) => {
     handleInputChange(section, field, suggestion, index);
     
     // Clear the suggestion after applying
-    const suggestionKey = section === 'teamLead' ? 
+    const suggestionKey = index === 0 ? 
       `teamleademailSuggestion` : 
       `member${index}emailSuggestion`;
     
@@ -286,7 +270,7 @@ const RegistrationPage = ({ onBack }) => {
     });
     
     // Clear any related errors
-    const errorKey = section === 'teamLead' ? 'teamLeadEmail' : `member${index}Email`;
+    const errorKey = index === 0 ? 'teamLeadEmail' : `member${index}Email`;
     setErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[errorKey];
@@ -326,12 +310,7 @@ const RegistrationPage = ({ onBack }) => {
 
   const handleInputChange = (section, field, value, index = null) => {
     setFormData(prev => {
-      if (section === 'teamLead') {
-        return {
-          ...prev,
-          teamLead: { ...prev.teamLead, [field]: value }
-        };
-      } else if (section === 'members' && index !== null) {
+      if (section === 'members' && index !== null) {
         const newMembers = [...prev.members];
         // Ensure the member object exists at the index
         if (!newMembers[index]) {
@@ -342,19 +321,19 @@ const RegistrationPage = ({ onBack }) => {
             college: '',
             rollNumber: '',
             year: '',
-            branch: ''
+            branch: '',
+            role: index === 0 ? 'Team Leader' : 'Team Member'
           };
         }
         newMembers[index] = { ...newMembers[index], [field]: value };
         return { ...prev, members: newMembers };
       } else if (section === 'root' && field === 'teamSize') {
-        // When team size changes, initialize members array appropriately
+        // When team size changes, ensure members array has correct structure
         const newTeamSize = parseInt(value);
-        const requiredMembers = newTeamSize - 1; // Excluding team leader
         const newMembers = [...prev.members];
         
-        // Add empty member objects if needed
-        while (newMembers.length < requiredMembers) {
+        // Ensure we have enough member slots
+        while (newMembers.length < 4) {
           newMembers.push({
             name: '',
             email: '',
@@ -362,13 +341,15 @@ const RegistrationPage = ({ onBack }) => {
             college: '',
             rollNumber: '',
             year: '',
-            branch: ''
+            branch: '',
+            role: 'Team Member'
           });
         }
         
-        // Remove extra members if team size decreased
-        if (newMembers.length > requiredMembers) {
-          newMembers.splice(requiredMembers);
+        // Set correct roles
+        newMembers[0].role = 'Team Leader';
+        for (let i = 1; i < newMembers.length; i++) {
+          newMembers[i].role = 'Team Member';
         }
         
         return { ...prev, [field]: value, members: newMembers };
@@ -380,11 +361,14 @@ const RegistrationPage = ({ onBack }) => {
     // Real-time validation for specific fields
     const newErrors = { ...errors };
     
-    if (section === 'teamLead') {
-      const errorKey = `teamLead${field.charAt(0).toUpperCase() + field.slice(1)}`;
+    if (section === 'members') {
+      const errorKey = index === 0 ? 
+        `teamLead${field.charAt(0).toUpperCase() + field.slice(1)}` : 
+        `member${index}${field.charAt(0).toUpperCase() + field.slice(1)}`;
       
       if (field === 'email') {
-        const emailError = validateEmail(value, 'Team lead email');
+        const fieldLabel = index === 0 ? 'Team lead email' : `Member ${index + 1} email`;
+        const emailError = validateEmail(value, fieldLabel);
         if (emailError) {
           newErrors[errorKey] = emailError;
         } else {
@@ -399,26 +383,6 @@ const RegistrationPage = ({ onBack }) => {
         }
       } else {
         // Clear error for other fields when user starts typing
-        delete newErrors[errorKey];
-      }
-    } else if (section === 'members' && index !== null) {
-      const errorKey = `member${index}${field.charAt(0).toUpperCase() + field.slice(1)}`;
-      
-      if (field === 'email' && value.trim()) {
-        const emailError = validateEmail(value, `Member ${index + 2} email`);
-        if (emailError) {
-          newErrors[errorKey] = emailError;
-        } else {
-          delete newErrors[errorKey];
-        }
-      } else if (field === 'phone' && value.trim()) {
-        const phoneError = validatePhone(value, 'Phone');
-        if (phoneError) {
-          newErrors[errorKey] = phoneError;
-        } else {
-          delete newErrors[errorKey];
-        }
-      } else {
         delete newErrors[errorKey];
       }
     } else {
@@ -440,33 +404,36 @@ const RegistrationPage = ({ onBack }) => {
         newErrors.teamName = 'Team name must be at least 3 characters long';
       }
 
+      // Team lead validation (first member)
+      const teamLead = formData.members[0];
+      
       // Team lead name validation
-      if (!formData.teamLead.name.trim()) {
+      if (!teamLead?.name.trim()) {
         newErrors.teamLeadName = 'Team lead name is required';
-      } else if (formData.teamLead.name.trim().length < 2) {
+      } else if (teamLead.name.trim().length < 2) {
         newErrors.teamLeadName = 'Name must be at least 2 characters long';
       }
 
       // Team lead email validation
-      const emailError = validateEmail(formData.teamLead.email, 'Team lead email');
+      const emailError = validateEmail(teamLead?.email || '', 'Team lead email');
       if (emailError) newErrors.teamLeadEmail = emailError;
 
       // Team lead phone validation
-      const phoneError = validatePhone(formData.teamLead.phone, 'Team lead phone');
+      const phoneError = validatePhone(teamLead?.phone || '', 'Team lead phone');
       if (phoneError) newErrors.teamLeadPhone = phoneError;
 
       // College validation
-      if (!formData.teamLead.college.trim()) {
+      if (!teamLead?.college?.trim()) {
         newErrors.teamLeadCollege = 'College name is required';
       }
 
       // Year validation
-      if (!formData.teamLead.year.trim()) {
+      if (!teamLead?.year?.trim()) {
         newErrors.teamLeadYear = 'Academic year is required';
       }
 
       // Branch validation
-      if (!formData.teamLead.branch.trim()) {
+      if (!teamLead?.branch?.trim()) {
         newErrors.teamLeadBranch = 'Branch/Department is required';
       }
     }
@@ -478,57 +445,54 @@ const RegistrationPage = ({ onBack }) => {
       }
 
       // Collect all emails for duplicate checking
-      const allEmails = [formData.teamLead.email.toLowerCase().trim()];
+      const allEmails = [];
       const memberEmails = [];
 
-      // Team members validation (only validate required number based on team size)
-      const requiredMembers = formData.teamSize - 1; // Exclude team leader
-      
-      for (let i = 0; i < requiredMembers; i++) {
+      // Team members validation (validate all required members based on team size)
+      for (let i = 0; i < formData.teamSize; i++) {
         const member = formData.members[i] || {};
+        const isTeamLead = i === 0;
+        const errorPrefix = isTeamLead ? 'teamLead' : `member${i}`;
+        const memberLabel = isTeamLead ? 'Team leader' : `Member ${i + 1}`;
         
         // Name validation
         if (!member.name?.trim()) {
-          newErrors[`member${i}Name`] = 'Full name is required for all team members';
+          newErrors[`${errorPrefix}Name`] = `Full name is required for ${memberLabel.toLowerCase()}`;
         }
 
         // Email validation
         if (!member.email?.trim()) {
-          newErrors[`member${i}Email`] = 'Email is required for all team members';
+          newErrors[`${errorPrefix}Email`] = `Email is required for ${memberLabel.toLowerCase()}`;
         } else if (!isValidEmail(member.email)) {
-          newErrors[`member${i}Email`] = 'Please enter a valid email address';
+          newErrors[`${errorPrefix}Email`] = 'Please enter a valid email address';
         } else {
           const memberEmail = member.email.toLowerCase().trim();
-          memberEmails.push({ email: memberEmail, index: i });
+          memberEmails.push({ email: memberEmail, index: i, isTeamLead });
           allEmails.push(memberEmail);
         }
 
         // Phone validation
         if (!member.phone?.trim()) {
-          newErrors[`member${i}Phone`] = 'Phone number is required for all team members';
+          newErrors[`${errorPrefix}Phone`] = `Phone number is required for ${memberLabel.toLowerCase()}`;
         } else if (!isValidPhone(member.phone)) {
-          newErrors[`member${i}Phone`] = 'Please enter a valid phone number';
+          newErrors[`${errorPrefix}Phone`] = 'Please enter a valid phone number';
         }
 
         // College validation
         if (!member.college?.trim()) {
-          newErrors[`member${i}College`] = 'College is required for all team members';
+          newErrors[`${errorPrefix}College`] = `College is required for ${memberLabel.toLowerCase()}`;
         }
       }
 
       // Check for duplicate emails
       const duplicates = allEmails.filter((email, index) => allEmails.indexOf(email) !== index);
       if (duplicates.length > 0) {
-        // Mark team lead email as duplicate if it appears in members
-        if (memberEmails.some(m => m.email === formData.teamLead.email.toLowerCase().trim())) {
-          newErrors.teamLeadEmail = 'Team leader email cannot be the same as team member email';
-        }
-        
-        // Mark member emails as duplicates
-        memberEmails.forEach(({ email, index }) => {
+        // Mark emails as duplicates
+        memberEmails.forEach(({ email, index, isTeamLead }) => {
           if (duplicates.includes(email)) {
-            if (!newErrors[`member${index}Email`]) {
-              newErrors[`member${index}Email`] = 'This email is already used by another team member';
+            const errorKey = isTeamLead ? 'teamLeadEmail' : `member${index}Email`;
+            if (!newErrors[errorKey]) {
+              newErrors[errorKey] = 'This email is already used by another team member';
             }
           }
         });
@@ -655,8 +619,9 @@ const RegistrationPage = ({ onBack }) => {
               razorpay_signature: response.razorpay_signature,
               leaderUid: registrationData.leaderUid,
               teamSize: registrationData.members.length,
-              members: registrationData.members.map(m => m.uid || registrationData.leaderUid),
-              teamname: registrationData.teamname
+              members: registrationData.members, // Send complete member data
+              teamname: registrationData.teamname,
+              problem_statement: registrationData.problem_statement // Include problem statement
             });
             
             if (verifyResult.success) {
@@ -680,9 +645,9 @@ const RegistrationPage = ({ onBack }) => {
           }
         },
         prefill: {
-          name: formData.teamLead.name,
-          email: formData.teamLead.email,
-          contact: formData.teamLead.phone
+          name: formData.members[0]?.name || '',
+          email: formData.members[0]?.email || '',
+          contact: formData.members[0]?.phone || ''
         },
         theme: {
           color: '#FF6B6B'
@@ -714,168 +679,172 @@ const RegistrationPage = ({ onBack }) => {
     }
   };
 
-  const renderStep1 = () => (
-    <motion.div
-      className="registration-step"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-    >
-      <h3>Team & Leader Information</h3>
-      
-      {/* Team Basic Info */}
-      <div className="team-basic-info">
-        <div className="form-row">
-          <div className="form-group">
-            <label>Team Name *</label>
-            <input
-              type="text"
-              value={formData.teamName}
-              onChange={(e) => handleInputChange('root', 'teamName', e.target.value)}
-              placeholder="Enter your warrior clan name"
-              className={errors.teamName ? 'error' : ''}
-            />
-            {errors.teamName && <span className="error-message">{errors.teamName}</span>}
-          </div>
+  const renderStep1 = () => {
+    const teamLead = formData.members[0] || {};
+    
+    return (
+      <motion.div
+        className="registration-step"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+      >
+        <h3>Team & Leader Information</h3>
+        
+        {/* Team Basic Info */}
+        <div className="team-basic-info">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Team Name *</label>
+              <input
+                type="text"
+                value={formData.teamName}
+                onChange={(e) => handleInputChange('root', 'teamName', e.target.value)}
+                placeholder="Enter your warrior clan name"
+                className={errors.teamName ? 'error' : ''}
+              />
+              {errors.teamName && <span className="error-message">{errors.teamName}</span>}
+            </div>
 
-          <div className="form-group">
-            <label>Team Size *</label>
-            <select
-              value={formData.teamSize}
-              onChange={(e) => handleInputChange('root', 'teamSize', parseInt(e.target.value))}
-              className={errors.teamSize ? 'error' : ''}
-            >
-              <option value={1}>1 Member (Individual) - ₹250</option>
-              <option value={2}>2 Members - ₹500</option>
-              <option value={3}>3 Members - ₹750</option>
-              <option value={4}>4 Members - ₹1000</option>
-            </select>
-            {errors.teamSize && <span className="error-message">{errors.teamSize}</span>}
-            <div className="team-size-info">
-              <small>Total Cost: ₹{250 * formData.teamSize} (₹250 per person)</small>
+            <div className="form-group">
+              <label>Team Size *</label>
+              <select
+                value={formData.teamSize}
+                onChange={(e) => handleInputChange('root', 'teamSize', parseInt(e.target.value))}
+                className={errors.teamSize ? 'error' : ''}
+              >
+                <option value={1}>1 Member (Individual) - ₹250</option>
+                <option value={2}>2 Members - ₹500</option>
+                <option value={3}>3 Members - ₹750</option>
+                <option value={4}>4 Members - ₹1000</option>
+              </select>
+              {errors.teamSize && <span className="error-message">{errors.teamSize}</span>}
+              <div className="team-size-info">
+                <small>Total Cost: ₹{250 * formData.teamSize} (₹250 per person)</small>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="team-lead-section">
-        <h4>Team Leader Details</h4>
-        
-        {/* Leader Personal Info */}
-        <div className="form-row">
-          <div className="form-group">
-            <label>Full Name *</label>
-            <input
-              type="text"
-              value={formData.teamLead.name}
-              onChange={(e) => handleInputChange('teamLead', 'name', e.target.value)}
-              placeholder="Enter full name"
-              className={errors.teamLeadName ? 'error' : ''}
-            />
-            {errors.teamLeadName && <span className="error-message">{errors.teamLeadName}</span>}
+        <div className="team-lead-section">
+          <h4>Team Leader Details</h4>
+          
+          {/* Leader Personal Info */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Full Name *</label>
+              <input
+                type="text"
+                value={teamLead.name || ''}
+                onChange={(e) => handleInputChange('members', 'name', e.target.value, 0)}
+                placeholder="Enter full name"
+                className={errors.teamLeadName ? 'error' : ''}
+              />
+              {errors.teamLeadName && <span className="error-message">{errors.teamLeadName}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Roll Number</label>
+              <input
+                type="text"
+                value={teamLead.rollNumber || ''}
+                onChange={(e) => handleInputChange('members', 'rollNumber', e.target.value, 0)}
+                placeholder="Enter roll number"
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Roll Number</label>
-            <input
-              type="text"
-              value={formData.teamLead.rollNumber}
-              onChange={(e) => handleInputChange('teamLead', 'rollNumber', e.target.value)}
-              placeholder="Enter roll number"
-            />
+          {/* Contact Information */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                value={teamLead.email || ''}
+                onChange={(e) => handleInputChange('members', 'email', e.target.value, 0)}
+                placeholder="Enter valid email (e.g., warrior@gmail.com)"
+                className={errors.teamLeadEmail ? 'error' : ''}
+              />
+              {errors.teamLeadEmail && <span className="error-message">{errors.teamLeadEmail}</span>}
+              {emailSuggestions.teamleademailSuggestion && !errors.teamLeadEmail && (
+                <div className="email-suggestion">
+                  <span className="suggestion-text">Did you mean: </span>
+                  <button 
+                    type="button"
+                    className="suggestion-button"
+                    onClick={() => applySuggestion('members', 'email', emailSuggestions.teamleademailSuggestion, 0)}
+                  >
+                    {emailSuggestions.teamleademailSuggestion}
+                  </button>
+                  <span className="suggestion-hint">? Click to use this email</span>
+                </div>
+              )}
+              {!errors.teamLeadEmail && teamLead.email && isValidEmail(teamLead.email) && (
+                <span className="success-message">✓ Valid email address</span>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Phone Number *</label>
+              <input
+                type="tel"
+                value={teamLead.phone || ''}
+                onChange={(e) => handleInputChange('members', 'phone', e.target.value, 0)}
+                placeholder="Enter phone number (e.g., 9876543210)"
+                className={errors.teamLeadPhone ? 'error' : ''}
+              />
+              {errors.teamLeadPhone && <span className="error-message">{errors.teamLeadPhone}</span>}
+              {!errors.teamLeadPhone && teamLead.phone && isValidPhone(teamLead.phone) && (
+                <span className="success-message">✓ Valid phone number</span>
+              )}
+            </div>
+          </div>
+
+          {/* Academic Information */}
+          <div className="form-row">
+            <div className="form-group">
+              <label>College/University *</label>
+              <input
+                type="text"
+                value={teamLead.college || ''}
+                onChange={(e) => handleInputChange('members', 'college', e.target.value, 0)}
+                placeholder="Enter college name"
+                className={errors.teamLeadCollege ? 'error' : ''}
+              />
+              {errors.teamLeadCollege && <span className="error-message">{errors.teamLeadCollege}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Year of Study</label>
+              <select
+                value={teamLead.year || ''}
+                onChange={(e) => handleInputChange('members', 'year', e.target.value, 0)}
+              >
+                <option value="">Select Year</option>
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+                <option value="4th">4th Year</option>
+                <option value="graduate">Graduate</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Branch/Major</label>
+              <input
+                type="text"
+                value={teamLead.branch || ''}
+                onChange={(e) => handleInputChange('members', 'branch', e.target.value, 0)}
+                placeholder="e.g., Computer Science"
+              />
+            </div>
           </div>
         </div>
-
-        {/* Contact Information */}
-        <div className="form-row">
-          <div className="form-group">
-            <label>Email *</label>
-            <input
-              type="email"
-              value={formData.teamLead.email}
-              onChange={(e) => handleInputChange('teamLead', 'email', e.target.value)}
-              placeholder="Enter valid email (e.g., warrior@gmail.com)"
-              className={errors.teamLeadEmail ? 'error' : ''}
-            />
-            {errors.teamLeadEmail && <span className="error-message">{errors.teamLeadEmail}</span>}
-            {emailSuggestions.teamleademailSuggestion && !errors.teamLeadEmail && (
-              <div className="email-suggestion">
-                <span className="suggestion-text">Did you mean: </span>
-                <button 
-                  type="button"
-                  className="suggestion-button"
-                  onClick={() => applySuggestion('teamLead', 'email', emailSuggestions.teamleademailSuggestion)}
-                >
-                  {emailSuggestions.teamleademailSuggestion}
-                </button>
-                <span className="suggestion-hint">? Click to use this email</span>
-              </div>
-            )}
-            {!errors.teamLeadEmail && formData.teamLead.email && isValidEmail(formData.teamLead.email) && (
-              <span className="success-message">✓ Valid email address</span>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>Phone Number *</label>
-            <input
-              type="tel"
-              value={formData.teamLead.phone}
-              onChange={(e) => handleInputChange('teamLead', 'phone', e.target.value)}
-              placeholder="Enter phone number (e.g., 9876543210)"
-              className={errors.teamLeadPhone ? 'error' : ''}
-            />
-            {errors.teamLeadPhone && <span className="error-message">{errors.teamLeadPhone}</span>}
-            {!errors.teamLeadPhone && formData.teamLead.phone && isValidPhone(formData.teamLead.phone) && (
-              <span className="success-message">✓ Valid phone number</span>
-            )}
-          </div>
-        </div>
-
-        {/* Academic Information */}
-        <div className="form-row">
-          <div className="form-group">
-            <label>College/University *</label>
-            <input
-              type="text"
-              value={formData.teamLead.college}
-              onChange={(e) => handleInputChange('teamLead', 'college', e.target.value)}
-              placeholder="Enter college name"
-              className={errors.teamLeadCollege ? 'error' : ''}
-            />
-            {errors.teamLeadCollege && <span className="error-message">{errors.teamLeadCollege}</span>}
-          </div>
-
-          <div className="form-group">
-            <label>Year of Study</label>
-            <select
-              value={formData.teamLead.year}
-              onChange={(e) => handleInputChange('teamLead', 'year', e.target.value)}
-            >
-              <option value="">Select Year</option>
-              <option value="1st">1st Year</option>
-              <option value="2nd">2nd Year</option>
-              <option value="3rd">3rd Year</option>
-              <option value="4th">4th Year</option>
-              <option value="graduate">Graduate</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Branch/Major</label>
-            <input
-              type="text"
-              value={formData.teamLead.branch}
-              onChange={(e) => handleInputChange('teamLead', 'branch', e.target.value)}
-              placeholder="e.g., Computer Science"
-            />
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   const renderStep2 = () => (
     <motion.div
@@ -901,132 +870,135 @@ const RegistrationPage = ({ onBack }) => {
             <p>Please provide details for all team members (excluding the team leader)</p>
           </div>
 
-          {[...Array(formData.teamSize - 1)].map((_, index) => (
-            <div key={index} className="team-member-card">
-              <h5>Member {index + 2}</h5>
-              
-              {/* Member Personal Info */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Full Name *</label>
-                  <input
-                    type="text"
-                    value={formData.members[index]?.name || ''}
-                    onChange={(e) => handleInputChange('members', 'name', e.target.value, index)}
-                    placeholder="Enter full name"
-                    className={errors[`member${index}Name`] ? 'error' : ''}
-                  />
-                  {errors[`member${index}Name`] && (
-                    <span className="error-message">{errors[`member${index}Name`]}</span>
-                  )}
+          {[...Array(formData.teamSize - 1)].map((_, arrayIndex) => {
+            const memberIndex = arrayIndex + 1; // Start from index 1 since 0 is team leader
+            return (
+              <div key={memberIndex} className="team-member-card">
+                <h5>Member {arrayIndex + 2}</h5>
+                
+                {/* Member Personal Info */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Full Name *</label>
+                    <input
+                      type="text"
+                      value={formData.members[memberIndex]?.name || ''}
+                      onChange={(e) => handleInputChange('members', 'name', e.target.value, memberIndex)}
+                      placeholder="Enter full name"
+                      className={errors[`member${memberIndex}Name`] ? 'error' : ''}
+                    />
+                    {errors[`member${memberIndex}Name`] && (
+                      <span className="error-message">{errors[`member${memberIndex}Name`]}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Roll Number</label>
+                    <input
+                      type="text"
+                      value={formData.members[memberIndex]?.rollNumber || ''}
+                      onChange={(e) => handleInputChange('members', 'rollNumber', e.target.value, memberIndex)}
+                      placeholder="Enter roll number"
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Roll Number</label>
-                  <input
-                    type="text"
-                    value={formData.members[index]?.rollNumber || ''}
-                    onChange={(e) => handleInputChange('members', 'rollNumber', e.target.value, index)}
-                    placeholder="Enter roll number"
-                  />
+                {/* Member Contact Info */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      value={formData.members[memberIndex]?.email || ''}
+                      onChange={(e) => handleInputChange('members', 'email', e.target.value, memberIndex)}
+                      placeholder="Enter valid email"
+                      className={errors[`member${memberIndex}Email`] ? 'error' : ''}
+                    />
+                    {errors[`member${memberIndex}Email`] && (
+                      <span className="error-message">{errors[`member${memberIndex}Email`]}</span>
+                    )}
+                    {emailSuggestions[`member${memberIndex}emailSuggestion`] && !errors[`member${memberIndex}Email`] && (
+                      <div className="email-suggestion">
+                        <span className="suggestion-text">Did you mean: </span>
+                        <button 
+                          type="button"
+                          className="suggestion-button"
+                          onClick={() => applySuggestion('members', 'email', emailSuggestions[`member${memberIndex}emailSuggestion`], memberIndex)}
+                        >
+                          {emailSuggestions[`member${memberIndex}emailSuggestion`]}
+                        </button>
+                        <span className="suggestion-hint">? Click to use this email</span>
+                      </div>
+                    )}
+                    {!errors[`member${memberIndex}Email`] && formData.members[memberIndex]?.email && isValidEmail(formData.members[memberIndex]?.email) && (
+                      <span className="success-message">✓ Valid email address</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={formData.members[memberIndex]?.phone || ''}
+                      onChange={(e) => handleInputChange('members', 'phone', e.target.value, memberIndex)}
+                      placeholder="Enter phone number"
+                      className={errors[`member${memberIndex}Phone`] ? 'error' : ''}
+                    />
+                    {errors[`member${memberIndex}Phone`] && (
+                      <span className="error-message">{errors[`member${memberIndex}Phone`]}</span>
+                    )}
+                    {!errors[`member${memberIndex}Phone`] && formData.members[memberIndex]?.phone && isValidPhone(formData.members[memberIndex]?.phone) && (
+                      <span className="success-message">✓ Valid phone number</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Member Academic Info */}
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>College/University *</label>
+                    <input
+                      type="text"
+                      value={formData.members[memberIndex]?.college || ''}
+                      onChange={(e) => handleInputChange('members', 'college', e.target.value, memberIndex)}
+                      placeholder="Enter college name"
+                      className={errors[`member${memberIndex}College`] ? 'error' : ''}
+                    />
+                    {errors[`member${memberIndex}College`] && (
+                      <span className="error-message">{errors[`member${memberIndex}College`]}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Year of Study</label>
+                    <select
+                      value={formData.members[memberIndex]?.year || ''}
+                      onChange={(e) => handleInputChange('members', 'year', e.target.value, memberIndex)}
+                    >
+                      <option value="">Select Year</option>
+                      <option value="1st">1st Year</option>
+                      <option value="2nd">2nd Year</option>
+                      <option value="3rd">3rd Year</option>
+                      <option value="4th">4th Year</option>
+                      <option value="graduate">Graduate</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Branch/Major</label>
+                    <input
+                      type="text"
+                      value={formData.members[memberIndex]?.branch || ''}
+                      onChange={(e) => handleInputChange('members', 'branch', e.target.value, memberIndex)}
+                      placeholder="e.g., Computer Science"
+                    />
+                  </div>
                 </div>
               </div>
-
-              {/* Member Contact Info */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    value={formData.members[index]?.email || ''}
-                    onChange={(e) => handleInputChange('members', 'email', e.target.value, index)}
-                    placeholder="Enter valid email"
-                    className={errors[`member${index}Email`] ? 'error' : ''}
-                  />
-                  {errors[`member${index}Email`] && (
-                    <span className="error-message">{errors[`member${index}Email`]}</span>
-                  )}
-                  {emailSuggestions[`member${index}emailSuggestion`] && !errors[`member${index}Email`] && (
-                    <div className="email-suggestion">
-                      <span className="suggestion-text">Did you mean: </span>
-                      <button 
-                        type="button"
-                        className="suggestion-button"
-                        onClick={() => applySuggestion('members', 'email', emailSuggestions[`member${index}emailSuggestion`], index)}
-                      >
-                        {emailSuggestions[`member${index}emailSuggestion`]}
-                      </button>
-                      <span className="suggestion-hint">? Click to use this email</span>
-                    </div>
-                  )}
-                  {!errors[`member${index}Email`] && formData.members[index]?.email && isValidEmail(formData.members[index]?.email) && (
-                    <span className="success-message">✓ Valid email address</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Phone Number *</label>
-                  <input
-                    type="tel"
-                    value={formData.members[index]?.phone || ''}
-                    onChange={(e) => handleInputChange('members', 'phone', e.target.value, index)}
-                    placeholder="Enter phone number"
-                    className={errors[`member${index}Phone`] ? 'error' : ''}
-                  />
-                  {errors[`member${index}Phone`] && (
-                    <span className="error-message">{errors[`member${index}Phone`]}</span>
-                  )}
-                  {!errors[`member${index}Phone`] && formData.members[index]?.phone && isValidPhone(formData.members[index]?.phone) && (
-                    <span className="success-message">✓ Valid phone number</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Member Academic Info */}
-              <div className="form-row">
-                <div className="form-group">
-                  <label>College/University *</label>
-                  <input
-                    type="text"
-                    value={formData.members[index]?.college || ''}
-                    onChange={(e) => handleInputChange('members', 'college', e.target.value, index)}
-                    placeholder="Enter college name"
-                    className={errors[`member${index}College`] ? 'error' : ''}
-                  />
-                  {errors[`member${index}College`] && (
-                    <span className="error-message">{errors[`member${index}College`]}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Year of Study</label>
-                  <select
-                    value={formData.members[index]?.year || ''}
-                    onChange={(e) => handleInputChange('members', 'year', e.target.value, index)}
-                  >
-                    <option value="">Select Year</option>
-                    <option value="1st">1st Year</option>
-                    <option value="2nd">2nd Year</option>
-                    <option value="3rd">3rd Year</option>
-                    <option value="4th">4th Year</option>
-                    <option value="graduate">Graduate</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Branch/Major</label>
-                  <input
-                    type="text"
-                    value={formData.members[index]?.branch || ''}
-                    onChange={(e) => handleInputChange('members', 'branch', e.target.value, index)}
-                    placeholder="e.g., Computer Science"
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div className="team-cost-summary">
             <div className="cost-breakdown">
@@ -1111,7 +1083,7 @@ const RegistrationPage = ({ onBack }) => {
           <strong>Team Name:</strong> {formData.teamName}
         </div>
         <div className="summary-item">
-          <strong>Team Leader:</strong> {formData.teamLead.name}
+          <strong>Team Leader:</strong> {formData.members[0]?.name || 'Not entered'}
         </div>
         <div className="summary-item">
           <strong>Problem Statement:</strong> {
@@ -1119,15 +1091,14 @@ const RegistrationPage = ({ onBack }) => {
           }
         </div>
         <div className="summary-item">
-          <strong>Team Size:</strong> {1 + formData.members.filter(m => m.name.trim()).length} members
+          <strong>Team Size:</strong> {formData.teamSize} member{formData.teamSize > 1 ? 's' : ''}
         </div>
       </div>
     </motion.div>
   );
 
   const renderStep4 = () => {
-    const validMembers = formData.members.filter(member => member.name.trim());
-    const teamSize = 1 + validMembers.length;
+    const teamSize = formData.teamSize;
     const amount = getTeamPrice(teamSize);
     
     return (

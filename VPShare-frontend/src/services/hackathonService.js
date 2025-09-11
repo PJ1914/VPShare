@@ -115,7 +115,8 @@ export const verifyPayment = async (paymentData) => {
       leaderUid,
       teamSize,
       members,
-      teamname
+      teamname,
+      problem_statement
     } = paymentData;
     
     // Validate required fields with detailed error
@@ -140,7 +141,8 @@ export const verifyPayment = async (paymentData) => {
       teamsize: parseInt(teamSize),
       members: members || [],
       amount: getTeamPrice(parseInt(teamSize)), // Your verify Lambda expects RUPEES: 250, 500, 750, 1000
-      teamname
+      teamname,
+      problem_statement: problem_statement || ''
     };
 
     logger.info('Verifying hackathon payment:', { 
