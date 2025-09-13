@@ -15,7 +15,7 @@ const slides = [
     features: ['Expert Instructors', 'Real Projects', 'Career Support']
   },
   {
-    title: 'CodeKurukshetra 2024',
+    title: 'CodeKurukshetra 2025',
     subtitle: 'The Ultimate 48-Hour Coding Battle',
     description: 'Mahabharata-Inspired Hackathon • AI/Web/Mobile/IoT Tracks • ₹1.75L Prize Pool',
     cta: 'Join Battle',
