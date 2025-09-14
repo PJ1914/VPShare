@@ -22,10 +22,10 @@ const RegistrationPage = ({ onBack }) => {
     teamName: '',
     teamSize: 1, // Add team size field
     members: [
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Leader' }, // First member is always team leader
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' },
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' },
-      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', role: 'Team Member' }
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Leader' }, // First member is always team leader
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Member' },
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Member' },
+      { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Member' }
     ],
     selectedTrack: '',
     projectIdea: '',
@@ -55,6 +55,7 @@ const RegistrationPage = ({ onBack }) => {
         branch: member.branch,
         year: member.year,
         rollNumber: member.rollNumber,
+        gender: member.gender,
         role: member.role
       }));
 
@@ -87,6 +88,17 @@ const RegistrationPage = ({ onBack }) => {
       return /^[6-9]\d{9}$/.test(cleanPhone);
     }
     return false;
+  };
+
+  // Format phone number to only allow digits
+  const formatPhoneNumber = (value) => {
+    // Remove all non-digit characters
+    const cleaned = value.replace(/\D/g, '');
+    
+    // Limit to 12 digits (for +91 format)
+    const limited = cleaned.slice(0, 12);
+    
+    return limited;
   };
 
   // Email domain suggestion for common typos
@@ -309,6 +321,12 @@ const RegistrationPage = ({ onBack }) => {
   };
 
   const handleInputChange = (section, field, value, index = null) => {
+    // Format phone number to only allow digits
+    let processedValue = value;
+    if (field === 'phone') {
+      processedValue = formatPhoneNumber(value);
+    }
+
     setFormData(prev => {
       if (section === 'members' && index !== null) {
         const newMembers = [...prev.members];
@@ -322,10 +340,11 @@ const RegistrationPage = ({ onBack }) => {
             rollNumber: '',
             year: '',
             branch: '',
+            gender: '',
             role: index === 0 ? 'Team Leader' : 'Team Member'
           };
         }
-        newMembers[index] = { ...newMembers[index], [field]: value };
+        newMembers[index] = { ...newMembers[index], [field]: processedValue };
         return { ...prev, members: newMembers };
       } else if (section === 'root' && field === 'teamSize') {
         // When team size changes, ensure members array has correct structure
@@ -342,6 +361,7 @@ const RegistrationPage = ({ onBack }) => {
             rollNumber: '',
             year: '',
             branch: '',
+            gender: '',
             role: 'Team Member'
           });
         }
@@ -354,7 +374,7 @@ const RegistrationPage = ({ onBack }) => {
         
         return { ...prev, [field]: value, members: newMembers };
       } else {
-        return { ...prev, [field]: value };
+        return { ...prev, [field]: processedValue };
       }
     });
 
@@ -368,14 +388,14 @@ const RegistrationPage = ({ onBack }) => {
       
       if (field === 'email') {
         const fieldLabel = index === 0 ? 'Team lead email' : `Member ${index + 1} email`;
-        const emailError = validateEmail(value, fieldLabel);
+        const emailError = validateEmail(processedValue, fieldLabel);
         if (emailError) {
           newErrors[errorKey] = emailError;
         } else {
           delete newErrors[errorKey];
         }
       } else if (field === 'phone') {
-        const phoneError = validatePhone(value, 'Phone');
+        const phoneError = validatePhone(processedValue, 'Phone');
         if (phoneError) {
           newErrors[errorKey] = phoneError;
         } else {
@@ -425,6 +445,11 @@ const RegistrationPage = ({ onBack }) => {
       // College validation
       if (!teamLead?.college?.trim()) {
         newErrors.teamLeadCollege = 'College name is required';
+      }
+
+      // Gender validation
+      if (!teamLead?.gender?.trim()) {
+        newErrors.teamLeadGender = 'Gender is required';
       }
 
       // Year validation
@@ -481,6 +506,11 @@ const RegistrationPage = ({ onBack }) => {
         // College validation
         if (!member.college?.trim()) {
           newErrors[`${errorPrefix}College`] = `College is required for ${memberLabel.toLowerCase()}`;
+        }
+
+        // Gender validation
+        if (!member.gender?.trim()) {
+          newErrors[`${errorPrefix}Gender`] = `Gender is required for ${memberLabel.toLowerCase()}`;
         }
       }
 
@@ -788,10 +818,13 @@ const RegistrationPage = ({ onBack }) => {
               <label>Phone Number *</label>
               <input
                 type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={teamLead.phone || ''}
                 onChange={(e) => handleInputChange('members', 'phone', e.target.value, 0)}
                 placeholder="Enter phone number (e.g., 9876543210)"
                 className={errors.teamLeadPhone ? 'error' : ''}
+                maxLength="12"
               />
               {errors.teamLeadPhone && <span className="error-message">{errors.teamLeadPhone}</span>}
               {!errors.teamLeadPhone && teamLead.phone && isValidPhone(teamLead.phone) && (
@@ -815,6 +848,23 @@ const RegistrationPage = ({ onBack }) => {
             </div>
 
             <div className="form-group">
+              <label>Gender *</label>
+              <select
+                value={teamLead.gender || ''}
+                onChange={(e) => handleInputChange('members', 'gender', e.target.value, 0)}
+                className={errors.teamLeadGender ? 'error' : ''}
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.teamLeadGender && <span className="error-message">{errors.teamLeadGender}</span>}
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
               <label>Year of Study</label>
               <select
                 value={teamLead.year || ''}
@@ -828,9 +878,7 @@ const RegistrationPage = ({ onBack }) => {
                 <option value="graduate">Graduate</option>
               </select>
             </div>
-          </div>
 
-          <div className="form-row">
             <div className="form-group">
               <label>Branch/Major</label>
               <input
@@ -939,10 +987,13 @@ const RegistrationPage = ({ onBack }) => {
                     <label>Phone Number *</label>
                     <input
                       type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       value={formData.members[memberIndex]?.phone || ''}
                       onChange={(e) => handleInputChange('members', 'phone', e.target.value, memberIndex)}
                       placeholder="Enter phone number"
                       className={errors[`member${memberIndex}Phone`] ? 'error' : ''}
+                      maxLength="12"
                     />
                     {errors[`member${memberIndex}Phone`] && (
                       <span className="error-message">{errors[`member${memberIndex}Phone`]}</span>
@@ -970,6 +1021,25 @@ const RegistrationPage = ({ onBack }) => {
                   </div>
 
                   <div className="form-group">
+                    <label>Gender *</label>
+                    <select
+                      value={formData.members[memberIndex]?.gender || ''}
+                      onChange={(e) => handleInputChange('members', 'gender', e.target.value, memberIndex)}
+                      className={errors[`member${memberIndex}Gender`] ? 'error' : ''}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    {errors[`member${memberIndex}Gender`] && (
+                      <span className="error-message">{errors[`member${memberIndex}Gender`]}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
                     <label>Year of Study</label>
                     <select
                       value={formData.members[memberIndex]?.year || ''}
@@ -983,9 +1053,7 @@ const RegistrationPage = ({ onBack }) => {
                       <option value="graduate">Graduate</option>
                     </select>
                   </div>
-                </div>
 
-                <div className="form-row">
                   <div className="form-group">
                     <label>Branch/Major</label>
                     <input
