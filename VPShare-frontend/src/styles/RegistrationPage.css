@@ -1,15 +1,22 @@
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Registration Page Styles */
 .registration-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #6B46C1 0%, #805AD5 100%);
   padding: 2rem 0;
   color: #ffffff;
+  scroll-behavior: smooth;
 }
 
 .registration-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 0 2rem;
+  scroll-behavior: smooth;
 }
 
 .registration-header {

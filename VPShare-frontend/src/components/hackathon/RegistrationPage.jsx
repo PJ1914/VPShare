@@ -77,7 +77,7 @@ const RegistrationPage = ({ onBack }) => {
     return {
       leaderUid: user?.uid || '',
       teamname: formData.teamName,
-      problem_statement: formData.projectIdea,
+      problem_statement: formData.selectedTrack, // Should be the selected track ID, not project idea
       teamsize: allMembers.length.toString(),
       members: allMembers
     };
@@ -555,14 +555,40 @@ const RegistrationPage = ({ onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Scroll to top of form when changing steps
+  const scrollToTop = () => {
+    const registrationHeader = document.querySelector('.registration-header');
+    if (registrationHeader) {
+      registrationHeader.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    } else {
+      // Fallback to window scroll
+      window.scrollTo({ 
+        top: 0, 
+        behavior: 'smooth' 
+      });
+    }
+  };
+
   const handleNextStep = () => {
     if (validateStep(step)) {
       setStep(prev => prev + 1);
+      // Small delay to ensure the new step content is rendered before scrolling
+      setTimeout(() => {
+        scrollToTop();
+      }, 100);
     }
   };
 
   const handlePrevStep = () => {
     setStep(prev => prev - 1);
+    // Small delay to ensure the new step content is rendered before scrolling
+    setTimeout(() => {
+      scrollToTop();
+    }, 100);
   };
 
   const handleSubmit = async (e) => {
@@ -572,7 +598,7 @@ const RegistrationPage = ({ onBack }) => {
 
     if (!user) {
       showNotification({
-        message: 'Please log in to register for the hackathon',
+        message: 'Please log in to register for the hackathon.',
         type: 'error',
         duration: 5000
       });
@@ -605,8 +631,13 @@ const RegistrationPage = ({ onBack }) => {
       
       setStep(4); // Move to payment step
       
+      // Scroll to top after moving to payment step
+      setTimeout(() => {
+        scrollToTop();
+      }, 100);
+      
       showNotification({
-        message: '🎯 Registration data prepared! Now complete payment to secure your battlefield position.',
+        message: 'Registration data prepared successfully. Please complete payment to confirm your registration.',
         type: 'success',
         duration: 5000
       });
@@ -649,7 +680,7 @@ const RegistrationPage = ({ onBack }) => {
               // If payment was successful but missing verification data, let's just show success
               console.warn('Payment successful but missing verification data. Treating as successful payment.');
               showNotification({
-                message: '🎉 Payment successful! Welcome to CodeKurukshetra, warrior! Registration complete.',
+                message: 'Payment completed successfully. Welcome to CodeKurukshetra! Your registration is now confirmed.',
                 type: 'success',
                 duration: 7000
               });
@@ -672,7 +703,7 @@ const RegistrationPage = ({ onBack }) => {
             if (verifyResult.success) {
               // Payment verified and registration complete!
               showNotification({
-                message: '🎉 Payment successful! Welcome to CodeKurukshetra, warrior! Registration complete.',
+                message: 'Payment verified successfully. Welcome to CodeKurukshetra! Your registration is now complete.',
                 type: 'success',
                 duration: 7000
               });
@@ -1219,7 +1250,12 @@ const RegistrationPage = ({ onBack }) => {
               <button 
                 type="button" 
                 className="edit-btn"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setStep(1);
+                  setTimeout(() => {
+                    scrollToTop();
+                  }, 100);
+                }}
                 title="Edit team information"
               >
                 <Edit size={16} /> Edit
@@ -1245,7 +1281,12 @@ const RegistrationPage = ({ onBack }) => {
               <button 
                 type="button" 
                 className="edit-btn"
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setStep(1);
+                  setTimeout(() => {
+                    scrollToTop();
+                  }, 100);
+                }}
                 title="Edit team leader details"
               >
                 <Edit size={16} /> Edit
@@ -1289,7 +1330,12 @@ const RegistrationPage = ({ onBack }) => {
                 <button 
                   type="button" 
                   className="edit-btn"
-                  onClick={() => setStep(2)}
+                  onClick={() => {
+                    setStep(2);
+                    setTimeout(() => {
+                      scrollToTop();
+                    }, 100);
+                  }}
                   title="Edit team members"
                 >
                   <Edit size={16} /> Edit
@@ -1338,7 +1384,12 @@ const RegistrationPage = ({ onBack }) => {
               <button 
                 type="button" 
                 className="edit-btn"
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setStep(2);
+                  setTimeout(() => {
+                    scrollToTop();
+                  }, 100);
+                }}
                 title="Edit problem statement"
               >
                 <Edit size={16} /> Edit
@@ -1388,7 +1439,12 @@ const RegistrationPage = ({ onBack }) => {
           <button 
             type="button" 
             className="btn secondary"
-            onClick={() => setStep(3)}
+            onClick={() => {
+              setStep(3);
+              setTimeout(() => {
+                scrollToTop();
+              }, 100);
+            }}
           >
             <ChevronLeft size={16} /> Back to Review
           </button>
@@ -1411,7 +1467,7 @@ const RegistrationPage = ({ onBack }) => {
       <div className="registration-container">
         <div className="registration-header">
           <button className="back-button" onClick={onBack}>
-            ← Back to Hackathon
+            <ArrowLeft size={16} className="inline-icon" /> Back to Hackathon
           </button>
           <h2>Join the Battle</h2>
           <p>Register for {currentHackathon?.name}</p>
@@ -1451,13 +1507,14 @@ const RegistrationPage = ({ onBack }) => {
             <div className="form-navigation">
               {step > 1 && (
                 <button type="button" className="btn secondary" onClick={handlePrevStep}>
-                  Previous
+                  <ArrowLeft size={16} className="inline-icon" />
+                  {step === 2 ? 'Back to Team Info' : step === 3 ? 'Back to Members' : 'Previous'}
                 </button>
               )}
               
               {step < 3 ? (
                 <button type="button" className="btn primary" onClick={handleNextStep}>
-                  Next Step
+                  {step === 1 ? 'Continue to Members & Track' : 'Continue to Project Details'}
                 </button>
               ) : (
                 <button 
@@ -1465,7 +1522,7 @@ const RegistrationPage = ({ onBack }) => {
                   className="btn primary" 
                   disabled={loading}
                 >
-                  {loading ? 'Processing...' : 'Review Registration Details →'}
+                  {loading ? 'Processing...' : 'Review & Continue to Payment'}
                 </button>
               )}
             </div>
