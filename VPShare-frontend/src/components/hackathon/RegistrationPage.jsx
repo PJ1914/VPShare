@@ -10,7 +10,22 @@ import {
   getTeamPrice 
 } from '../../services/hackathonService';
 // Icon imports
-import { Star, ArrowLeft, Target, Code, Users, Brain, CreditCard, CheckCircle } from 'lucide-react';
+import { 
+  Star, 
+  ArrowLeft, 
+  Target, 
+  Code, 
+  Users, 
+  Brain, 
+  CreditCard, 
+  CheckCircle, 
+  Trophy,
+  Shield,
+  Check,
+  Edit,
+  ChevronLeft,
+  AlertCircle
+} from 'lucide-react';
 import '../../styles/RegistrationPage.css';
 
 const RegistrationPage = ({ onBack }) => {
@@ -810,7 +825,7 @@ const RegistrationPage = ({ onBack }) => {
                 </div>
               )}
               {!errors.teamLeadEmail && teamLead.email && isValidEmail(teamLead.email) && (
-                <span className="success-message">✓ Valid email address</span>
+                <span className="success-message"><Check className="inline-icon" size={14} /> Valid email address</span>
               )}
             </div>
 
@@ -828,7 +843,7 @@ const RegistrationPage = ({ onBack }) => {
               />
               {errors.teamLeadPhone && <span className="error-message">{errors.teamLeadPhone}</span>}
               {!errors.teamLeadPhone && teamLead.phone && isValidPhone(teamLead.phone) && (
-                <span className="success-message">✓ Valid phone number</span>
+                <span className="success-message"><Check className="inline-icon" size={14} /> Valid phone number</span>
               )}
             </div>
           </div>
@@ -906,7 +921,7 @@ const RegistrationPage = ({ onBack }) => {
       {formData.teamSize === 1 ? (
         <div className="single-member-notice">
           <div className="info-box">
-            <h4>🏆 Individual Participation</h4>
+            <h4><Trophy className="inline-icon" size={20} /> Individual Participation</h4>
             <p>You're registering as a solo warrior! No additional team member details needed.</p>
             <p><strong>Registration Fee:</strong> ₹250</p>
           </div>
@@ -979,7 +994,7 @@ const RegistrationPage = ({ onBack }) => {
                       </div>
                     )}
                     {!errors[`member${memberIndex}Email`] && formData.members[memberIndex]?.email && isValidEmail(formData.members[memberIndex]?.email) && (
-                      <span className="success-message">✓ Valid email address</span>
+                      <span className="success-message"><Check className="inline-icon" size={14} /> Valid email address</span>
                     )}
                   </div>
 
@@ -999,7 +1014,7 @@ const RegistrationPage = ({ onBack }) => {
                       <span className="error-message">{errors[`member${memberIndex}Phone`]}</span>
                     )}
                     {!errors[`member${memberIndex}Phone`] && formData.members[memberIndex]?.phone && isValidPhone(formData.members[memberIndex]?.phone) && (
-                      <span className="success-message">✓ Valid phone number</span>
+                      <span className="success-message"><Check className="inline-icon" size={14} /> Valid phone number</span>
                     )}
                   </div>
                 </div>
@@ -1147,19 +1162,32 @@ const RegistrationPage = ({ onBack }) => {
 
       <div className="registration-summary">
         <h4>Registration Summary</h4>
-        <div className="summary-item">
-          <strong>Team Name:</strong> {formData.teamName}
+        <div className="summary-section">
+          <div className="summary-item">
+            <strong>Team Name:</strong> <span>{formData.teamName}</span>
+          </div>
+          <div className="summary-item">
+            <strong>Team Leader:</strong> <span>{formData.members[0]?.name || 'Not entered'}</span>
+          </div>
+          <div className="summary-item">
+            <strong>Team Size:</strong> <span>{formData.teamSize} member{formData.teamSize > 1 ? 's' : ''}</span>
+          </div>
+          <div className="summary-item">
+            <strong>Problem Statement:</strong> <span>{
+              currentHackathon?.problemStatements?.find(p => p.id.toString() === formData.selectedTrack)?.title || 'Not selected'
+            }</span>
+          </div>
+          {formData.projectIdea && (
+            <div className="summary-item">
+              <strong>Project Idea:</strong> <span>{formData.projectIdea}</span>
+            </div>
+          )}
+          <div className="summary-item">
+            <strong>Registration Fee:</strong> <span>₹{250 * formData.teamSize}</span>
+          </div>
         </div>
-        <div className="summary-item">
-          <strong>Team Leader:</strong> {formData.members[0]?.name || 'Not entered'}
-        </div>
-        <div className="summary-item">
-          <strong>Problem Statement:</strong> {
-            currentHackathon?.problemStatements?.find(p => p.id.toString() === formData.selectedTrack)?.title || 'Not selected'
-          }
-        </div>
-        <div className="summary-item">
-          <strong>Team Size:</strong> {formData.teamSize} member{formData.teamSize > 1 ? 's' : ''}
+        <div className="summary-note">
+          <p><Check className="inline-icon" size={16} /> All details will be reviewable in the next step before payment</p>
         </div>
       </div>
     </motion.div>
@@ -1168,6 +1196,7 @@ const RegistrationPage = ({ onBack }) => {
   const renderStep4 = () => {
     const teamSize = formData.teamSize;
     const amount = getTeamPrice(teamSize);
+    const selectedProblem = currentHackathon?.problemStatements?.find(p => p.id.toString() === formData.selectedTrack);
     
     return (
       <motion.div
@@ -1178,45 +1207,191 @@ const RegistrationPage = ({ onBack }) => {
       >
         <div className="payment-header">
           <CheckCircle className="success-icon" size={48} />
-          <h3>🎯 Registration Successful!</h3>
-          <p>Complete payment to secure your battlefield position</p>
+          <h3><Target className="inline-icon" size={24} /> Review & Complete Registration</h3>
+          <p>Review your details and complete payment to secure your battlefield position</p>
         </div>
 
-        <div className="payment-details">
-          <div className="registration-info">
-            <h4>Registration Details</h4>
-            <div className="info-item">
-              <strong>Registration ID:</strong> {registrationResult?.registrationId}
+        <div className="registration-review">
+          {/* Team Information Section */}
+          <div className="review-section">
+            <div className="section-header">
+              <h4>Team Information</h4>
+              <button 
+                type="button" 
+                className="edit-btn"
+                onClick={() => setStep(1)}
+                title="Edit team information"
+              >
+                <Edit size={16} /> Edit
+              </button>
             </div>
-            <div className="info-item">
-              <strong>Team Name:</strong> {formData.teamName}
-            </div>
-            <div className="info-item">
-              <strong>Team Size:</strong> {teamSize} {teamSize === 1 ? 'Individual Warrior' : 'Warriors'}
+            <div className="review-content">
+              <div className="review-item">
+                <strong>Team Name:</strong> {formData.teamName}
+              </div>
+              <div className="review-item">
+                <strong>Team Size:</strong> {teamSize} member{teamSize > 1 ? 's' : ''}
+              </div>
+              <div className="review-item">
+                <strong>Registration Fee:</strong> ₹{amount}
+              </div>
             </div>
           </div>
 
-          <div className="payment-info">
-            <h4>Payment Information</h4>
-            <div className="amount-breakdown">
-              <div className="amount-item">
-                <span>Registration Fee:</span>
-                <span>₹{amount}</span>
+          {/* Team Leader Section */}
+          <div className="review-section">
+            <div className="section-header">
+              <h4>Team Leader Details</h4>
+              <button 
+                type="button" 
+                className="edit-btn"
+                onClick={() => setStep(1)}
+                title="Edit team leader details"
+              >
+                <Edit size={16} /> Edit
+              </button>
+            </div>
+            <div className="review-content">
+              <div className="review-item">
+                <strong>Name:</strong> {formData.members[0]?.name || 'Not entered'}
               </div>
-              <div className="amount-total">
-                <span><strong>Total Amount:</strong></span>
-                <span><strong>₹{amount}</strong></span>
+              <div className="review-item">
+                <strong>Email:</strong> {formData.members[0]?.email || 'Not entered'}
+              </div>
+              <div className="review-item">
+                <strong>Phone:</strong> {formData.members[0]?.phone || 'Not entered'}
+              </div>
+              <div className="review-item">
+                <strong>College:</strong> {formData.members[0]?.college || 'Not entered'}
+              </div>
+              <div className="review-item">
+                <strong>Gender:</strong> {formData.members[0]?.gender || 'Not entered'}
+              </div>
+              <div className="review-item">
+                <strong>Year:</strong> {formData.members[0]?.year || 'Not entered'}
+              </div>
+              <div className="review-item">
+                <strong>Branch:</strong> {formData.members[0]?.branch || 'Not entered'}
+              </div>
+              {formData.members[0]?.rollNumber && (
+                <div className="review-item">
+                  <strong>Roll Number:</strong> {formData.members[0].rollNumber}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Team Members Section (if team size > 1) */}
+          {teamSize > 1 && (
+            <div className="review-section">
+              <div className="section-header">
+                <h4>Team Members ({teamSize - 1} member{teamSize > 2 ? 's' : ''})</h4>
+                <button 
+                  type="button" 
+                  className="edit-btn"
+                  onClick={() => setStep(2)}
+                  title="Edit team members"
+                >
+                  <Edit size={16} /> Edit
+                </button>
+              </div>
+              <div className="review-content">
+                {formData.members.slice(1, teamSize).map((member, index) => (
+                  <div key={index} className="member-review">
+                    <h5>Member {index + 2}</h5>
+                    <div className="review-item">
+                      <strong>Name:</strong> {member?.name || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>Email:</strong> {member?.email || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>Phone:</strong> {member?.phone || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>College:</strong> {member?.college || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>Gender:</strong> {member?.gender || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>Year:</strong> {member?.year || 'Not entered'}
+                    </div>
+                    <div className="review-item">
+                      <strong>Branch:</strong> {member?.branch || 'Not entered'}
+                    </div>
+                    {member?.rollNumber && (
+                      <div className="review-item">
+                        <strong>Roll Number:</strong> {member.rollNumber}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-            
-            <div className="payment-note">
-              <p>💳 Secure payment powered by Razorpay</p>
-              <p>🛡️ Your payment is 100% secure and encrypted</p>
+          )}
+
+          {/* Problem Statement Section */}
+          <div className="review-section">
+            <div className="section-header">
+              <h4>Problem Statement & Project</h4>
+              <button 
+                type="button" 
+                className="edit-btn"
+                onClick={() => setStep(2)}
+                title="Edit problem statement"
+              >
+                <Edit size={16} /> Edit
+              </button>
+            </div>
+            <div className="review-content">
+              <div className="review-item">
+                <strong>Selected Track:</strong> {selectedProblem?.title || 'Not selected'}
+              </div>
+              {selectedProblem && (
+                <div className="review-item">
+                  <strong>Category:</strong> {selectedProblem.category}
+                </div>
+              )}
+              {formData.projectIdea && (
+                <div className="review-item">
+                  <strong>Project Idea:</strong> {formData.projectIdea}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Information */}
+          <div className="payment-details">
+            <div className="payment-info">
+              <h4>Payment Information</h4>
+              <div className="amount-breakdown">
+                <div className="amount-item">
+                  <span>Registration Fee ({teamSize} member{teamSize > 1 ? 's' : ''}):</span>
+                  <span>₹{amount}</span>
+                </div>
+                <div className="amount-total">
+                  <span><strong>Total Amount:</strong></span>
+                  <span><strong>₹{amount}</strong></span>
+                </div>
+              </div>
+              
+              <div className="payment-note">
+                <p><CreditCard className="inline-icon" size={16} /> Secure payment powered by Razorpay</p>
+                <p><Shield className="inline-icon" size={16} /> Your payment is 100% secure and encrypted</p>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="payment-actions">
+          <button 
+            type="button" 
+            className="btn secondary"
+            onClick={() => setStep(3)}
+          >
+            <ChevronLeft size={16} /> Back to Review
+          </button>
           <button 
             type="button" 
             className="btn primary payment-btn"
@@ -1254,7 +1429,7 @@ const RegistrationPage = ({ onBack }) => {
                 <span className="step-label">
                   {stepNumber === 1 ? 'Team Info' : 
                    stepNumber === 2 ? 'Members & Track' : 
-                   stepNumber === 3 ? 'Finalize' : 'Payment'}
+                   stepNumber === 3 ? 'Finalize' : 'Review & Pay'}
                 </span>
               </div>
             ))}
@@ -1290,7 +1465,7 @@ const RegistrationPage = ({ onBack }) => {
                   className="btn primary" 
                   disabled={loading}
                 >
-                  {loading ? 'Processing...' : 'Register Team'}
+                  {loading ? 'Processing...' : 'Review Registration Details →'}
                 </button>
               )}
             </div>
