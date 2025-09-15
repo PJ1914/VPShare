@@ -29,12 +29,17 @@ import {
   UserPlus,
   LogOut,
   Settings,
-  ArrowLeft
+  ArrowLeft,
+  Edit3
 } from 'lucide-react';
 import { HackathonContext } from '../../contexts/HackathonContext';
 import { NotificationContext } from '../../contexts/NotificationContext';
 import submissionService from '../../services/submissionService';
 import teamService from '../../services/teamService';
+import { 
+  fetchUserTeamData, 
+  checkRegistrationConfirmation 
+} from '../../services/hackathonService';
 import TeamManagement from './TeamManagement';
 import './HackathonDashboard.css';
 
@@ -141,9 +146,49 @@ const HackathonDashboard = ({ user, onBack }) => {
   };
 
   const loadUserTeam = async () => {
-    const result = await teamService.getUserTeam();
-    if (result.success) {
-      setTeamData(result.data);
+    try {
+      // Use the new API endpoint to fetch team data
+      const result = await fetchUserTeamData();
+      
+      console.log('🔍 Dashboard: fetchUserTeamData result:', result);
+      
+      if (result.success && result.teamData) {
+        // Check multiple possible confirmation statuses based on your API response
+        const isConfirmed = result.teamData?.registration_status === 'confirmed' ||
+                           result.teamData?.paymentStatus === 'completed' ||
+                           result.teamData?.registrationConfirmed === true ||
+                           result.teamData?.payment_verified === true ||
+                           result.teamData?.payment_id; // If payment_id exists, it's confirmed
+        
+        console.log('✅ Dashboard: Team confirmed status:', isConfirmed);
+        console.log('📊 Dashboard: Team data fields:', {
+          registration_status: result.teamData?.registration_status,
+          payment_id: result.teamData?.payment_id,
+          teamname: result.teamData?.teamname
+        });
+        
+        const processedTeamData = {
+          ...result.teamData,
+          registered: result.registered,
+          confirmed: isConfirmed,
+          name: result.teamData.teamname, // Map teamname to name for compatibility
+          members: result.teamData.members || []
+        };
+        
+        console.log('🎯 Dashboard: Final team data:', processedTeamData);
+        setTeamData(processedTeamData);
+      } else if (result.serverError) {
+        console.log('🚨 Dashboard: Server error detected');
+        showNotification('Server temporarily unavailable. Please try again later.', 'error');
+        setTeamData(null);
+      } else {
+        console.log('❌ Dashboard: No team data found or API failed');
+        setTeamData(null);
+      }
+      
+    } catch (error) {
+      console.error('💥 Dashboard: Failed to load team data:', error);
+      showNotification('Failed to load team data', 'error');
     }
   };
 
@@ -204,12 +249,22 @@ const HackathonDashboard = ({ user, onBack }) => {
           whileHover={{ scale: 1.02 }}
         >
           <div className="card-icon">
-            <CheckCircle className="icon registered" />
+            {teamData?.confirmed ? (
+              <CheckCircle className="icon registered" />
+            ) : teamData?.registered ? (
+              <Timer className="icon pending" />
+            ) : (
+              <AlertCircle className="icon not-registered" />
+            )}
           </div>
           <div className="card-content">
             <h3>Registration Status</h3>
-            <p className="status confirmed">Confirmed</p>
-            <span className="status-description">Ready for battle!</span>
+            <p className={`status ${teamData?.confirmed ? 'confirmed' : teamData?.registered ? 'pending' : 'not-registered'}`}>
+              {teamData?.confirmed ? 'Confirmed' : teamData?.registered ? 'Payment Pending' : 'Not Registered'}
+            </p>
+            <span className="status-description">
+              {teamData?.confirmed ? 'Ready for battle!' : teamData?.registered ? 'Complete payment to confirm' : 'Register to participate'}
+            </span>
           </div>
         </motion.div>
 
@@ -222,10 +277,18 @@ const HackathonDashboard = ({ user, onBack }) => {
           </div>
           <div className="card-content">
             <h3>Team Status</h3>
-            <p className="team-name">{teamData ? teamData.name : 'No Team'}</p>
+            <p className="team-name">
+              {teamData?.teamname || teamData?.name || 'No Team'}
+            </p>
             <span className="team-members">
-              {teamData ? `${teamData.members.length}/4 members` : 'Join or create a team'}
+              {teamData ? 
+                `${teamData.teamsize || teamData.members?.length || 1}/${teamData.teamsize || 4} members` : 
+                'Join or create a team'
+              }
             </span>
+            {teamData?.selectedTrack && (
+              <span className="team-track">Track: {teamData.selectedTrack}</span>
+            )}
           </div>
         </motion.div>
 

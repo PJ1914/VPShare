@@ -1,28 +1,69 @@
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  collection, 
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove 
-} from 'firebase/firestore';
 import { auth } from '../config/firebase';
+import { 
+  fetchUserTeamData, 
+  fetchAllTeams, 
+  updateTeamRegistration,
+  checkRegistrationConfirmation 
+} from './hackathonService';
 
 class TeamService {
   constructor() {
-    this.db = getFirestore();
+    // Using API instead of Firestore for CodeKurukshetra
   }
 
-  // Create a new team
+  // Get user's team using the new API
+  async getUserTeam() {
+    try {
+      const result = await fetchUserTeamData();
+      
+      if (!result.success) {
+        return {
+          success: false,
+          error: result.error,
+          data: null
+        };
+      }
+
+      return {
+        success: true,
+        data: result.teamData,
+        message: result.registered ? 'Team data retrieved' : 'No team found'
+      };
+
+    } catch (error) {
+      console.error('Get user team error:', error);
+      return {
+        success: false,
+        error: error.message,
+        data: null
+      };
+    }
+  }
+
+  // Get team registration confirmation status
+  async getTeamConfirmationStatus() {
+    try {
+      const result = await checkRegistrationConfirmation();
+      
+      return {
+        success: result.success,
+        confirmed: result.confirmed,
+        teamData: result.teamData,
+        registrationStatus: result.registrationStatus,
+        error: result.error
+      };
+
+    } catch (error) {
+      console.error('Get confirmation status error:', error);
+      return {
+        success: false,
+        confirmed: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Create a new team (legacy method - keeping for compatibility)
   async createTeam(teamData) {
     try {
       const user = auth.currentUser;

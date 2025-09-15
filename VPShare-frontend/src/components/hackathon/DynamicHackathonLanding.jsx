@@ -9,7 +9,16 @@ import { SiReact, SiNodedotjs, SiPython, SiJavascript, SiMongodb } from 'react-i
 import '../../styles/DynamicHackathon.css';
 
 const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboard }) => {
-  const { currentHackathon } = useHackathon();
+  // Add error boundary for context
+  let currentHackathon = null;
+  try {
+    const hackathonContext = useHackathon();
+    currentHackathon = hackathonContext?.currentHackathon;
+  } catch (error) {
+    console.error('HackathonContext error in DynamicHackathonLanding:', error);
+    // Fallback - context might not be available yet
+  }
+  
   const [activePhase, setActivePhase] = useState(0);
   const [timeLeft, setTimeLeft] = useState({});
   const [currentCardIndex, setCurrentCardIndex] = useState(0);

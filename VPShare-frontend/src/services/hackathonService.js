@@ -1,10 +1,3 @@
-/**
- * Hackathon Service - Simple & Secure
- * 2 APIs: Create Order & Verify Payment
- * 4 members max per team
- * Pricing: 1=₹250, 2=₹500, 3=₹750, 4=₹1000
- */
-
 import axios from 'axios';
 import { auth } from '../config/firebase';
 import { logger } from '../config/environment';
@@ -12,6 +5,7 @@ import { logger } from '../config/environment';
 // ===== API ENDPOINTS FROM ENV =====
 const CREATE_ORDER_API = `${import.meta.env.VITE_HACKATHON_PAYMENT_API_URL}/create-order`;
 const VERIFY_PAYMENT_API = `${import.meta.env.VITE_HACKATHON_PAYMENT_API_URL}/verify-hackathon-payment`;
+const REGISTRATION_API = `${import.meta.env.VITE_HACKATHON_API_URL}/registrationCK`;
 
 // ===== HACKATHON PRICING =====
 const HACKATHON_PRICING = {
@@ -203,10 +197,207 @@ export const processHackathonPayment = async (teamData) => {
   }
 };
 
+// ===== DASHBOARD API FUNCTIONS =====
+
+// Fetch user's team registration status and data
+export const fetchUserTeamData = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Not authenticated');
+    }
+
+    console.log('🔍 API: Fetching team data for UID:', user.uid);
+    
+    const headers = await getAuthHeaders();
+    
+    // Try different API call approaches based on Lambda code analysis
+    let response;
+    try {
+      // First try: GET with leaderUid parameter (as expected by Lambda)
+      console.log('🔄 API: Trying GET with leaderUid parameter');
+      response = await axios.get(`${REGISTRATION_API}?leaderUid=${user.uid}`, {
+        headers,
+        timeout: 30000
+      });
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // User not registered, this is expected
+        console.log('ℹ️ API: User not found (404), returning not registered');
+        return {
+          success: true,
+          data: null,
+          registered: false,
+          teamData: null
+        };
+      }
+      
+      console.log('⚠️ API: GET with leaderUid failed, trying without parameter (will use authenticated uid)');
+      // Second try: GET without parameter (Lambda will use authenticated uid)
+      response = await axios.get(REGISTRATION_API, {
+        headers,
+        timeout: 30000
+      });
+    }
+
+    console.log('✅ API: Team data response:', response.data);
+    logger.info('Fetched user team data:', { uid: user.uid });
+
+    return {
+      success: true,
+      data: response.data,
+      registered: !!response.data,
+      teamData: response.data
+    };
+
+  } catch (error) {
+    console.error('💥 API: Failed to fetch user team data:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: `${REGISTRATION_API}?leaderUid=${auth.currentUser?.uid}`
+    });
+    logger.error('Failed to fetch user team data:', error);
+    
+    // If 404, user is not registered
+    if (error.response?.status === 404) {
+      console.log('ℹ️ API: User not found (404), returning not registered');
+      return {
+        success: true,
+        data: null,
+        registered: false,
+        teamData: null
+      };
+    }
+
+    // If 500, there's a server error - still return false but with error info
+    if (error.response?.status === 500) {
+      console.log('🚨 API: Server error (500), API might be down');
+      return {
+        success: false,
+        error: 'Server error - please try again later',
+        registered: false,
+        teamData: null,
+        serverError: true
+      };
+    }
+
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message,
+      registered: false,
+      teamData: null
+    };
+  }
+};
+
+// Fetch all registered teams (for admin or general stats)
+export const fetchAllTeams = async () => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(REGISTRATION_API, {
+      headers,
+      timeout: 30000
+    });
+
+    logger.info('Fetched all teams data');
+
+    return {
+      success: true,
+      data: response.data,
+      teams: response.data || []
+    };
+
+  } catch (error) {
+    logger.error('Failed to fetch all teams:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message,
+      teams: []
+    };
+  }
+};
+
+// Update team registration data
+export const updateTeamRegistration = async (teamData) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Not authenticated');
+    }
+
+    const headers = await getAuthHeaders();
+    const response = await axios.put(REGISTRATION_API, {
+      ...teamData,
+      leaderUid: user.uid
+    }, {
+      headers,
+      timeout: 30000
+    });
+
+    logger.info('Updated team registration:', { uid: user.uid });
+
+    return {
+      success: true,
+      data: response.data,
+      message: 'Team registration updated successfully'
+    };
+
+  } catch (error) {
+    logger.error('Failed to update team registration:', error);
+    return {
+      success: false,
+      error: error.response?.data?.error || error.message
+    };
+  }
+};
+
+// Check registration confirmation status
+export const checkRegistrationConfirmation = async () => {
+  try {
+    const teamResult = await fetchUserTeamData();
+    
+    if (!teamResult.success) {
+      return {
+        success: false,
+        confirmed: false,
+        error: teamResult.error
+      };
+    }
+
+    // Check multiple possible confirmation statuses based on API response format
+    const isConfirmed = !!(teamResult.teamData?.registration_status === 'confirmed' || 
+                          teamResult.teamData?.paymentStatus === 'completed' ||
+                          teamResult.teamData?.registrationConfirmed === true ||
+                          teamResult.teamData?.payment_verified === true ||
+                          teamResult.teamData?.payment_id); // If payment_id exists, it's confirmed
+
+    return {
+      success: true,
+      confirmed: isConfirmed,
+      teamData: teamResult.teamData,
+      registrationStatus: teamResult.teamData?.registration_status || teamResult.teamData?.paymentStatus || 'pending'
+    };
+
+  } catch (error) {
+    logger.error('Failed to check registration confirmation:', error);
+    return {
+      success: false,
+      confirmed: false,
+      error: error.message
+    };
+  }
+};
+
 // ===== EXPORTS =====
 export default {
   createPaymentOrder,
   verifyPayment,
   processHackathonPayment,
-  getTeamPrice
+  getTeamPrice,
+  fetchUserTeamData,
+  fetchAllTeams,
+  updateTeamRegistration,
+  checkRegistrationConfirmation
 };

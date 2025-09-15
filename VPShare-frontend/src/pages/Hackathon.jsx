@@ -18,7 +18,17 @@ const Hackathon = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { isMobile } = useResponsive();
   const { showNotification } = useNotification();
-  const { currentHackathon } = useHackathon();
+  
+  // Add error boundary for context
+  let currentHackathon = null;
+  try {
+    const hackathonContext = useHackathon();
+    currentHackathon = hackathonContext?.currentHackathon;
+  } catch (error) {
+    console.error('HackathonContext error:', error);
+    // Fallback - context might not be available yet
+  }
+  
   const { user } = useAuth();
 
   // Determine current view based on URL
@@ -51,7 +61,7 @@ const Hackathon = () => {
     return () => clearTimeout(timer);
   }, [showNotification, currentHackathon]);
 
-  if (isLoading) {
+  if (isLoading || !currentHackathon) {
     return (
       <div className="hackathon-loading">
         <div className="loading-container">

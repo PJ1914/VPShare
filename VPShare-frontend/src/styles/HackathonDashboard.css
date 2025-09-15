@@ -201,6 +201,116 @@
   color: #f59e0b;
 }
 
+/* Team Actions */
+.team-actions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Redesigned Update Team Button */
+.update-team-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  padding: 1rem 1.5rem !important;
+  width: 100% !important;
+  background: linear-gradient(45deg, #ff6b6b, #ffa726, #ffeb3b) !important;
+  color: #1a1a1a !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-shadow: 0 8px 30px rgba(255, 107, 107, 0.3) !important;
+  transform: translateZ(0) !important;
+}
+
+.update-team-btn::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent) !important;
+  transition: left 0.6s ease !important;
+}
+
+.update-team-btn::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 2px !important;
+  background: linear-gradient(45deg, #ff6b6b, #ffa726, #ffeb3b) !important;
+  border-radius: 10px !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.update-team-btn:hover:not(:disabled) {
+  background: linear-gradient(45deg, #ff5252, #ff9800, #ffd600) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.5) !important;
+}
+
+.update-team-btn:hover:not(:disabled)::before {
+  left: 100% !important;
+}
+
+.update-team-btn:hover:not(:disabled)::after {
+  opacity: 0.1 !important;
+}
+
+.update-team-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.98) !important;
+  box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4) !important;
+}
+
+.update-team-btn:disabled {
+  background: linear-gradient(45deg, #64748b, #94a3b8) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: 0 2px 10px rgba(100, 116, 139, 0.2) !important;
+}
+
+.update-team-btn:disabled::before,
+.update-team-btn:disabled::after {
+  display: none !important;
+}
+
+.update-team-btn svg {
+  transition: all 0.3s ease !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) !important;
+}
+
+.update-team-btn:hover:not(:disabled) svg {
+  transform: rotate(15deg) scale(1.2) !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) !important;
+}
+
+.update-team-btn:disabled svg {
+  opacity: 0.5 !important;
+  transform: none !important;
+}
+
+.team-track {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .quick-actions {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
