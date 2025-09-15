@@ -927,12 +927,98 @@ const RegistrationPage = ({ onBack }) => {
 
             <div className="form-group">
               <label>Branch/Major</label>
-              <input
-                type="text"
+              <select
                 value={teamLead.branch || ''}
                 onChange={(e) => handleInputChange('members', 'branch', e.target.value, 0)}
-                placeholder="e.g., Computer Science"
-              />
+              >
+                <option value="">Select Branch</option>
+                <optgroup label="Computer Science & IT">
+                  <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
+                  <option value="Information Technology">Information Technology (IT)</option>
+                  <option value="Computer Engineering">Computer Engineering</option>
+                  <option value="Software Engineering">Software Engineering</option>
+                  <option value="Data Science">Data Science & Analytics</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence & Machine Learning</option>
+                  <option value="Cyber Security">Cyber Security</option>
+                </optgroup>
+                <optgroup label="Electronics & Communication">
+                  <option value="Electronics & Communication">Electronics & Communication Engineering (ECE)</option>
+                  <option value="Electronics Engineering">Electronics Engineering</option>
+                  <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                  <option value="Communication Engineering">Communication Engineering</option>
+                  <option value="VLSI Design">VLSI Design & Technology</option>
+                </optgroup>
+                <optgroup label="Electrical & Power">
+                  <option value="Electrical Engineering">Electrical Engineering (EE)</option>
+                  <option value="Electrical & Electronics">Electrical & Electronics Engineering (EEE)</option>
+                  <option value="Power Engineering">Power Engineering</option>
+                  <option value="Power Systems">Power Systems Engineering</option>
+                </optgroup>
+                <optgroup label="Mechanical & Production">
+                  <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+                  <option value="Production Engineering">Production Engineering</option>
+                  <option value="Manufacturing Engineering">Manufacturing Engineering</option>
+                  <option value="Industrial Engineering">Industrial Engineering</option>
+                  <option value="Automotive Engineering">Automotive Engineering</option>
+                  <option value="Thermal Engineering">Thermal Engineering</option>
+                </optgroup>
+                <optgroup label="Civil & Architecture">
+                  <option value="Civil Engineering">Civil Engineering (CE)</option>
+                  <option value="Architecture">Architecture</option>
+                  <option value="Structural Engineering">Structural Engineering</option>
+                  <option value="Environmental Engineering">Environmental Engineering</option>
+                  <option value="Transportation Engineering">Transportation Engineering</option>
+                  <option value="Construction Technology">Construction Technology</option>
+                </optgroup>
+                <optgroup label="Chemical & Materials">
+                  <option value="Chemical Engineering">Chemical Engineering</option>
+                  <option value="Materials Engineering">Materials Science & Engineering</option>
+                  <option value="Metallurgical Engineering">Metallurgical Engineering</option>
+                  <option value="Polymer Engineering">Polymer Engineering</option>
+                  <option value="Petrochemical Engineering">Petrochemical Engineering</option>
+                </optgroup>
+                <optgroup label="Aerospace & Automobile">
+                  <option value="Aerospace Engineering">Aerospace Engineering</option>
+                  <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                  <option value="Automobile Engineering">Automobile Engineering</option>
+                  <option value="Aviation Technology">Aviation Technology</option>
+                </optgroup>
+                <optgroup label="Biomedical & Biotechnology">
+                  <option value="Biomedical Engineering">Biomedical Engineering</option>
+                  <option value="Biotechnology">Biotechnology Engineering</option>
+                  <option value="Bioinformatics">Bioinformatics</option>
+                  <option value="Genetic Engineering">Genetic Engineering</option>
+                </optgroup>
+                <optgroup label="Mining & Petroleum">
+                  <option value="Mining Engineering">Mining Engineering</option>
+                  <option value="Petroleum Engineering">Petroleum Engineering</option>
+                  <option value="Geological Engineering">Geological Engineering</option>
+                </optgroup>
+                <optgroup label="Marine & Naval">
+                  <option value="Marine Engineering">Marine Engineering</option>
+                  <option value="Naval Architecture">Naval Architecture</option>
+                  <option value="Ocean Engineering">Ocean Engineering</option>
+                </optgroup>
+                <optgroup label="Food & Agricultural">
+                  <option value="Food Technology">Food Technology</option>
+                  <option value="Agricultural Engineering">Agricultural Engineering</option>
+                  <option value="Food Engineering">Food Engineering</option>
+                </optgroup>
+                <optgroup label="Textile & Fashion">
+                  <option value="Textile Engineering">Textile Engineering</option>
+                  <option value="Fashion Technology">Fashion Technology</option>
+                </optgroup>
+                <optgroup label="Other Disciplines">
+                  <option value="Instrumentation Engineering">Instrumentation Engineering</option>
+                  <option value="Control Systems">Control Systems Engineering</option>
+                  <option value="Robotics Engineering">Robotics Engineering</option>
+                  <option value="Mechatronics">Mechatronics Engineering</option>
+                  <option value="Nuclear Engineering">Nuclear Engineering</option>
+                  <option value="Engineering Physics">Engineering Physics</option>
+                  <option value="Engineering Mathematics">Engineering Mathematics</option>
+                  <option value="Other">Other</option>
+                </optgroup>
+              </select>
             </div>
           </div>
         </div>
@@ -1102,12 +1188,98 @@ const RegistrationPage = ({ onBack }) => {
 
                   <div className="form-group">
                     <label>Branch/Major</label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.members[memberIndex]?.branch || ''}
                       onChange={(e) => handleInputChange('members', 'branch', e.target.value, memberIndex)}
-                      placeholder="e.g., Computer Science"
-                    />
+                    >
+                      <option value="">Select Branch</option>
+                      <optgroup label="Computer Science & IT">
+                        <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
+                        <option value="Information Technology">Information Technology (IT)</option>
+                        <option value="Computer Engineering">Computer Engineering</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Data Science">Data Science & Analytics</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence & Machine Learning</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                      </optgroup>
+                      <optgroup label="Electronics & Communication">
+                        <option value="Electronics & Communication">Electronics & Communication Engineering (ECE)</option>
+                        <option value="Electronics Engineering">Electronics Engineering</option>
+                        <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                        <option value="Communication Engineering">Communication Engineering</option>
+                        <option value="VLSI Design">VLSI Design & Technology</option>
+                      </optgroup>
+                      <optgroup label="Electrical & Power">
+                        <option value="Electrical Engineering">Electrical Engineering (EE)</option>
+                        <option value="Electrical & Electronics">Electrical & Electronics Engineering (EEE)</option>
+                        <option value="Power Engineering">Power Engineering</option>
+                        <option value="Power Systems">Power Systems Engineering</option>
+                      </optgroup>
+                      <optgroup label="Mechanical & Production">
+                        <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+                        <option value="Production Engineering">Production Engineering</option>
+                        <option value="Manufacturing Engineering">Manufacturing Engineering</option>
+                        <option value="Industrial Engineering">Industrial Engineering</option>
+                        <option value="Automotive Engineering">Automotive Engineering</option>
+                        <option value="Thermal Engineering">Thermal Engineering</option>
+                      </optgroup>
+                      <optgroup label="Civil & Architecture">
+                        <option value="Civil Engineering">Civil Engineering (CE)</option>
+                        <option value="Architecture">Architecture</option>
+                        <option value="Structural Engineering">Structural Engineering</option>
+                        <option value="Environmental Engineering">Environmental Engineering</option>
+                        <option value="Transportation Engineering">Transportation Engineering</option>
+                        <option value="Construction Technology">Construction Technology</option>
+                      </optgroup>
+                      <optgroup label="Chemical & Materials">
+                        <option value="Chemical Engineering">Chemical Engineering</option>
+                        <option value="Materials Engineering">Materials Science & Engineering</option>
+                        <option value="Metallurgical Engineering">Metallurgical Engineering</option>
+                        <option value="Polymer Engineering">Polymer Engineering</option>
+                        <option value="Petrochemical Engineering">Petrochemical Engineering</option>
+                      </optgroup>
+                      <optgroup label="Aerospace & Automobile">
+                        <option value="Aerospace Engineering">Aerospace Engineering</option>
+                        <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                        <option value="Automobile Engineering">Automobile Engineering</option>
+                        <option value="Aviation Technology">Aviation Technology</option>
+                      </optgroup>
+                      <optgroup label="Biomedical & Biotechnology">
+                        <option value="Biomedical Engineering">Biomedical Engineering</option>
+                        <option value="Biotechnology">Biotechnology Engineering</option>
+                        <option value="Bioinformatics">Bioinformatics</option>
+                        <option value="Genetic Engineering">Genetic Engineering</option>
+                      </optgroup>
+                      <optgroup label="Mining & Petroleum">
+                        <option value="Mining Engineering">Mining Engineering</option>
+                        <option value="Petroleum Engineering">Petroleum Engineering</option>
+                        <option value="Geological Engineering">Geological Engineering</option>
+                      </optgroup>
+                      <optgroup label="Marine & Naval">
+                        <option value="Marine Engineering">Marine Engineering</option>
+                        <option value="Naval Architecture">Naval Architecture</option>
+                        <option value="Ocean Engineering">Ocean Engineering</option>
+                      </optgroup>
+                      <optgroup label="Food & Agricultural">
+                        <option value="Food Technology">Food Technology</option>
+                        <option value="Agricultural Engineering">Agricultural Engineering</option>
+                        <option value="Food Engineering">Food Engineering</option>
+                      </optgroup>
+                      <optgroup label="Textile & Fashion">
+                        <option value="Textile Engineering">Textile Engineering</option>
+                        <option value="Fashion Technology">Fashion Technology</option>
+                      </optgroup>
+                      <optgroup label="Other Disciplines">
+                        <option value="Instrumentation Engineering">Instrumentation Engineering</option>
+                        <option value="Control Systems">Control Systems Engineering</option>
+                        <option value="Robotics Engineering">Robotics Engineering</option>
+                        <option value="Mechatronics">Mechatronics Engineering</option>
+                        <option value="Nuclear Engineering">Nuclear Engineering</option>
+                        <option value="Engineering Physics">Engineering Physics</option>
+                        <option value="Engineering Mathematics">Engineering Mathematics</option>
+                        <option value="Other">Other</option>
+                      </optgroup>
+                    </select>
                   </div>
                 </div>
               </div>

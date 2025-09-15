@@ -804,6 +804,9 @@ html {
   font-size: 1rem;
   transition: all 0.3s ease;
   cursor: pointer;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .form-group select:focus {
@@ -816,6 +819,30 @@ html {
   background: #2a2a2a;
   color: #ffffff;
   padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Optgroup styling for branch dropdowns */
+.form-group select optgroup {
+  background: #1a1a1a;
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  margin: 0;
+}
+
+.form-group select optgroup option {
+  background: #2a2a2a;
+  color: #ffffff;
+  font-weight: 400;
+  padding: 0.4rem 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.form-group select optgroup option:hover {
+  background: #3a3a3a;
 }
 
 /* Problem selection styling enhancements */
