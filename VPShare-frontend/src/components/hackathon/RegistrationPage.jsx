@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useHackathon } from '../../contexts/HackathonContext';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -7,7 +7,8 @@ import { auth } from '../../config/firebase';
 import { 
   createPaymentOrder, 
   verifyPayment,
-  getTeamPrice 
+  getTeamPrice,
+  fetchUserTeamData
 } from '../../services/hackathonService';
 // Icon imports
 import { 
@@ -52,6 +53,47 @@ const RegistrationPage = ({ onBack }) => {
   const [step, setStep] = useState(1);
   const [registrationResult, setRegistrationResult] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [checkingRegistration, setCheckingRegistration] = useState(true);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  const [existingRegistration, setExistingRegistration] = useState(null);
+
+  // Check if user is already registered when component mounts
+  useEffect(() => {
+    const checkExistingRegistration = async () => {
+      if (!user) {
+        setCheckingRegistration(false);
+        return;
+      }
+
+      try {
+        console.log('🔍 Checking if user is already registered...');
+        const result = await fetchUserTeamData();
+        
+        if (result.success && result.registered && result.teamData) {
+          console.log('✅ User is already registered:', result.teamData);
+          setAlreadyRegistered(true);
+          setExistingRegistration(result.teamData);
+          
+          showNotification({
+            message: 'You are already registered for this hackathon!',
+            type: 'info',
+            duration: 5000
+          });
+        } else {
+          console.log('ℹ️ User is not registered yet, allowing registration');
+          setAlreadyRegistered(false);
+        }
+      } catch (error) {
+        console.error('❌ Error checking registration status:', error);
+        // If there's an error checking, we'll allow the user to proceed
+        setAlreadyRegistered(false);
+      } finally {
+        setCheckingRegistration(false);
+      }
+    };
+
+    checkExistingRegistration();
+  }, [user, showNotification]);
 
   // Transform form data to match API schema
   const transformFormDataToAPISchema = (formData) => {
@@ -336,6 +378,17 @@ const RegistrationPage = ({ onBack }) => {
   };
 
   const handleInputChange = (section, field, value, index = null) => {
+    // Debug logging for track selection
+    if (field === 'selectedTrack') {
+      console.log('🎯 Track Selection Change:', {
+        section,
+        field,
+        value,
+        valueType: typeof value,
+        stringValue: value?.toString()
+      });
+    }
+
     // Format phone number to only allow digits
     let processedValue = value;
     if (field === 'phone') {
@@ -392,6 +445,16 @@ const RegistrationPage = ({ onBack }) => {
         return { ...prev, [field]: processedValue };
       }
     });
+
+    // Debug logging for track selection - log state after update
+    if (field === 'selectedTrack') {
+      setTimeout(() => {
+        console.log('🎯 Track Selection Updated State:', {
+          selectedTrack: formData.selectedTrack,
+          newValue: processedValue
+        });
+      }, 0);
+    }
 
     // Real-time validation for specific fields
     const newErrors = { ...errors };
@@ -479,10 +542,14 @@ const RegistrationPage = ({ onBack }) => {
     }
 
     if (stepNumber === 2) {
-      // Track selection validation
-      if (!formData.selectedTrack) {
-        newErrors.selectedTrack = 'Please select a battle track (problem statement)';
+      // Track selection validation - REQUIRED
+      if (!formData.selectedTrack || formData.selectedTrack.trim() === '') {
+        newErrors.selectedTrack = 'Please select a battle track (problem statement) - this is required!';
       }
+
+      // Debug: Log validation state
+      console.log('🔍 Step 2 Validation - selectedTrack:', formData.selectedTrack);
+      console.log('🔍 Step 2 Validation - formData:', formData);
 
       // Collect all emails for duplicate checking
       const allEmails = [];
@@ -609,6 +676,11 @@ const RegistrationPage = ({ onBack }) => {
       // Transform form data to API schema
       const apiData = transformFormDataToAPISchema(formData);
       
+      // Debug: Log the form data and API data to check problem_statement
+      console.log('🔍 Form Data selectedTrack:', formData.selectedTrack);
+      console.log('🔍 API Data problem_statement:', apiData.problem_statement);
+      console.log('🔍 Full API Data:', apiData);
+      
       // Create payment order first
       const orderResult = await createPaymentOrder({
         teamSize: apiData.members.length,
@@ -689,7 +761,7 @@ const RegistrationPage = ({ onBack }) => {
             }
 
             // Verify payment and complete registration
-            const verifyResult = await verifyPayment({
+            const verifyPaymentData = {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
@@ -698,7 +770,13 @@ const RegistrationPage = ({ onBack }) => {
               members: registrationData.members, // Send complete member data
               teamname: registrationData.teamname,
               problem_statement: registrationData.problem_statement // Include problem statement
-            });
+            };
+            
+            // Debug: Log the payment verification data
+            console.log('🔍 Payment Verification Data:', verifyPaymentData);
+            console.log('🔍 Problem Statement being sent:', registrationData.problem_statement);
+            
+            const verifyResult = await verifyPayment(verifyPaymentData);
             
             if (verifyResult.success) {
               // Payment verified and registration complete!
@@ -1634,75 +1712,195 @@ const RegistrationPage = ({ onBack }) => {
     );
   };
 
+  // Component to show when user is already registered
+  const renderAlreadyRegistered = () => (
+    <motion.div
+      className="already-registered"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+    >
+      <div className="registration-status-card">
+        <div className="status-header">
+          <CheckCircle className="status-icon success" size={64} />
+          <h2>🎉 Already Registered!</h2>
+          <p>You're all set for CodeKurukshetra - कोड कुरुक्षेत्र</p>
+        </div>
+
+        <div className="registration-details">
+          <h3>Your Registration Details</h3>
+          
+          <div className="detail-section">
+            <div className="detail-item">
+              <strong>Team Name:</strong>
+              <span>{existingRegistration?.teamname || 'Individual Warrior'}</span>
+            </div>
+            
+            <div className="detail-item">
+              <strong>Team Size:</strong>
+              <span>{existingRegistration?.teamsize || existingRegistration?.members?.length || 1} member{(existingRegistration?.teamsize > 1 || existingRegistration?.members?.length > 1) ? 's' : ''}</span>
+            </div>
+            
+            <div className="detail-item">
+              <strong>Registration Status:</strong>
+              <span className={`status ${existingRegistration?.registration_status === 'confirmed' ? 'confirmed' : 'pending'}`}>
+                {existingRegistration?.registration_status === 'confirmed' ? '✅ Confirmed' : '⏳ Pending Payment'}
+              </span>
+            </div>
+            
+            {existingRegistration?.problem_statement && (
+              <div className="detail-item">
+                <strong>Problem Statement:</strong>
+                <span>Track #{existingRegistration.problem_statement}</span>
+              </div>
+            )}
+
+            {existingRegistration?.created_at && (
+              <div className="detail-item">
+                <strong>Registered On:</strong>
+                <span>{new Date(parseFloat(existingRegistration.created_at) * 1000).toLocaleDateString('en-IN', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</span>
+              </div>
+            )}
+          </div>
+
+          {existingRegistration?.members && existingRegistration.members.length > 0 && (
+            <div className="team-members-summary">
+              <h4>Team Members</h4>
+              {existingRegistration.members.map((member, index) => (
+                <div key={index} className="member-summary">
+                  <span className="member-role">{member.role || (index === 0 ? 'Team Leader' : 'Team Member')}</span>
+                  <span className="member-name">{member.name}</span>
+                  <span className="member-email">{member.email}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="action-buttons">
+          <button className="btn secondary" onClick={onBack}>
+            <ArrowLeft size={16} /> Back to Hackathon
+          </button>
+          
+          {existingRegistration?.registration_status !== 'confirmed' && (
+            <div className="payment-reminder">
+              <AlertCircle size={16} />
+              <span>Complete your payment to confirm your registration</span>
+            </div>
+          )}
+          
+          {existingRegistration?.registration_status === 'confirmed' && (
+            <div className="success-message">
+              <CheckCircle size={16} />
+              <span>Your registration is complete! Get ready for the battle!</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // Loading component for checking registration
+  const renderCheckingRegistration = () => (
+    <motion.div
+      className="checking-registration"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="loading-card">
+        <div className="loading-spinner"></div>
+        <h3>Checking Registration Status...</h3>
+        <p>Please wait while we verify your registration</p>
+      </div>
+    </motion.div>
+  );
+
   return (
     <div className="registration-page">
       <div className="registration-container">
-        <div className="registration-header">
-          <button className="back-button" onClick={onBack}>
-            <ArrowLeft size={16} className="inline-icon" /> Back to Hackathon
-          </button>
-          <h2>Join the Battle</h2>
-          <p>Register for {currentHackathon?.name}</p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="progress-bar">
-          <div className="progress-steps">
-            {[1, 2, 3, 4].map(stepNumber => (
-              <div
-                key={stepNumber}
-                className={`progress-step ${step >= stepNumber ? 'active' : ''} ${step > stepNumber ? 'completed' : ''}`}
-              >
-                <span className="step-number">{stepNumber}</span>
-                <span className="step-label">
-                  {stepNumber === 1 ? 'Team Info' : 
-                   stepNumber === 2 ? 'Members & Track' : 
-                   stepNumber === 3 ? 'Finalize' : 'Review & Pay'}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div 
-            className="progress-fill" 
-            style={{ width: `${(step / 4) * 100}%` }}
-          ></div>
-        </div>
-
-        {/* Form Content */}
-        {step <= 3 ? (
-          <form onSubmit={handleSubmit} className="registration-form">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 3 && renderStep3()}
-
-            {/* Navigation Buttons */}
-            <div className="form-navigation">
-              {step > 1 && (
-                <button type="button" className="btn secondary" onClick={handlePrevStep}>
-                  <ArrowLeft size={16} className="inline-icon" />
-                  {step === 2 ? 'Back to Team Info' : step === 3 ? 'Back to Members' : 'Previous'}
-                </button>
-              )}
-              
-              {step < 3 ? (
-                <button type="button" className="btn primary" onClick={handleNextStep}>
-                  {step === 1 ? 'Continue to Members & Track' : 'Continue to Project Details'}
-                </button>
-              ) : (
-                <button 
-                  type="submit" 
-                  className="btn primary" 
-                  disabled={loading}
-                >
-                  {loading ? 'Processing...' : 'Review & Continue to Payment'}
-                </button>
-              )}
+        {/* Show loading while checking registration */}
+        {checkingRegistration && renderCheckingRegistration()}
+        
+        {/* Show already registered message if user is registered */}
+        {!checkingRegistration && alreadyRegistered && renderAlreadyRegistered()}
+        
+        {/* Show normal registration form if user is not registered */}
+        {!checkingRegistration && !alreadyRegistered && (
+          <>
+            <div className="registration-header">
+              <button className="back-button" onClick={onBack}>
+                <ArrowLeft size={16} className="inline-icon" /> Back to Hackathon
+              </button>
+              <h2>Join the Battle</h2>
+              <p>Register for {currentHackathon?.name}</p>
             </div>
-          </form>
-        ) : (
-          <div className="payment-container">
-            {step === 4 && renderStep4()}
-          </div>
+
+            {/* Progress Bar */}
+            <div className="progress-bar">
+              <div className="progress-steps">
+                {[1, 2, 3, 4].map(stepNumber => (
+                  <div
+                    key={stepNumber}
+                    className={`progress-step ${step >= stepNumber ? 'active' : ''} ${step > stepNumber ? 'completed' : ''}`}
+                  >
+                    <span className="step-number">{stepNumber}</span>
+                    <span className="step-label">
+                      {stepNumber === 1 ? 'Team Info' : 
+                       stepNumber === 2 ? 'Members & Track' : 
+                       stepNumber === 3 ? 'Finalize' : 'Review & Pay'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div 
+                className="progress-fill" 
+                style={{ width: `${(step / 4) * 100}%` }}
+              ></div>
+            </div>
+
+            {/* Form Content */}
+            {step <= 3 ? (
+              <form onSubmit={handleSubmit} className="registration-form">
+                {step === 1 && renderStep1()}
+                {step === 2 && renderStep2()}
+                {step === 3 && renderStep3()}
+
+                {/* Navigation Buttons */}
+                <div className="form-navigation">
+                  {step > 1 && (
+                    <button type="button" className="btn secondary" onClick={handlePrevStep}>
+                      <ArrowLeft size={16} className="inline-icon" />
+                      {step === 2 ? 'Back to Team Info' : step === 3 ? 'Back to Members' : 'Previous'}
+                    </button>
+                  )}
+                  
+                  {step < 3 ? (
+                    <button type="button" className="btn primary" onClick={handleNextStep}>
+                      {step === 1 ? 'Continue to Members & Track' : 'Continue to Project Details'}
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      className="btn primary" 
+                      disabled={loading}
+                    >
+                      {loading ? 'Processing...' : 'Review & Continue to Payment'}
+                    </button>
+                  )}
+                </div>
+              </form>
+            ) : (
+              <div className="payment-container">
+                {step === 4 && renderStep4()}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
