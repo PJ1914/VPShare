@@ -41,3 +41,20 @@ html {
   visibility: visible;
   opacity: 1;
 }
+
+/* Mobile-first responsive improvements */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Slightly smaller base font size for mobile */
+  }
+  
+  body {
+    line-height: 1.4; /* Better line height for mobile reading */
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 13px; /* Even smaller for very small screens */
+  }
+}

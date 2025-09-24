@@ -9,7 +9,7 @@ const CodeKurukshetra = () => {
     {
       phase: 1,
       title: 'Day 1: The Battle Begins',
-      time: 'September 20, 2025 - 10:00 AM',
+      time: 'October 11, 2025 - 10:00 AM',
       duration: '24 Hours',
       activities: [
         'Opening Ceremony & Problem Statement Revelation',
@@ -171,7 +171,7 @@ const CodeKurukshetra = () => {
           >
             <span className="detail-item">48 Hours</span>
             <span className="detail-separator">•</span>
-            <span className="detail-item">September 20-21, 2025</span>
+            <span className="detail-item">October 11-12, 2025</span>
             <span className="detail-separator">•</span>
             <span className="detail-item">Teams Only</span>
             <span className="detail-separator">•</span>
