@@ -9,10 +9,9 @@ const REGISTRATION_API = `${import.meta.env.VITE_HACKATHON_API_URL}/registration
 
 // ===== HACKATHON PRICING =====
 const HACKATHON_PRICING = {
-  1: 250,  // ₹250 for 1 member
-  2: 500,  // ₹500 for 2 members  
-  3: 750,  // ₹750 for 3 members
-  4: 1000  // ₹1000 for 4 members
+  2: 699,  // ₹699 for 2 members  
+  3: 699,  // ₹699 for 3 members
+  4: 699   // ₹699 for 4 members
 };
 
 // ===== AUTH HELPER =====
@@ -35,8 +34,8 @@ const getAuthHeaders = async () => {
 // ===== PRICING CALCULATOR =====
 export const getTeamPrice = (teamSize) => {
   const size = parseInt(teamSize);
-  if (size < 1 || size > 4) {
-    throw new Error('Team size must be 1-4 members');
+  if (size < 2 || size > 4) {
+    throw new Error('Team size must be 2-4 members');
   }
   return HACKATHON_PRICING[size];
 };
@@ -47,8 +46,8 @@ export const createPaymentOrder = async (teamData) => {
     const { teamSize, teamname, leaderUid, email, members } = teamData;
     
     // Validate team size
-    if (!teamSize || teamSize < 1 || teamSize > 4) {
-      throw new Error('Team size must be 1-4 members');
+    if (!teamSize || teamSize < 2 || teamSize > 4) {
+      throw new Error('Team size must be 2-4 members');
     }
     
     // Calculate amount in PAISE (your Lambda expects paise for create-order)
@@ -60,7 +59,7 @@ export const createPaymentOrder = async (teamData) => {
       payment_type: 'hackathon',  // Required by your Lambda
       leaderUid: leaderUid,
       teamsize: parseInt(teamSize),
-      amount: amountInPaise,  // Your Lambda expects paise: 25000, 50000, 75000, 100000
+      amount: amountInPaise,  // Your Lambda expects paise: 69900 for all team sizes (2-4 members)
       teamname: teamname,
       email: email,
       members: members || []
@@ -134,7 +133,7 @@ export const verifyPayment = async (paymentData) => {
       leaderUid,
       teamsize: parseInt(teamSize),
       members: members || [],
-      amount: getTeamPrice(parseInt(teamSize)), // Your verify Lambda expects RUPEES: 250, 500, 750, 1000
+      amount: getTeamPrice(parseInt(teamSize)), // Your verify Lambda expects RUPEES: 699 for all team sizes (2-4 members)
       teamname,
       problem_statement: problem_statement || ''
     };

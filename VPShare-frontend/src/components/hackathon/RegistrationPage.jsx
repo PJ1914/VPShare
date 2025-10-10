@@ -35,7 +35,7 @@ const RegistrationPage = ({ onBack }) => {
   
   const [formData, setFormData] = useState({
     teamName: '',
-    teamSize: 1, // Add team size field
+    teamSize: 2, // Add team size field - minimum 2 members
     members: [
       { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Leader' }, // First member is always team leader
       { name: '', email: '', phone: '', college: '', rollNumber: '', year: '', branch: '', gender: '', role: 'Team Member' },
@@ -825,14 +825,13 @@ const RegistrationPage = ({ onBack }) => {
                 onChange={(e) => handleInputChange('root', 'teamSize', parseInt(e.target.value))}
                 className={errors.teamSize ? 'error' : ''}
               >
-                <option value={1}>1 Member (Individual) - ₹250</option>
-                <option value={2}>2 Members - ₹500</option>
-                <option value={3}>3 Members - ₹750</option>
-                <option value={4}>4 Members - ₹1000</option>
+                <option value={2}>2 Members - ₹699</option>
+                <option value={3}>3 Members - ₹699</option>
+                <option value={4}>4 Members - ₹699</option>
               </select>
               {errors.teamSize && <span className="error-message">{errors.teamSize}</span>}
               <div className="team-size-info">
-                <small>Total Cost: ₹{250 * formData.teamSize} (₹250 per person)</small>
+                <small>Total Cost: ₹{getTeamPrice(formData.teamSize)}</small>
               </div>
             </div>
           </div>
@@ -1071,20 +1070,11 @@ const RegistrationPage = ({ onBack }) => {
     >
       <h3>Team Members Information</h3>
       
-      {formData.teamSize === 1 ? (
-        <div className="single-member-notice">
-          <div className="info-box">
-            <h4><Trophy className="inline-icon" size={20} /> Individual Participation</h4>
-            <p>You're registering as a solo warrior! No additional team member details needed.</p>
-            <p><strong>Registration Fee:</strong> ₹250</p>
-          </div>
+      <div className="team-members-section">
+        <div className="members-header">
+          <h4>Additional Team Members ({formData.teamSize - 1} member{formData.teamSize > 2 ? 's' : ''})</h4>
+          <p>Please provide details for all team members (excluding the team leader)</p>
         </div>
-      ) : (
-        <div className="team-members-section">
-          <div className="members-header">
-            <h4>Additional Team Members ({formData.teamSize - 1} member{formData.teamSize > 2 ? 's' : ''})</h4>
-            <p>Please provide details for all team members (excluding the team leader)</p>
-          </div>
 
           {[...Array(formData.teamSize - 1)].map((_, arrayIndex) => {
             const memberIndex = arrayIndex + 1; // Start from index 1 since 0 is team leader
@@ -1325,12 +1315,11 @@ const RegistrationPage = ({ onBack }) => {
           <div className="team-cost-summary">
             <div className="cost-breakdown">
               <p><strong>Team Size:</strong> {formData.teamSize} member{formData.teamSize > 1 ? 's' : ''}</p>
-              <p><strong>Total Registration Fee:</strong> ₹{250 * formData.teamSize}</p>
-              <small>₹250 per person</small>
+              <p><strong>Total Registration Fee:</strong> ₹{getTeamPrice(formData.teamSize)}</p>
+              <small>Flat rate for all team sizes</small>
             </div>
           </div>
         </div>
-      )}
 
       {/* Problem Statement Selection */}
       <div className="problem-selection">
@@ -1422,7 +1411,7 @@ const RegistrationPage = ({ onBack }) => {
             </div>
           )}
           <div className="summary-item">
-            <strong>Registration Fee:</strong> <span>₹{250 * formData.teamSize}</span>
+            <strong>Registration Fee:</strong> <span>₹{getTeamPrice(formData.teamSize)}</span>
           </div>
         </div>
         <div className="summary-note">

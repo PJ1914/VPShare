@@ -21,7 +21,6 @@ const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboa
   
   const [activePhase, setActivePhase] = useState(0);
   const [timeLeft, setTimeLeft] = useState({});
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [selectedProblem, setSelectedProblem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -95,7 +94,34 @@ const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboa
               <span className="english">{currentHackathon.name}</span>
             </h1>
             <p className="hero-subtitle">{currentHackathon.subtitle}</p>
+            
+            {/* Event Date Banner */}
+            <motion.div 
+              className="event-date-banner"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="date-content">
+                <span className="date-text">October 25-26, 2025</span>
+                <span className="venue-text">Virtual & Hybrid Event</span>
+              </div>
+            </motion.div>
+            
             <p className="hero-description">{currentHackathon.description}</p>
+            
+            {/* GitHub Partnership Badge */}
+            <motion.div 
+              className="github-partnership-badge"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <div className="partnership-content">
+                <FaGithub className="github-icon" />
+                <span className="partnership-text">Official GitHub Partnership</span>
+              </div>
+            </motion.div>
             
             {/* Countdown Timer */}
             <div className="countdown-timer">
@@ -160,97 +186,182 @@ const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboa
           </motion.div>
 
           <div className="carousel-container">
-            <div className="carousel-wrapper">
-              <motion.div 
-                className="carousel-track"
-                animate={{
-                  x: `-${currentCardIndex * (320 + 20)}px` // card width + gap
-                }}
-                transition={{
-                  duration: 0.8,
-                  ease: "easeInOut"
-                }}
-              >
+            {/* Mobile-friendly horizontal scroll */}
+            <div className="carousel-scroll-wrapper">
+              <div className="carousel-track">
                 {currentHackathon.problemStatements.map((problem, index) => (
                   <motion.div
                     key={problem.id}
                     className="carousel-card"
                     style={{ background: problem.color }}
-                    whileHover={{ scale: 1.05, y: -10 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ 
+                      opacity: 0, 
+                      y: 50,
+                      scale: 0.9
+                    }}
+                    whileInView={{ 
+                      opacity: 1, 
+                      y: 0,
+                      scale: 1
+                    }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.1,
+                      ease: [0.25, 0.46, 0.45, 0.94]
+                    }}
+                    whileHover={{ 
+                      scale: 1.02,
+                      y: -8,
+                      transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                    }}
+                    whileTap={{ 
+                      scale: 0.98,
+                      y: -4,
+                      transition: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }
+                    }}
                     onClick={() => {
                       setSelectedProblem(problem);
                       setIsModalOpen(true);
                     }}
                   >
-                    <div className="problem-header">
-                      <div className="problem-number">#{problem.id}</div>
-                      <div className="difficulty-rating">
+                    <motion.div 
+                      className="problem-header"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}
+                    >
+                      <motion.div 
+                        className="problem-number"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        #{problem.id}
+                      </motion.div>
+                      <motion.div 
+                        className="difficulty-rating"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.2 }}
+                      >
                         {Array.from({ length: problem.difficulty }).map((_, i) => (
-                          <Star key={i} size={16} fill="currentColor" />
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            transition={{ 
+                              delay: index * 0.1 + 0.3 + (i * 0.1), 
+                              duration: 0.3,
+                              type: "spring",
+                              stiffness: 300
+                            }}
+                          >
+                            <Star size={14} fill="currentColor" />
+                          </motion.div>
                         ))}
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
                     
-                    <h3 className="problem-title">{problem.title}</h3>
-                    <p className="problem-category">{problem.category}</p>
+                    <motion.h3 
+                      className="problem-title"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 + 0.3, duration: 0.4 }}
+                    >
+                      {problem.title}
+                    </motion.h3>
+                    <motion.p 
+                      className="problem-category"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 + 0.4, duration: 0.4 }}
+                    >
+                      {problem.category}
+                    </motion.p>
                     
                     <div className="problem-content">
-                      <div className="problem-description">
+                      <motion.div 
+                        className="problem-description"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 + 0.5, duration: 0.4 }}
+                      >
                         <h4>Problem:</h4>
-                        <p>{problem.problem.substring(0, 80)}...</p>
-                      </div>
+                        <p>{problem.problem.substring(0, 70)}...</p>
+                      </motion.div>
                       
-                      <div className="tech-stack">
+                      <motion.div 
+                        className="tech-stack"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 + 0.6, duration: 0.4 }}
+                      >
                         <h4>Tech Stack:</h4>
                         <div className="tech-tags">
-                          {problem.techStack.slice(0, 3).map((tech, techIndex) => (
-                            <span key={techIndex} className="tech-tag">{tech}</span>
+                          {problem.techStack.slice(0, 2).map((tech, techIndex) => (
+                            <motion.span 
+                              key={techIndex} 
+                              className="tech-tag"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              whileInView={{ opacity: 1, scale: 1 }}
+                              transition={{ 
+                                delay: index * 0.1 + 0.7 + (techIndex * 0.1), 
+                                duration: 0.3,
+                                ease: [0.25, 0.46, 0.45, 0.94]
+                              }}
+                              whileHover={{ 
+                                scale: 1.1,
+                                transition: { duration: 0.2 }
+                              }}
+                            >
+                              {tech}
+                            </motion.span>
                           ))}
-                          {problem.techStack.length > 3 && (
-                            <span className="tech-tag">+{problem.techStack.length - 3}</span>
+                          {problem.techStack.length > 2 && (
+                            <motion.span 
+                              className="tech-tag more-tech"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              whileInView={{ opacity: 1, scale: 1 }}
+                              transition={{ 
+                                delay: index * 0.1 + 0.9, 
+                                duration: 0.3 
+                              }}
+                              whileHover={{ 
+                                scale: 1.1,
+                                transition: { duration: 0.2 }
+                              }}
+                            >
+                              +{problem.techStack.length - 2}
+                            </motion.span>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                       
-                      <div className="problem-impact">
-                        <h4>Impact:</h4>
-                        <p>{problem.impact.substring(0, 60)}...</p>
-                      </div>
+                      <motion.div 
+                        className="tap-to-expand"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 + 0.8, duration: 0.4 }}
+                        whileHover={{ 
+                          y: -3,
+                          transition: { duration: 0.2 }
+                        }}
+                      >
+                        <span>Tap to explore →</span>
+                      </motion.div>
                     </div>
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </div>
             
-            {/* Carousel indicators */}
-            <div className="carousel-indicators">
-              {currentHackathon.problemStatements.map((_, index) => (
-                <button
-                  key={index}
-                  className={`indicator ${index === currentCardIndex ? 'active' : ''}`}
-                  onClick={() => setCurrentCardIndex(index)}
-                />
-              ))}
-            </div>
-            
-            {/* Navigation buttons */}
-            <button 
-              className="carousel-nav prev"
-              onClick={() => setCurrentCardIndex(prev => 
-                prev <= 0 ? currentHackathon.problemStatements.length - 1 : prev - 1
-              )}
+            {/* Scroll hint for mobile */}
+            <motion.div 
+              className="scroll-hint"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.6 }}
             >
-              &#8249;
-            </button>
-            <button 
-              className="carousel-nav next"
-              onClick={() => setCurrentCardIndex(prev => 
-                prev >= currentHackathon.problemStatements.length - 1 ? 0 : prev + 1
-              )}
-            >
-              &#8250;
-            </button>
+              <span>← Swipe to explore more challenges →</span>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -272,21 +383,84 @@ const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboa
             {currentHackathon.timeline.map((phase, index) => (
               <motion.div
                 key={index}
-                className={`timeline-item ${index === activePhase ? 'active' : ''}`}
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className={`timeline-item ${index % 2 === 0 ? 'timeline-left' : 'timeline-right'} ${index === activePhase ? 'active' : ''}`}
+                initial={{ 
+                  opacity: 0, 
+                  x: index % 2 === 0 ? -80 : 80,
+                  y: 20
+                }}
+                whileInView={{ 
+                  opacity: 1, 
+                  x: 0,
+                  y: 0
+                }}
+                transition={{ 
+                  duration: 0.8, 
+                  delay: index * 0.15,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                }}
+                whileTap={{
+                  scale: 0.98,
+                  transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }
+                }}
                 onClick={() => setActivePhase(index)}
               >
-                <div className="timeline-marker">
-                  <span className="timeline-icon">{phase.icon}</span>
-                </div>
                 <div className="timeline-content">
-                  <h3 className="timeline-phase">{phase.phase}</h3>
-                  <h4 className="timeline-title">{phase.title}</h4>
-                  <p className="timeline-description">{phase.description}</p>
-                  <span className="timeline-time">{phase.time}</span>
+                  <motion.h3 
+                    className="timeline-phase"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.15 + 0.2, duration: 0.5 }}
+                  >
+                    {phase.phase}
+                  </motion.h3>
+                  <motion.h4 
+                    className="timeline-title"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.15 + 0.3, duration: 0.5 }}
+                  >
+                    {phase.title}
+                  </motion.h4>
+                  <motion.p 
+                    className="timeline-description"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.15 + 0.4, duration: 0.5 }}
+                  >
+                    {phase.description}
+                  </motion.p>
+                  <motion.span 
+                    className="timeline-time"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.15 + 0.5, duration: 0.5 }}
+                  >
+                    {phase.time}
+                  </motion.span>
                 </div>
+                <motion.div 
+                  className="timeline-marker"
+                  initial={{ scale: 0, rotate: -180 }}
+                  whileInView={{ scale: 1, rotate: 0 }}
+                  transition={{ 
+                    delay: index * 0.15 + 0.1, 
+                    duration: 0.6,
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 15
+                  }}
+                  whileHover={{
+                    scale: 1.1,
+                    transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }
+                  }}
+                >
+                  <span className="timeline-icon">{phase.icon}</span>
+                </motion.div>
               </motion.div>
             ))}
           </div>
@@ -376,6 +550,56 @@ const DynamicHackathonLanding = ({ onNavigateToRegistration, onNavigateToDashboa
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      {/* GitHub Partnership Section */}
+      <section className="github-partnership-section">
+        <div className="container">
+          <motion.div
+            className="section-header"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2>GitHub Partnership</h2>
+            <p>Empowered by GitHub's developer platform</p>
+          </motion.div>
+
+          <div className="github-partnership-grid">
+            <motion.div
+              className="github-feature-card"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <FaGithub className="github-feature-icon" />
+              <h3>GitHub Student Pack</h3>
+              <p>Access to GitHub Student Developer Pack with Pro features until graduation</p>
+            </motion.div>
+
+            <motion.div
+              className="github-feature-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <FaCode className="github-feature-icon" />
+              <h3>GitHub Copilot</h3>
+              <p>Free GitHub Copilot access for students with AI-powered coding assistance and productivity tools</p>
+            </motion.div>
+
+            <motion.div
+              className="github-feature-card"
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <FaLaptopCode className="github-feature-icon" />
+              <h3>Codespaces & More</h3>
+              <p>GitHub Codespaces, Actions, and 100+ developer tools included in the Student Pack</p>
+            </motion.div>
           </div>
         </div>
       </section>

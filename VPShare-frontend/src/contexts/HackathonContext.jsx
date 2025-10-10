@@ -28,11 +28,11 @@ export const HackathonProvider = ({ children }) => {
       sanskrit: 'कोड कुरुक्षेत्र',
       subtitle: 'The Ultimate 48-Hour Coding Battlefield',
       description: 'Where legends are born and code warriors prove their worth in the greatest hackathon of our time. Choose your weapon, form your army, and fight for glory!',
-      startDate: '2025-10-11T09:00:00Z',
-      endDate: '2025-10-12T17:00:00Z',
-      registrationDeadline: '2025-10-09T23:59:59Z',
+      startDate: '2025-10-25T09:00:00Z',
+      endDate: '2025-10-26T17:00:00Z',
+      registrationDeadline: '2025-10-23T23:59:59Z',
       maxTeamSize: 4,
-      minTeamSize: 1,
+      minTeamSize: 2,
       venue: 'Virtual & Physical Hybrid',
       status: 'upcoming', // upcoming, ongoing, completed
       problemStatements: [
