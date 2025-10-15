@@ -30,7 +30,8 @@ import {
   LogOut,
   Settings,
   ArrowLeft,
-  Edit3
+  Edit3,
+  HelpCircle
 } from 'lucide-react';
 import { HackathonContext } from '../../contexts/HackathonContext';
 import { NotificationContext } from '../../contexts/NotificationContext';
@@ -286,11 +287,55 @@ const HackathonDashboard = ({ user, onBack }) => {
                 'Join or create a team'
               }
             </span>
-            {teamData?.selectedTrack && (
-              <span className="team-track">Track: {teamData.selectedTrack}</span>
-            )}
           </div>
         </motion.div>
+
+        {/* Problem Statement Card */}
+        {teamData?.problem_statement && (
+          <motion.div 
+            className="overview-card problem-statement"
+            whileHover={{ scale: 1.02 }}
+            onClick={() => {
+              const problemId = teamData.problem_statement;
+              const selectedProblem = currentHackathon?.problemStatements?.find(
+                p => p.id.toString() === problemId.toString()
+              );
+              if (selectedProblem) {
+                showNotification({
+                  message: `Problem: ${selectedProblem.title}\n${selectedProblem.problem}`,
+                  type: 'info',
+                  duration: 6000
+                });
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="card-icon">
+              <HelpCircle className="icon problem" />
+            </div>
+            <div className="card-content">
+              <h3>Problem Statement</h3>
+              <p className="problem-title">
+                {(() => {
+                  const problemId = teamData.problem_statement;
+                  const selectedProblem = currentHackathon?.problemStatements?.find(
+                    p => p.id.toString() === problemId.toString()
+                  );
+                  return selectedProblem?.title || `Problem #${problemId}`;
+                })()}
+              </p>
+              <span className="problem-category">
+                {(() => {
+                  const problemId = teamData.problem_statement;
+                  const selectedProblem = currentHackathon?.problemStatements?.find(
+                    p => p.id.toString() === problemId.toString()
+                  );
+                  return selectedProblem?.category || 'Battle Track';
+                })()}
+              </span>
+            </div>
+          </motion.div>
+        )}
 
         <motion.div 
           className="overview-card submissions-count"

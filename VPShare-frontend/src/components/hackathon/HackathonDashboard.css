@@ -213,6 +213,7 @@
   will-change: transform;
   /* Ensure consistent height and alignment */
   min-height: 180px;
+  max-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -271,6 +272,25 @@
   color: #f44336;
 }
 
+.card-icon .icon.problem {
+  color: #9c27b0;
+}
+
+/* Problem Statement Card Specific Styles */
+.overview-card.problem-statement {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.overview-card.problem-statement:hover {
+  border-color: rgba(156, 39, 176, 0.4);
+  box-shadow: 0 10px 40px rgba(156, 39, 176, 0.15);
+}
+
+.overview-card.problem-statement::before {
+  background: linear-gradient(90deg, #9c27b0, #bb86fc);
+}
+
 .card-content h3 {
   font-size: 1.1rem;
   margin: 0 0 0.5rem 0;
@@ -300,6 +320,28 @@
 .card-content .time {
   color: #f44336;
   font-family: 'Courier New', monospace;
+}
+
+.card-content .problem-title {
+  color: #9c27b0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.25rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-content .problem-category {
+  color: #bb86fc;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .card-content span {
