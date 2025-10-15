@@ -9,7 +9,7 @@ const REGISTRATION_API = `${import.meta.env.VITE_HACKATHON_API_URL}/registration
 
 // ===== HACKATHON PRICING =====
 const HACKATHON_PRICING = {
-  2: 699,  // ₹699 for 2 members  
+  2: 699,  // ₹699 for 2 members
   3: 699,  // ₹699 for 3 members
   4: 699   // ₹699 for 4 members
 };
@@ -42,12 +42,32 @@ export const getTeamPrice = (teamSize) => {
 
 // ===== API 1: CREATE PAYMENT ORDER =====
 export const createPaymentOrder = async (teamData) => {
+  let orderData = null; // Declare outside try block
+  let headers = null;   // Declare outside try block
+  
   try {
     const { teamSize, teamname, leaderUid, email, members } = teamData;
     
-    // Validate team size
-    if (!teamSize || teamSize < 2 || teamSize > 4) {
-      throw new Error('Team size must be 2-4 members');
+    // Validate inputs more thoroughly
+    const validationErrors = [];
+    if (!teamSize || isNaN(teamSize) || teamSize < 2 || teamSize > 4) {
+      validationErrors.push(`Invalid team size: ${teamSize} (must be 2-4)`);
+    }
+    if (!teamname || teamname.trim() === '') {
+      validationErrors.push('Team name is required');
+    }
+    if (!leaderUid || leaderUid.trim() === '') {
+      validationErrors.push('Leader UID is required');
+    }
+    if (!email || email.trim() === '') {
+      validationErrors.push('Email is required');
+    }
+    if (!Array.isArray(members) || members.length === 0) {
+      validationErrors.push('Members array is required and cannot be empty');
+    }
+    
+    if (validationErrors.length > 0) {
+      throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
     }
     
     // Calculate amount in PAISE (your Lambda expects paise for create-order)
@@ -55,15 +75,27 @@ export const createPaymentOrder = async (teamData) => {
     const amountInPaise = amountInRupees * 100;
     
     // Prepare order data matching your Lambda expectations
-    const orderData = {
+    // Try multiple field naming conventions to match backend expectations
+    orderData = {
       payment_type: 'hackathon',  // Required by your Lambda
       leaderUid: leaderUid,
-      teamsize: parseInt(teamSize),
-      amount: amountInPaise,  // Your Lambda expects paise: 69900 for all team sizes (2-4 members)
-      teamname: teamname,
-      email: email,
-      members: members || []
+      teamsize: parseInt(teamSize), // Ensure it's a number
+      teamSize: parseInt(teamSize), // Alternative field name
+      amount: amountInPaise,  // Your Lambda expects paise: 100 for ₹1
+      teamname: teamname.trim(), // Clean team name
+      teamName: teamname.trim(), // Alternative field name
+      email: email.trim(), // Clean email
+      members: members || [],
+      // Add some additional fields that might be expected
+      currency: 'INR',
+      description: `CodeKurukshetra Registration - Team: ${teamname.trim()}`
     };
+
+    // Validate that amount matches expected backend pricing (₹699 = 69900 paise)
+    const expectedAmountInPaise = 699 * 100; // ₹699 in paise = 69900
+    if (amountInPaise !== expectedAmountInPaise) {
+      console.warn(`⚠️ Amount mismatch! Sending: ${amountInPaise}, Expected: ${expectedAmountInPaise}`);
+    }
 
     logger.info('Creating hackathon payment order:', { 
       teamname, 
@@ -72,7 +104,7 @@ export const createPaymentOrder = async (teamData) => {
       amountInPaise 
     });
 
-    const headers = await getAuthHeaders();
+    headers = await getAuthHeaders();
     const response = await axios.post(CREATE_ORDER_API, orderData, { 
       headers,
       timeout: 30000
@@ -86,11 +118,25 @@ export const createPaymentOrder = async (teamData) => {
 
   } catch (error) {
     logger.error('Create order failed:', error);
-    console.error('Order creation error details:', {
+    
+    // Enhanced error logging
+    const errorDetails = {
       message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      responseData: error.response?.data,
+      requestData: orderData || 'orderData not yet defined',
+      endpoint: CREATE_ORDER_API,
+      headers: headers || 'headers not yet defined'
+    };
+    
+    console.error('🚨 Detailed Order Creation Error:', JSON.stringify(errorDetails, null, 2));
+    
+    // If it's a 400 error, it's likely a validation issue on the backend
+    if (error.response?.status === 400) {
+      console.error('🔍 400 Error suggests backend validation failure. Check field names and data types.');
+      console.error('🔍 Backend might be expecting different field names or missing required fields.');
+    }
     return {
       success: false,
       error: error.response?.data?.error || error.message
@@ -126,6 +172,9 @@ export const verifyPayment = async (paymentData) => {
     }
 
     // Prepare verification data matching your Lambda expectations
+    const amountInRupees = getTeamPrice(parseInt(teamSize));
+    const amountInPaise = amountInRupees * 100; // Convert to paise for verification
+    
     const verifyData = {
       razorpay_payment_id,
       razorpay_order_id, 
@@ -133,7 +182,7 @@ export const verifyPayment = async (paymentData) => {
       leaderUid,
       teamsize: parseInt(teamSize),
       members: members || [],
-      amount: getTeamPrice(parseInt(teamSize)), // Your verify Lambda expects RUPEES: 699 for all team sizes (2-4 members)
+      amount: amountInPaise, // Your verify Lambda expects PAISE: 100 for ₹1
       teamname,
       problem_statement: problem_statement || ''
     };
@@ -142,7 +191,8 @@ export const verifyPayment = async (paymentData) => {
       razorpay_order_id, 
       razorpay_payment_id,
       teamSize,
-      amount: verifyData.amount,
+      amountInRupees,
+      amountInPaise,
       leaderUid
     });
 

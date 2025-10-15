@@ -337,16 +337,6 @@ const RegistrationPage = ({ onBack }) => {
 
   const handleInputChange = (section, field, value, index = null) => {
     // Debug logging for track selection
-    if (field === 'selectedTrack') {
-      console.log('🎯 Track Selection Change:', {
-        section,
-        field,
-        value,
-        valueType: typeof value,
-        stringValue: value?.toString()
-      });
-    }
-
     // Format phone number to only allow digits
     let processedValue = value;
     if (field === 'phone') {
@@ -403,16 +393,6 @@ const RegistrationPage = ({ onBack }) => {
         return { ...prev, [field]: processedValue };
       }
     });
-
-    // Debug logging for track selection - log state after update
-    if (field === 'selectedTrack') {
-      setTimeout(() => {
-        console.log('🎯 Track Selection Updated State:', {
-          selectedTrack: formData.selectedTrack,
-          newValue: processedValue
-        });
-      }, 0);
-    }
 
     // Real-time validation for specific fields
     const newErrors = { ...errors };
@@ -504,10 +484,6 @@ const RegistrationPage = ({ onBack }) => {
       if (!formData.selectedTrack || formData.selectedTrack.trim() === '') {
         newErrors.selectedTrack = 'Please select a battle track (problem statement) - this is required!';
       }
-
-      // Debug: Log validation state
-      console.log('🔍 Step 2 Validation - selectedTrack:', formData.selectedTrack);
-      console.log('🔍 Step 2 Validation - formData:', formData);
 
       // Collect all emails for duplicate checking
       const allEmails = [];
@@ -634,17 +610,13 @@ const RegistrationPage = ({ onBack }) => {
       // Transform form data to API schema
       const apiData = transformFormDataToAPISchema(formData);
       
-      // Debug: Log the form data and API data to check problem_statement
-      console.log('🔍 Form Data selectedTrack:', formData.selectedTrack);
-      console.log('🔍 API Data problem_statement:', apiData.problem_statement);
-      console.log('🔍 Full API Data:', apiData);
-      
       // Create payment order first
       const orderResult = await createPaymentOrder({
         teamSize: apiData.members.length,
         teamname: apiData.teamname,
         leaderUid: apiData.leaderUid,
-        email: apiData.members[0]?.email
+        email: apiData.members[0]?.email,
+        members: apiData.members  // ✅ Add missing members array
       });
 
       if (!orderResult.success) {
@@ -689,9 +661,6 @@ const RegistrationPage = ({ onBack }) => {
     try {
       const { orderData, registrationData, amount } = registrationResult;
       
-      // Debug: Log the order data
-      console.log('Order data for Razorpay:', orderData);
-      
       // Initialize Razorpay payment
       const options = {
         key: orderData.key_id, // Razorpay key from your Lambda response
@@ -702,9 +671,6 @@ const RegistrationPage = ({ onBack }) => {
         order_id: orderData.order_id, // Correct field name from your Lambda
         handler: async (response) => {
           try {
-            // Debug: Log the Razorpay response
-            console.log('Razorpay response:', response);
-            
             // Check if all required fields are present
             if (!response.razorpay_payment_id || !response.razorpay_order_id || !response.razorpay_signature) {
               // If payment was successful but missing verification data, let's just show success
@@ -730,10 +696,6 @@ const RegistrationPage = ({ onBack }) => {
               problem_statement: registrationData.problem_statement // Include problem statement
             };
             
-            // Debug: Log the payment verification data
-            console.log('🔍 Payment Verification Data:', verifyPaymentData);
-            console.log('🔍 Problem Statement being sent:', registrationData.problem_statement);
-            
             const verifyResult = await verifyPayment(verifyPaymentData);
             
             if (verifyResult.success) {
@@ -748,12 +710,23 @@ const RegistrationPage = ({ onBack }) => {
               throw new Error(verifyResult.error || 'Payment verification failed');
             }
           } catch (verifyError) {
-            console.error('Payment verification error:', verifyError);
-            showNotification({
-              message: 'Payment verification failed. Please contact support.',
-              type: 'error',
-              duration: 7000
-            });
+            console.error('Verification error details:', verifyError);
+            console.error('Payment verification error:', verifyError.message);
+            
+            // Check if it's a backend urllib error
+            if (verifyError.message && verifyError.message.includes('urllib')) {
+              showNotification({
+                message: 'Backend service error (urllib not defined). Please contact support.',
+                type: 'error',
+                duration: 10000
+              });
+            } else {
+              showNotification({
+                message: `Payment verification failed: ${verifyError.message}. Please contact support.`,
+                type: 'error',
+                duration: 7000
+              });
+            }
           }
         },
         prefill: {
