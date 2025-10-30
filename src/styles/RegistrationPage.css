@@ -1,0 +1,828 @@
+/* Registration Page Styles */
+.registration-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6B46C1 0%, #805AD5 100%);
+  padding: 2rem 0;
+  color: #ffffff;
+}
+
+.registration-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.back-button {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.registration-header h2 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.registration-header p {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Progress Bar */
+.progress-bar {
+  position: relative;
+  margin-bottom: 3rem;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.progress-step.active .step-number {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.progress-step.completed .step-number {
+  background: #ffffff;
+  color: #6B46C1;
+  border-color: #ffffff;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.progress-fill {
+  position: absolute;
+  top: 25px;
+  left: 0;
+  height: 2px;
+  background: #ffffff;
+  transition: width 0.3s ease;
+  z-index: 1;
+}
+
+/* Form Styles */
+.registration-form {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 3rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.registration-step {
+  min-height: 400px;
+}
+
+.registration-step h3 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #ffffff;
+  text-align: center;
+}
+
+.registration-step h4 {
+  font-size: 1.5rem;
+  margin: 2rem 0 1rem;
+  color: #ffffff;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.form-group input.error {
+  border-color: #FF4444;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Team Sections */
+.team-lead-section,
+.team-member-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Problem Selection */
+.problem-selection {
+  margin-top: 3rem;
+}
+
+.problems-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.problem-option {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.problem-option:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.problem-option.selected {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.problem-option .problem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.problem-option .problem-number {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.problem-option .difficulty {
+  font-size: 1rem;
+}
+
+.problem-option h5 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.problem-option .problem-category {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.8rem;
+}
+
+.problem-option .problem-summary {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.tech-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.tech-preview-tag {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.tech-preview .more {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* Track Selection - Keep for backward compatibility */
+.track-selection {
+  margin-top: 3rem;
+}
+
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.track-option {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.track-option:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.track-option.selected {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.track-option .track-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.track-option h5 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.track-option p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Sanskrit Text', 'Noto Sans Devanagari', serif;
+}
+
+/* Terms Section */
+.terms-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  margin-right: 1rem;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  color: #6B46C1;
+  font-weight: bold;
+}
+
+/* Registration Summary */
+.registration-summary {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.registration-summary h4 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  border-bottom: none;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-item:last-child {
+  border-bottom: none;
+}
+
+.summary-item strong {
+  color: #ffffff;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn {
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.btn.primary {
+  background: #ffffff;
+  color: #6B46C1;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.btn.primary:hover {
+  background: #f8f9fa;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn.primary:disabled {
+  background: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn.secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.btn.submit {
+  background: linear-gradient(45deg, #10B981, #059669);
+  color: #ffffff;
+}
+
+.btn.submit:hover {
+  background: linear-gradient(45deg, #059669, #047857);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .registration-container {
+    padding: 0 1rem;
+  }
+  
+  .registration-form {
+    padding: 2rem 1.5rem;
+  }
+  
+  .registration-step h3 {
+    font-size: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .tracks-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-steps {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .progress-step {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+  
+  .step-number {
+    margin-bottom: 0;
+  }
+  
+  .progress-fill {
+    display: none;
+  }
+  
+  .form-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .team-lead-section,
+  .team-member-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-header h2 {
+    font-size: 2rem;
+  }
+  
+  .registration-form {
+    padding: 1.5rem 1rem;
+  }
+  
+  .track-option {
+    padding: 1rem;
+  }
+  
+  .track-option .track-icon {
+    font-size: 2rem;
+  }
+}
+
+/* Email Suggestion Styles */
+.email-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 235, 59, 0.1));
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.suggestion-text {
+  color: #FFC107;
+  font-weight: 500;
+}
+
+.suggestion-button {
+  background: linear-gradient(135deg, #FFC107, #FFD54F);
+  color: #1a1a1a;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.suggestion-button:hover {
+  background: linear-gradient(135deg, #FFB300, #FFC107);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.suggestion-hint {
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Enhanced Error Messages */
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: block;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid #ff6b6b;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Enhanced Success Messages */
+.success-message {
+  color: #4CAF50;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive Email Suggestions */
+@media (max-width: 768px) {
+  .email-suggestion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  
+  .suggestion-button {
+    align-self: flex-start;
+  }
+}
+
+/* Team Size and Enhanced Layout Styles */
+.team-basic-info {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-size-info {
+  margin-top: 0.5rem;
+}
+
+.team-size-info small {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.team-lead-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.team-lead-section h4 {
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.single-member-notice {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.info-box {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.info-box h4 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.info-box p {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.team-members-section {
+  margin-bottom: 2rem;
+}
+
+.members-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.members-header h4 {
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.members-header p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.team-member-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.team-member-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 215, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.team-member-card h5 {
+  color: #ffd700;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-cost-summary {
+  background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 100, 200, 0.05));
+  border: 2px solid rgba(0, 150, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.cost-breakdown p {
+  margin: 0.5rem 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cost-breakdown strong {
+  color: #ffffff;
+}
+
+.cost-breakdown small {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Enhanced select styling for team size */
+.form-group select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  height: 44px;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.form-group select option {
+  background: #2a2a2a;
+  color: #ffffff;
+  padding: 0.5rem;
+}
+
+/* Problem selection styling enhancements */
+.problem-selection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.problem-selection h4 {
+  color: #ffd700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.3rem;
+}

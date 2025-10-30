@@ -1,0 +1,87 @@
+.registration-section {
+  padding: 4rem 0;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  margin: 2rem auto;
+  max-width: 800px;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 1.1rem;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+
+.team-section {
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 2rem;
+  border-radius: 15px;
+  margin-top: 2rem;
+}
+
+.team-member {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.submit-button {
+  background: #ffffff;
+  color: #6B46C1;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+  align-self: center;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+}
+
+/* Validation Styles */
+.error-message {
+  color: #FF4D4D;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+
+.form-input.error {
+  border-color: #FF4D4D;
+}

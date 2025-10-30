@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Firefox Compatibility -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Primary Meta Tags -->
+    <title>CodeTapasya - Learn Programming Online | Best Coding Courses in India</title>
+    <meta name="title" content="CodeTapasya - Learn Programming Online | Best Coding Courses in India" />
+    <meta name="description" content="Master programming with CodeTapasya's interactive courses. Learn JavaScript, React, Python, Node.js, and more with hands-on projects, coding playground, and expert guidance. Start your coding journey today!" />
+    <meta name="keywords" content="programming courses, learn coding, online programming, JavaScript, React, Python, Node.js, web development, coding bootcamp, programming tutorials, coding playground, GitHub integration, learn to code India" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="author" content="CodeTapasya" />
+    <meta name="publisher" content="CodeTapasya" />
+    <meta name="copyright" content="CodeTapasya" />
+    <meta name="rating" content="General" />
+    <meta name="distribution" content="Global" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://codetapasya.com/" />
+    <meta property="og:title" content="CodeTapasya - Learn Programming Online | Best Coding Courses" />
+    <meta property="og:description" content="Master programming with interactive courses, coding playground, and hands-on projects. Learn JavaScript, React, Python, and more with expert guidance." />
+    <meta property="og:image" content="https://codetapasya.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="CodeTapasya" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://codetapasya.com/" />
+    <meta property="twitter:title" content="CodeTapasya - Learn Programming Online" />
+    <meta property="twitter:description" content="Master programming with interactive courses, coding playground, and hands-on projects." />
+    <meta property="twitter:image" content="https://codetapasya.com/og-image.jpg" />
+    <meta property="twitter:creator" content="@CodeTapasya" />
+    
+    <!-- Additional SEO Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="msapplication-TileColor" content="#1e40af" />
+    <meta name="application-name" content="CodeTapasya" />
+    <meta name="apple-mobile-web-app-title" content="CodeTapasya" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://codetapasya.com/" />
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/png" href="./src/assets/CT Logo.png" sizes="70x70" />
+    <link rel="icon" type="image/png" href="./src/assets/CT Logo.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="./src/assets/CT Logo.png" sizes="180x180" />
+    <meta name="msapplication-TileImage" content="/CT Logo.png" />
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+    
+    <!-- Razorpay Payment Gateway -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Google Fonts for Inter and Poppins -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@400;600&display=swap" />
+    
+    <!-- Structured Data for Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "CodeTapasya",
+      "url": "https://codetapasya.com",
+      "logo": "https://codetapasya.com/logo.png",
+      "description": "Leading online programming education platform offering interactive courses, coding playground, and hands-on projects for developers of all levels.",
+      "foundingDate": "2024",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+91-XXX-XXX-XXXX",
+        "contactType": "customer service",
+        "email": "support@codetapasya.com"
+      },
+      "sameAs": [
+        "https://twitter.com/CodeTapasya",
+        "https://linkedin.com/company/codetapasya",
+        "https://github.com/CodeTapasya"
+      ]
+    }
+    </script>
+    
+    <!-- Browser compatibility script -->
+    <script>
+      // Early browser detection and compatibility setup
+      (function() {
+        const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+        const isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('chrome');
+        
+        if (isFirefox || isSafari) {
+          // Disable some features that cause issues in problematic browsers
+          window.problematicBrowser = true;
+          window.browserType = isFirefox ? 'firefox' : 'safari';
+          
+          // Prevent service worker issues
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              if (event.data && event.data.type === 'SW_UPDATED') {
+                // Prevent automatic reloads in problematic browsers
+                event.preventDefault();
+                console.log('Browser compatibility: Prevented automatic SW reload');
+              }
+            });
+          }
+          
+          // Add browser-specific CSS class for styling
+          document.documentElement.classList.add('browser-' + (isFirefox ? 'firefox' : 'safari'));
+        }
+      })();
+    </script>
+    
+    <style>
+      /* Minimal styling for the loading logo */
+      #loading-logo {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 250px; /* Increased from 150px for better visibility */
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Add logo as a loading placeholder -->
+      <img id="loading-logo" src="./src/assets/CT Logo.png" alt="CodeTapasya Loading Logo" />
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

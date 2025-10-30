@@ -1,0 +1,153 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// Generate a completely unique build ID for NUCLEAR cache busting
+const deploymentId = process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 8) || Math.random().toString(36).substr(2, 8)
+const buildId = `NUCLEAR-${Date.now()}-${deploymentId}`
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+  // Keep plugins minimal while debugging chunking issues
+  ],
+  
+  // Ensure React is properly resolved
+  resolve: {
+    alias: {
+      'react': 'react',
+      'react-dom': 'react-dom'
+    }
+  },
+
+  // Ensure XML files are served with correct MIME type
+  server: {
+    port: 5173,
+    host: true,
+    strictPort: false, // Allow port fallback for browser compatibility
+    mimeTypes: {
+      'application/xml': ['xml']
+    },
+    // Configure middleware for proper COOP policy in development
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        // Set headers for Firebase Auth compatibility in development
+        res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+        res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+        res.setHeader('Service-Worker-Allowed', '/');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        next();
+      });
+    },
+    // API Proxy configuration to fix CORS issues
+    proxy: {
+      '/api/utils': {
+        target: 'https://4rw3j8fkuj.execute-api.us-east-1.amazonaws.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: true
+      },
+      '/api/admin': {
+        target: 'https://krkdsz226l.execute-api.us-east-1.amazonaws.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: true
+      }
+    },
+    // Universal browser compatibility
+    cors: {
+      origin: true,
+      credentials: true
+    },
+    // Improved HMR for all browsers
+    hmr: {
+      overlay: false, // Disable error overlay that can cause issues
+      port: 24678,
+      timeout: 60000 // Longer timeout for slower browsers
+    },
+    // Prevent aggressive caching in development
+    middlewareMode: false,
+    watch: {
+      usePolling: false, // Better for Safari
+      interval: 100
+    }
+  },
+
+  // Make sure sitemap is included in build
+  publicDir: 'public',
+  
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        // Ensure proper order of chunk loading
+        inlineDynamicImports: false,
+        manualChunks(id) {
+          // Vendor libraries optimization (improves caching)
+          if (id.includes('node_modules')) {
+            // React ecosystem - keep React core together
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            // React router in separate chunk
+            if (id.includes('react-router')) {
+              return 'react-router';
+            }
+            // Firebase libraries  
+            if (id.includes('firebase')) {
+              return 'firebase';
+            }
+            // UI libraries - co-locate with React to avoid runtime import issues
+            if (id.includes('@mui') || id.includes('@emotion') || id.includes('framer-motion')) {
+              return 'react-vendor';
+            }
+            // Everything else from node_modules
+            return 'vendor';
+          }
+          // Keep all context files with the main app chunk to ensure React is available
+          if (id.includes('/contexts/') || id.includes('\\contexts\\')) {
+            return undefined; // Let Vite handle this automatically
+          }
+        },
+        // Enhanced chunk naming for better performance
+        entryFileNames: `assets/index-${buildId}-[hash].js`,
+        chunkFileNames: `assets/[name]-${buildId}-[hash].js`,
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    },
+    // Performance optimizations without affecting styling
+    copyPublicDir: true,
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser',
+    outDir: 'dist',
+    chunkSizeWarningLimit: 2000,
+    // Updated browser targets for cross-browser compatibility
+    target: ['es2018', 'chrome70', 'firefox78', 'safari12', 'edge79'],
+    // Polyfill configuration for older browsers
+    polyfillModulePreload: true,
+    // CSS target for better browser support
+    cssTarget: ['chrome70', 'firefox78', 'safari12', 'edge79']
+  },
+
+  // Pre-bundle deps to ensure stable module graph
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@mui/material',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion'
+    ]
+  },
+
+  // Preview server configuration (for production build testing)
+  preview: {
+    port: 4173,
+    host: true,
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
+  }
+})

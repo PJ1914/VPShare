@@ -1,0 +1,17 @@
+# Browsers that we support
+
+# Modern browsers
+> 0.5%
+last 2 versions
+not dead
+
+# Explicitly include older but still significant browsers
+Firefox ESR
+Safari >= 12
+iOS >= 12
+Chrome >= 70
+Edge >= 79
+
+# Exclude very old browsers
+not IE 11
+not op_mini all

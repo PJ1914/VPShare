@@ -1,0 +1,547 @@
+/* Team Management Styles */
+.team-management {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.team-management-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.team-icon {
+  width: 48px;
+  height: 48px;
+  color: #ffd700;
+  margin-bottom: 1rem;
+}
+
+.team-management-header h3 {
+  color: #ffffff;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.team-management-header p {
+  color: #b0b0b0;
+  margin: 0;
+  max-width: 400px;
+}
+
+.team-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.team-title h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.edit-button {
+  background: none;
+  border: none;
+  color: #ffd700;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.edit-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.edit-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-button,
+.cancel-button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-button {
+  color: #4caf50;
+}
+
+.save-button:hover {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.cancel-button {
+  color: #f44336;
+}
+
+.cancel-button:hover {
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.team-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+}
+
+.action-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+}
+
+.action-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.action-button.secondary:hover {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: #ffd700;
+}
+
+.action-button.danger {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.action-button.danger:hover {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: #f44336;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.button-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.team-form {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+.team-form h4 {
+  color: #ffffff;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  color: #b0b0b0;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.edit-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.form-actions .cancel-button {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #b0b0b0;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-actions .cancel-button:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.team-code-section {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.team-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.team-code span {
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.team-code strong {
+  color: #ffd700;
+  font-size: 1.3rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+}
+
+.copy-button {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem;
+  color: #ffd700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: #ffd700;
+}
+
+.copy-button.copied {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: #4caf50;
+  color: #4caf50;
+}
+
+.team-code-info {
+  color: #b0b0b0;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.team-members {
+  margin-bottom: 2rem;
+}
+
+.team-members h4 {
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.member-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  color: #ffffff;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.member-email {
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+.member-role {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.leader-icon {
+  width: 16px;
+  height: 16px;
+  color: #ffd700;
+}
+
+.member-role span.leader {
+  color: #ffd700;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.member-role span.member {
+  color: #b0b0b0;
+  text-transform: capitalize;
+}
+
+.team-description {
+  margin-bottom: 2rem;
+}
+
+.team-description h4 {
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.team-description p {
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.team-info {
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  color: #2196f3;
+  flex-shrink: 0;
+}
+
+.info-item span {
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .team-management {
+    padding: 1.5rem;
+  }
+
+  .team-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-button {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .team-code {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .member-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .member-role {
+    align-self: flex-end;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-management {
+    padding: 1rem;
+  }
+
+  .team-management-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .team-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .member-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .member-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}

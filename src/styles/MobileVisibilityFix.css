@@ -1,0 +1,239 @@
+/* Mobile Viewport and Visibility Fix - ULTRA AGGRESSIVE */
+
+/* Ensure proper viewport handling */
+@viewport {
+  width: device-width;
+  zoom: 1.0;
+}
+
+/* Force proper box-sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* EMERGENCY Mobile-specific overrides for hackathon section */
+@media screen and (max-width: 768px) {
+  /* Force visibility and proper layout */
+  .modern-section {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 1rem 0 !important;
+  }
+  
+  .modern-card {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 1rem !important;
+  }
+  
+  /* ULTRA-AGGRESSIVE Hackathon section specific fixes */
+  .hackathon-section-mobile {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    width: 100% !important;
+    min-height: 500px !important;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.15)) !important;
+    border: 3px solid #22c55e !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin: 2rem 0 !important;
+    z-index: 999 !important;
+    
+    /* Prevent ANY hiding mechanisms */
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    animation: stay-visible 0.1s infinite !important;
+    transition: none !important;
+    overflow: visible !important;
+    clip: none !important;
+    clip-path: none !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  @keyframes stay-visible {
+    0%, 100% {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  }
+  
+  .hackathon-header-mobile {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    margin-bottom: 1rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1000 !important;
+  }
+  
+  .hackathon-title-mobile {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+    color: #1f2937 !important;
+    text-align: center !important;
+    margin: 0.5rem 0 !important;
+    font-weight: 700 !important;
+    position: relative !important;
+    z-index: 1001 !important;
+  }
+  
+  .hackathon-powered-by {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+    margin: 0.5rem 0 !important;
+    color: #374151 !important;
+    position: relative !important;
+    z-index: 1001 !important;
+  }
+  
+  .hackathon-subtitle {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 0.8 !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+    margin: 0.5rem 0 !important;
+    color: #6b7280 !important;
+    position: relative !important;
+    z-index: 1001 !important;
+  }
+
+  /* Force ALL children to be visible */
+  .hackathon-section-mobile *,
+  .hackathon-section-mobile > *,
+  .hackathon-section-mobile div,
+  .hackathon-section-mobile p,
+  .hackathon-section-mobile h1,
+  .hackathon-section-mobile h2,
+  .hackathon-section-mobile h3,
+  .hackathon-section-mobile img,
+  .hackathon-section-mobile span {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1000 !important;
+  }
+
+  /* Override any framer-motion hiding */
+  .hackathon-section-mobile[style*="opacity: 0"],
+  .hackathon-section-mobile[style*="display: none"],
+  .hackathon-section-mobile[style*="visibility: hidden"] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ULTRA-DEBUG styles - BRIGHT ORANGE ALERT */
+@media screen and (max-width: 768px) {
+  .hackathon-section-mobile::before {
+    content: "🚨 MOBILE EMERGENCY FIX ACTIVE - HACKATHON SECTION FORCE VISIBLE 🚨";
+    display: block !important;
+    background: linear-gradient(45deg, #ff4444, #ff6b35) !important;
+    color: white !important;
+    padding: 1rem !important;
+    text-align: center !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    margin-bottom: 1rem !important;
+    border-radius: 8px !important;
+    border: 2px solid #fff !important;
+    position: relative !important;
+    z-index: 9999 !important;
+    animation: emergency-pulse 1s infinite !important;
+    box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5) !important;
+  }
+
+  @keyframes emergency-pulse {
+    0%, 100% { 
+      transform: scale(1);
+      background: linear-gradient(45deg, #ff4444, #ff6b35);
+    }
+    50% { 
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #ff6b35, #ffab35);
+    }
+  }
+}
+
+/* Extra small devices - MORE AGGRESSIVE */
+@media screen and (max-width: 480px) {
+  .hackathon-section-mobile {
+    min-height: 400px !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+  }
+
+  .hackathon-title-mobile {
+    font-size: 1.25rem !important;
+  }
+  
+  .hackathon-powered-by {
+    font-size: 0.9rem !important;
+  }
+  
+  .hackathon-subtitle {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Ensure text is readable on all devices */
+@media screen and (max-width: 768px) {
+  .hackathon-section-mobile * {
+    color: inherit !important;
+    text-shadow: none !important;
+  }
+  
+  .hackathon-title-mobile {
+    color: #1f2937 !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Fix for WebKit mobile browsers - AGGRESSIVE */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 768px) {
+  .hackathon-section-mobile {
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+    -webkit-backface-visibility: visible !important;
+    backface-visibility: visible !important;
+  }
+}
+
+/* Continuous enforcement - runs every 100ms */
+@media screen and (max-width: 768px) {
+  .hackathon-section-mobile {
+    animation: force-continuous-visibility 0.1s infinite !important;
+  }
+
+  @keyframes force-continuous-visibility {
+    0%, 25%, 50%, 75%, 100% {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: relative !important;
+      z-index: 999 !important;
+    }
+  }
+}
