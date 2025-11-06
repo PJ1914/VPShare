@@ -26,6 +26,7 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import LiveClassIcon from './icons/LiveClassIcon';
 import Logo from '../assets/CT Logo.png';
 import '../styles/ModernNavbar.css';
 
@@ -536,12 +537,12 @@ function Navbar() {
 
             <motion.div variants={navItemVariants} whileHover="hover" whileTap="tap">
               <Link
-                to="/hackathon"
-                className={`nav-item hackathon ${location.pathname === '/hackathon' ? 'active' : ''}`}
+                to="/live-classes"
+                className={`nav-item live-classes ${location.pathname === '/live-classes' ? 'active' : ''}`}
               >
-                <RocketLaunchIcon className="nav-icon" />
-                <span>Hackathon</span>
-                <div className="hackathon-badge">Live</div>
+                <LiveClassIcon size={22} className="nav-icon" />
+                <span>Live Classes</span>
+                <div className="hackathon-badge">New</div>
               </Link>
             </motion.div>
           </nav>
@@ -898,11 +899,11 @@ function Navbar() {
                     Playground
                   </Link>
                   
-                  {/* Hackathon */}
+                  {/* Live Classes */}
                   <Link
-                    to="/hackathon"
+                    to="/live-classes"
                     onClick={() => {
-                      console.log('Hackathon clicked');
+                      console.log('Live Classes clicked');
                       setIsMobileMenuOpen(false);
                     }}
                     style={{
@@ -911,7 +912,7 @@ function Navbar() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       padding: '2rem 1rem',
-                      background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 142, 83, 0.3))',
+                      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(118, 75, 162, 0.3))',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       borderRadius: '20px',
@@ -921,25 +922,25 @@ function Navbar() {
                       fontWeight: '600',
                       minHeight: '120px',
                       position: 'relative',
-                      boxShadow: '0 8px 32px rgba(255, 107, 107, 0.3)',
+                      boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
                       transition: 'all 0.3s ease'
                     }}
                     onMouseOver={(e) => {
                       e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(255, 107, 107, 0.4)';
+                      e.currentTarget.style.boxShadow = '0 12px 40px rgba(99, 102, 241, 0.4)';
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 32px rgba(255, 107, 107, 0.3)';
+                      e.currentTarget.style.boxShadow = '0 8px 32px rgba(99, 102, 241, 0.3)';
                     }}
                   >
-                    <RocketLaunchIcon style={{ fontSize: '2.5rem', marginBottom: '0.8rem', opacity: 0.9 }} />
-                    Hackathon
+                    <LiveClassIcon size={48} style={{ marginBottom: '0.8rem', opacity: 0.9 }} />
+                    Live Classes
                     <div style={{
                       position: 'absolute',
                       top: '15px',
                       right: '15px',
-                      background: 'linear-gradient(45deg, #ff6b6b, #ff8e53)',
+                      background: 'linear-gradient(45deg, #10b981, #059669)',
                       color: 'white',
                       padding: '0.3rem 0.8rem',
                       borderRadius: '12px',
@@ -947,10 +948,10 @@ function Navbar() {
                       fontWeight: '700',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      boxShadow: '0 2px 10px rgba(255, 107, 107, 0.4)',
+                      boxShadow: '0 2px 10px rgba(16, 185, 129, 0.4)',
                       animation: 'pulse 2s infinite'
                     }}>
-                      Live
+                      New
                     </div>
                   </Link>
                   

@@ -24,7 +24,12 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import AdminPanel from './pages/AdminPanel';
 import ResumeBuilderEnhanced from './pages/ResumeBuilderEnhanced';
 import ATSChecker from './pages/ATSChecker';
-import Hackathon from './pages/Hackathon';
+import LiveClasses from './pages/LiveClasses';
+import LiveClassesModule from './pages/LiveClassesModule';
+import GroupEnrollment from './pages/GroupEnrollment';
+import GroupStatus from './pages/GroupStatus';
+import VerifyGroup from './pages/VerifyGroup';
+import VideoGenerator from './pages/VideoGenerator';
 import CacheDebugPanel from './components/CacheDebugPanel';
 
 function App() {
@@ -87,6 +92,15 @@ function App() {
           element={
             <PrivateRoute>
               <Playground />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/video-generator"
+          element={
+            <PrivateRoute>
+              <VideoGenerator />
             </PrivateRoute>
           }
         />
@@ -160,17 +174,35 @@ function App() {
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         
-        {/* Hackathon Routes */}
-        <Route path="/hackathon" element={<Hackathon />} />
-        <Route path="/hackathon/registration" element={<Hackathon />} />
+        {/* Live Classes Routes */}
+        <Route path="/live-classes" element={<LiveClasses />} />
         <Route 
-          path="/hackathon/dashboard" 
+          path="/live-classes/module/:moduleId" 
           element={
             <PrivateRoute>
-              <Hackathon />
+              <LiveClassesModule />
             </PrivateRoute>
           } 
         />
+        
+        {/* Group Enrollment Routes */}
+        <Route 
+          path="/group-enrollment" 
+          element={
+            <PrivateRoute>
+              <GroupEnrollment />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/group-status/:groupId" 
+          element={
+            <PrivateRoute>
+              <GroupStatus />
+            </PrivateRoute>
+          } 
+        />
+        <Route path="/verify-group" element={<VerifyGroup />} />
       </Routes>
       </ApiErrorBoundary>
 

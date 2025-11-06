@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { useNotification } from './NotificationContext';
+import { isAdmin } from '../utils/adminUtils';
 
 const AuthContext = createContext();
 
@@ -46,10 +47,22 @@ export const AuthProvider = ({ children }) => {
           emailVerified: firebaseUser.emailVerified,
           creationTime: firebaseUser.metadata.creationTime,
           lastSignInTime: firebaseUser.metadata.lastSignInTime,
-          isNewUser: checkIfNewUser(firebaseUser)
+          isNewUser: checkIfNewUser(firebaseUser),
+          isAdmin: isAdmin(firebaseUser) // Add admin status
         };
         
         setUser(userData);
+        
+        // Show admin welcome message
+        if (userData.isAdmin && !localStorage.getItem(`admin_welcomed_${userData.uid}`)) {
+          showNotification({
+            type: 'success',
+            title: '🔐 Admin Access Granted',
+            message: `Welcome back, ${userData.displayName}! You have full admin access.`,
+            duration: 5000
+          });
+          localStorage.setItem(`admin_welcomed_${userData.uid}`, 'true');
+        }
         
         // Welcome notification for new users only
         if (userData.isNewUser && !localStorage.getItem(`welcomed_${userData.uid}`)) {
@@ -212,7 +225,8 @@ export const AuthProvider = ({ children }) => {
     getAndClearReturnPath,
     showContextualLoginPrompt,
     isAuthenticated: !!user,
-    isNewUser: user?.isNewUser || false
+    isNewUser: user?.isNewUser || false,
+    isAdmin: user?.isAdmin || false
   };
 
   return (

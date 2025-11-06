@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
 import { checkSubscriptionStatus } from '../utils/subscriptionUtils';
+import { isAdmin, getAdminSubscription } from '../utils/adminUtils';
 
 const SubscriptionContext = createContext();
 
@@ -58,6 +59,12 @@ export const SubscriptionProvider = ({ children }) => {
       }
       
       if (currentUser) {
+        // Check if user is admin and grant full access
+        if (isAdmin(currentUser)) {
+          setSubscriptionData(getAdminSubscription());
+          return; // Skip normal subscription check for admins
+        }
+        
         await checkSubscription();
         
         // Set up real-time listener for subscription changes

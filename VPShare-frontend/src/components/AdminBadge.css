@@ -1,0 +1,116 @@
+/* Admin Badge Styles */
+.admin-badge-container {
+  margin-bottom: 30px;
+}
+
+.admin-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-20px, -20px);
+  }
+}
+
+.admin-icon {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+}
+
+.admin-content {
+  flex: 1;
+  color: white;
+}
+
+.admin-content h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-perks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.perk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.perk-item:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(4px);
+}
+
+.perk-item svg {
+  flex-shrink: 0;
+  color: #4ade80;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .admin-badge {
+    background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-badge {
+    padding: 20px;
+    flex-direction: column;
+  }
+  
+  .admin-content h3 {
+    font-size: 1.1rem;
+  }
+  
+  .admin-perks {
+    grid-template-columns: 1fr;
+  }
+  
+  .perk-item {
+    font-size: 0.85rem;
+  }
+}

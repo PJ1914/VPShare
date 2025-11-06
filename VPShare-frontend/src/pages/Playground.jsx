@@ -37,7 +37,7 @@ function Playground() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
         >
-          <div className="modern-card" style={{ padding: '1rem', minHeight: '600px' }}>
+          <div className="modern-card no-hover" style={{ padding: '1rem', minHeight: '600px' }}>
             <ErrorBoundary>
               <PlaygroundEditor />
             </ErrorBoundary>

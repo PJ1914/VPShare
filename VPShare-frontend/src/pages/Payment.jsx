@@ -1,10 +1,12 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
 import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import axios from 'axios';
+import { enrollInLiveClasses } from '../services/enrollmentService';
+import { processGroupPayment } from '../services/groupEnrollmentService';
 import '../styles/Payment.css';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -44,6 +46,8 @@ const buttonVariants = {
 function Payment() {
   const { plan: initialPlan } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get('groupId');
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || 'monthly');
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState({ name: 'Guest User', email: 'guest@example.com', contact: '9999999999' });
@@ -93,6 +97,25 @@ function Payment() {
       features: ['1-year full access', 'All courses and projects', 'Priority support', 'Early access to new courses'],
       popular: false,
     },
+    'live-classes': {
+      name: 'Live Classes - Python & AWS',
+      price: 10199,
+      amount: 1019900,
+      duration: '12 weeks',
+      features: ['12-week live program', 'Live mentorship sessions', 'Hands-on projects', 'AWS deployment', 'Certificate of completion', 'Career support'],
+      popular: true,
+    },
+    'live-classes-group': {
+      name: 'Live Classes - Group (3+ Students)',
+      price: 5199,
+      amount: 519900,
+      duration: '12 weeks',
+      features: ['12-week live program', 'Special group rate (₹5,199/student)', 'Live mentorship sessions', 'Hands-on projects', 'Team collaboration', 'AWS deployment', 'Certificate for all', 'Priority support'],
+      popular: true,
+      groupSize: 'Minimum 3 students',
+      discount: '49% off per student',
+      requiresVerification: true,
+    },
   };
 
   // Plan icon mapping for mobile UI (premium look)
@@ -102,6 +125,8 @@ function Payment() {
     monthly: <CreditCardIcon className="plan-icon" />, // blue card
     'six-month': <DiamondIcon className="plan-icon" />, // purple diamond
     yearly: <WorkspacePremiumIcon className="plan-icon" />, // gold premium
+    'live-classes': <EmojiEventsIcon className="plan-icon" />, // trophy for live classes
+    'live-classes-group': <EmojiEventsIcon className="plan-icon" />, // trophy for group
   };
 
   useEffect(() => {
@@ -325,6 +350,52 @@ function Payment() {
             } catch (emailErr) {
               console.log('⚠️ Email failed but payment succeeded:', emailErr.message);
               // Don't fail the entire flow if email fails - payment was successful
+            }
+
+            // Check if this is Live Classes payment
+            const isLiveClassesPayment = selectedPlan === 'live-classes' || selectedPlan === 'live-classes-group' || window.location.pathname.includes('/live-classes');
+            
+            if (isLiveClassesPayment) {
+              // Check if this is a group enrollment
+              if (selectedPlan === 'live-classes-group' && groupId) {
+                try {
+                  // Process group payment
+                  const groupPaymentResult = await processGroupPayment(groupId, {
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    amount: planDetails.amount,
+                    plan: selectedPlan,
+                  });
+
+                  if (groupPaymentResult.success) {
+                    alert(`🎉 Group enrollment successful! ${groupPaymentResult.enrolledMembers} members enrolled. Payment ID: ${response.razorpay_payment_id}`);
+                    navigate(`/group-status/${groupId}?enrolled=success`);
+                    return;
+                  }
+                } catch (groupEnrollError) {
+                  console.error('Group enrollment error:', groupEnrollError);
+                  setError('Payment successful but group enrollment failed. Please contact support.');
+                  return;
+                }
+              } else {
+                // Individual Live Classes enrollment
+                try {
+                  const enrollResult = await enrollInLiveClasses(auth.currentUser.uid, {
+                    paymentId: response.razorpay_payment_id,
+                    plan: selectedPlan,
+                    amount: planDetails.amount
+                  });
+
+                  if (enrollResult.success) {
+                    alert(`🎉 Congratulations! You're now enrolled in Live Classes! Payment ID: ${response.razorpay_payment_id}. Check your email for confirmation.`);
+                    navigate('/dashboard?enrolled=live-classes');
+                    return;
+                  }
+                } catch (enrollError) {
+                  console.error('Enrollment error:', enrollError);
+                  // Continue with normal flow even if enrollment fails
+                }
+              }
             }
 
             alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}. A confirmation email has been sent to ${userData.email}. Your subscription is now active!`);

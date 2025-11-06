@@ -24,10 +24,22 @@
   font-family: 'Inter', sans-serif;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 body {
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 a {

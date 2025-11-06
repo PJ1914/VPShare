@@ -1,5 +1,6 @@
 import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { isAdmin, getAdminSubscription } from './adminUtils';
 
 /**
  * Check if user has an active subscription
@@ -12,6 +13,11 @@ export const checkSubscriptionStatus = async () => {
     
     if (!user) {
       return { hasSubscription: false, plan: null, expiresAt: null };
+    }
+    
+    // Check if user is admin - grant full access
+    if (isAdmin(user)) {
+      return getAdminSubscription();
     }
 
     const db = getFirestore();
@@ -70,6 +76,12 @@ export const checkSubscriptionStatus = async () => {
  * @returns {boolean}
  */
 export const canAccessModule = (moduleIndex, hasSubscription) => {
+  // Check if user is admin first
+  const auth = getAuth();
+  if (auth.currentUser && isAdmin(auth.currentUser)) {
+    return true; // Admin can access all modules
+  }
+  
   // Free users can access first 2 modules (index 0 and 1)
   const FREE_MODULE_LIMIT = 2;
   

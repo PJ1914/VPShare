@@ -289,6 +289,29 @@ main, .main-content, .dashboard-main, .page-content {
   border-color: rgba(99, 102, 241, 0.2);
 }
 
+/* No hover effect for interactive content containers */
+.modern-card.no-hover,
+.modern-card.interactive-content {
+  transition: none;
+}
+
+.modern-card.no-hover:hover,
+.modern-card.interactive-content:hover {
+  transform: none;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-light);
+}
+
+.modern-card.no-hover::after,
+.modern-card.interactive-content::after {
+  display: none;
+}
+
+.modern-card.no-hover:hover::after,
+.modern-card.interactive-content:hover::after {
+  opacity: 0;
+}
+
 .modern-card-compact {
   padding: 1.5rem;
   border-radius: var(--radius-lg);
@@ -1027,11 +1050,6 @@ main, .main-content, .dashboard-main, .page-content {
   .hero-content h2,
   .hero-content h3 {
     color: var(--text-primary) !important;
-  }
-  
-  .hero-content p,
-  .hero-content span {
-    color: var(--text-secondary) !important;
   }
   
   /* Learning Paths Section - Dark Mode */

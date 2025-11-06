@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import SEO from '../components/SEO';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { useAuth } from '../contexts/AuthContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 import cacheService from '../utils/cacheService';
+import LiveClassesBanner from '../components/dashboard/LiveClassesBanner';
+import GamificationStats from '../components/dashboard/GamificationStats';
+import AdminBadge from '../components/AdminBadge';
+import { isEnrolledInLiveClasses, getGamificationData, updateStreak } from '../services/enrollmentService';
 import '../styles/Dashboard.css';
 import {
   LibraryBooks as LibraryBooksIcon,
@@ -57,10 +62,14 @@ function Dashboard() {
     totalProgress: 0
   });
   const [recentActivities, setRecentActivities] = useState([]);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [gamificationData, setGamificationData] = useState(null);
   
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { hasSubscription } = useSubscription();
   const { showNotification } = useNotification();
+  const { user: authUser } = useAuth();
 
   // Cache configuration - Firebase-based persistent caching
   const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
@@ -164,6 +173,29 @@ function Dashboard() {
           uid: currentUser.uid,
           email: currentUser.email
         });
+
+        // Check Live Classes enrollment
+        const enrolled = await isEnrolledInLiveClasses(currentUser.uid);
+        setIsEnrolled(enrolled);
+
+        // Fetch gamification data
+        const gamData = await getGamificationData(currentUser.uid);
+        setGamificationData(gamData);
+
+        // Update user streak
+        await updateStreak(currentUser.uid);
+
+        // Show enrollment success notification if redirected from payment
+        if (searchParams.get('enrolled') === 'live-classes') {
+          showNotification({
+            type: 'success',
+            title: '🎉 Congratulations!',
+            message: 'You are now enrolled in Live Classes! Start learning now.',
+            duration: 5000
+          });
+          // Clear the query param
+          window.history.replaceState({}, '', '/dashboard');
+        }
 
         // Check cache first (unless forced refresh)
         if (!forceRefresh) {
@@ -638,6 +670,31 @@ function Dashboard() {
             </div>
           </motion.div>
         </motion.section>
+
+        {/* Admin Badge - Show for admin users */}
+        <AdminBadge user={authUser} />
+
+        {/* Live Classes Banner - Only show if enrolled */}
+        {isEnrolled && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <LiveClassesBanner />
+          </motion.section>
+        )}
+
+        {/* Gamification Stats */}
+        {gamificationData && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <GamificationStats gamificationData={gamificationData} />
+          </motion.section>
+        )}
 
         {/* Stats Grid */}
         <motion.section

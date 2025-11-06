@@ -1,0 +1,56 @@
+/* Learning Space Layout - Sidebar + Content */
+
+.learning-space-content {
+  margin-left: 72px; /* Collapsed sidebar width */
+  min-height: 100vh;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When sidebar is hovered/expanded, content doesn't shift (overlay style like Canva) */
+.learning-space-sidebar.expanded ~ .learning-space-content {
+  margin-left: 72px; /* Keep same margin */
+}
+
+/* Adjust for when sidebar is collapsed/hidden */
+@media (max-width: 1024px) {
+  .learning-space-content {
+    margin-left: 0;
+  }
+}
+
+/* Ensure smooth transitions */
+.learning-space-content .modern-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Adjust hero sections in learning space */
+.learning-space-content .modern-section:first-child {
+  margin-top: 0;
+}
+
+/* Responsive padding adjustments */
+@media (max-width: 768px) {
+  .learning-space-content .modern-container {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .learning-space-content .modern-container {
+    padding: 1rem 0.75rem;
+  }
+}
+
+/* Ensure content doesn't overflow with sidebar */
+.learning-space-content .modern-grid {
+  width: 100%;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .learning-space-content {
+    background: var(--bg-primary, #0f172a);
+  }
+}

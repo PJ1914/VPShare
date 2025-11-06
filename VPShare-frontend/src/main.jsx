@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { HackathonProvider } from './contexts/HackathonContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import serviceWorkerManager from './utils/serviceWorkerManager';
 import './styles/index.css';
 import './styles/ModernGlobal.css';
@@ -38,15 +39,17 @@ root.render(
   <React.StrictMode>
     <GoogleOAuthProvider>
       <BrowserRouter>
-        <NotificationProvider>
-          <AuthProvider>
-            <SubscriptionProvider>
-              <HackathonProvider>
-                <App />
-              </HackathonProvider>
-            </SubscriptionProvider>
-          </AuthProvider>
-        </NotificationProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <SubscriptionProvider>
+                <HackathonProvider>
+                  <App />
+                </HackathonProvider>
+              </SubscriptionProvider>
+            </AuthProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   </React.StrictMode>

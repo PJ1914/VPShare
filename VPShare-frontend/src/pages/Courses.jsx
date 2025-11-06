@@ -8,8 +8,10 @@ import { getFirestore, collection, getDoc, doc } from 'firebase/firestore';
 import SEO from '../components/SEO';
 import SubscriptionBanner from '../components/SubscriptionBanner';
 import { useSubscription } from '../contexts/SubscriptionContext';
+import LearningSpaceSidebar from '../components/layout/LearningSpaceSidebar';
+import { isEnrolledInLiveClasses } from '../services/enrollmentService';
 import '../styles/Courses.css';
-
+import '../styles/LearningSpaceLayout.css';
 // Configure axios-retry
 axiosRetry(axios, {
   retries: 3,
@@ -73,6 +75,7 @@ function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const navigate = useNavigate();
 
   const getAuthHeaders = async () => {
@@ -100,6 +103,14 @@ function Courses() {
         setLoading(false);
         navigate('/login', { replace: true });
         return;
+      }
+
+      // Check if user is enrolled in Live Classes
+      try {
+        const enrolled = await isEnrolledInLiveClasses(user.uid);
+        setIsEnrolled(enrolled);
+      } catch (err) {
+        console.error('Failed to check enrollment:', err);
       }
 
       try {
@@ -258,8 +269,11 @@ function Courses() {
         image="https://codetapasya.com/og-courses.jpg"
         structuredData={structuredData}
       />
+
+      {/* Learning Space Sidebar */}
+      <LearningSpaceSidebar isEnrolledInLiveClasses={isEnrolled} />
       
-      <div className="modern-page">
+      <div className="modern-page learning-space-content">
         <div className="modern-container">
           {/* Hero Section */}
           <motion.section
