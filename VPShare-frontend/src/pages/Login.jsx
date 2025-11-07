@@ -86,8 +86,12 @@ function Login() {
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Check if user is coming from hackathon context
-    const returnPath = location.state?.from || 
+    // Priority order for return path:
+    // 1. location.state.from (from PrivateRoute)
+    // 2. URL query parameter 'returnTo'
+    // 3. sessionStorage 'loginReturnPath'
+    // 4. Default to '/dashboard'
+    const returnPath = location.state?.from?.pathname || 
                       new URLSearchParams(location.search).get('returnTo') || 
                       sessionStorage.getItem('loginReturnPath') || 
                       '/dashboard';

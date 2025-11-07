@@ -99,12 +99,9 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  height: 100%;
-  overflow-y: auto; /* Show scrollbar only when needed */
-  overflow-x: hidden;
 }
 
 body {
@@ -113,9 +110,7 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
   overflow-x: hidden;
-  overflow-y: visible;
-  padding-top: 70px; /* Global spacing for fixed navbar (navbar height) */
-  min-height: calc(100vh - 70px);
+  padding-top: 70px;
 }
 
 /* Ensure no double padding for pages that already handle it */

@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -32,9 +33,36 @@ import VerifyGroup from './pages/VerifyGroup';
 import VideoGenerator from './pages/VideoGenerator';
 import CacheDebugPanel from './components/CacheDebugPanel';
 
+// ScrollToTop component inside App to access useLocation
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Disable scroll restoration by browser
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    
+    // Scroll to top immediately
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+    
+    // Also try with a small delay to ensure it happens after render
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <AIChat />
       <ApiErrorBoundary>

@@ -35,6 +35,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
+// Disable automatic scroll restoration
+if ('scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
 root.render(
   <React.StrictMode>
     <GoogleOAuthProvider>
