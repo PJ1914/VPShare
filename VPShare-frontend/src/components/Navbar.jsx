@@ -26,9 +26,60 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import LiveClassIcon from './icons/LiveClassIcon.jsx';
 import Logo from '../assets/CT Logo.png';
 import '../styles/ModernNavbar.css';
+
+const LiveClassIcon = ({ size = 24, color = 'currentColor', className = '', ...props }) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
+      <rect
+        x="2"
+        y="3"
+        width="20"
+        height="14"
+        rx="2"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 21H16"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 17V21"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="10" r="3.5" fill={color} opacity="0.2" />
+      <path
+        d="M10.5 8.5L14.5 10.5L10.5 12.5V8.5Z"
+        fill={color}
+        stroke={color}
+        strokeWidth="0.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="19" cy="6" r="2" fill="#ef4444" />
+      <circle cx="19" cy="6" r="2" fill="#ef4444" opacity="0.5">
+        <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="1.5s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+};
 
 // Animation variants for modern UI
 const logoVariants = {
