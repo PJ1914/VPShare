@@ -4,13 +4,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const videoFirebaseConfig = {
-  apiKey: "AIzaSyDELZvaIMpjmza7-pR1-Gnyjyq6MKZSOu8",
-  authDomain: "videodemo-52cdd.firebaseapp.com",
-  projectId: "videodemo-52cdd",
-  storageBucket: "videodemo-52cdd.firebasestorage.app",
-  messagingSenderId: "589521187290",
-  appId: "1:589521187290:web:f0f5a29e84ca01daad90e3",
-  measurementId: "G-VX7DFELMK7"
+  apiKey: import.meta.env.VITE_VIDEO_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_VIDEO_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_VIDEO_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_VIDEO_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_VIDEO_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_VIDEO_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_VIDEO_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize separate Firebase app for video generation

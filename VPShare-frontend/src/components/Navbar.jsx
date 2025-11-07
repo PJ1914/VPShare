@@ -26,7 +26,7 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import LiveClassIcon from './icons/LiveClassIcon';
+import LiveClassIcon from './icons/LiveClassIcon.jsx';
 import Logo from '../assets/CT Logo.png';
 import '../styles/ModernNavbar.css';
 

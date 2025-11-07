@@ -25,7 +25,7 @@ import AdvancedVideoPlayer from '../components/video/AdvancedVideoPlayer';
 import '../styles/VideoGenerator.css';
 
 // Video Generation API endpoint
-const VIDEO_API_URL = import.meta.env.VITE_VIDEO_API_URL || 'https://video-gen-api.onrender.com/api';
+const VIDEO_API_URL = import.meta.env.VITE_VIDEO_API_URL;
 
 const VideoGenerator = () => {
   const { user } = useAuth();
