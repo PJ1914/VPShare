@@ -129,7 +129,7 @@ const LiveClasses = () => {
               <div className="cta-details">
                 <div className="detail">
                   <Calendar size={24} />
-                  <span>Starts: <strong>November 10, 2025</strong></span>
+                  <span>Starts: <strong>Soon</strong></span>
                 </div>
                 <div className="detail">
                   <Clock size={24} />

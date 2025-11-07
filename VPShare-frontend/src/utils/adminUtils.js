@@ -5,7 +5,12 @@
 
 // List of admin emails with full access
 const ADMIN_EMAILS = [
-  'pranay.jumbarthi1905@gmail.com'
+  'pranay.jumbarthi1905@gmail.com',
+  'vishnutej49@gmail.com',
+  'javajiharshithapriya@gmail.com',
+  'nadukulahemanth3@gmail.com',
+  'saandeepsaiturpu@gmail.com',
+  'charanpagadala2004@gmail.com',
 ];
 
 /**
