@@ -11,6 +11,7 @@ import SubscriptionPrompt from '../components/SubscriptionPrompt';
 import ContentRenderer from '../components/ContentRenderer'; // NEW IMPORT
 import CodeBlock from '../components/CodeBlock'; // NEW IMPORT
 import NoteBox from '../components/NoteBox'; // NEW IMPORT
+import QuizModule from '../components/QuizModule'; // NEW IMPORT FOR QUIZ
 import { useSubscription } from '../contexts/SubscriptionContext';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -235,6 +236,11 @@ function CourseDetail() {
   const [lastVisitedContent, setLastVisitedContent] = useState(null);
   const [hasReturningUser, setHasReturningUser] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  // Quiz related state
+  const [showQuizModule, setShowQuizModule] = useState(false);
+  const [quizScore, setQuizScore] = useState(null);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   const contentRef = useRef(null);
 
@@ -2055,9 +2061,12 @@ function CourseDetail() {
         const progressPercentage = Math.round((updatedProgress.completedSections.length / contents.length) * 100);
         showSnackbar(`Progress saved! ${progressPercentage}% complete 🎯`);
 
-        // Check if course is completed
+        // Check if all course content (lessons) are completed
         if (updatedProgress.completedSections.length === contents.length) {
-          setTimeout(() => setShowCompletionModal(true), 1500);
+          setTimeout(() => {
+            setShowQuizModule(true);
+            showSnackbar('All lessons completed! Ready for the final assessment quiz? 🎯');
+          }, 1500);
         }
       }
     } catch (error) {
@@ -2069,6 +2078,44 @@ function CourseDetail() {
   // Mark content as completed manually
   const markAsCompleted = async (contentId) => {
     await saveProgress(contentId);
+  };
+
+  // Handle quiz completion
+  const handleQuizComplete = async (quizResult) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const db = getFirestore();
+      const progressDocId = `${user.uid}_${courseId}`;
+      const progressDocRef = doc(db, 'userProgress', progressDocId);
+      
+      const updatedProgress = {
+        ...userProgress,
+        quizScore: quizResult.score,
+        quizAttempts: (userProgress.quizAttempts || 0) + 1,
+        quizCompleted: true,
+        quizCompletedDate: new Date().toISOString(),
+        courseCompleted: quizResult.score >= 70,
+        courseCompletionDate: quizResult.score >= 70 ? new Date().toISOString() : null
+      };
+      
+      await setDoc(progressDocRef, updatedProgress, { merge: true });
+      setUserProgress(updatedProgress);
+      setQuizScore(quizResult.score);
+      setQuizCompleted(true);
+      
+      if (quizResult.score >= 70) {
+        showSnackbar(`Excellent! You passed the quiz with ${quizResult.score}%! Course completed! 🏆`);
+        setTimeout(() => setShowCompletionModal(true), 1500);
+      } else {
+        showSnackbar(`Quiz score: ${quizResult.score}%. Try again to improve your score!`);
+      }
+    } catch (error) {
+      console.error('Failed to save quiz result:', error);
+      showSnackbar('Failed to save quiz result. Please try again.');
+    }
   };
 
   const handleContentSelect = (content, contentIndex) => {
@@ -2293,6 +2340,42 @@ function CourseDetail() {
   };
 
   const renderContent = () => {
+    // Show quiz if all content is completed
+    if (showQuizModule && !quizCompleted) {
+      const courseProgress = ((userProgress.completedSections?.length || 0) / contents.length) * 100;
+      return (
+        <div className="w3-schools-layout">
+          <motion.div 
+            className="w3-content-header"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Box className="w3-breadcrumb" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#666', fontSize: '0.9rem' }}>
+                <span 
+                  onClick={() => navigate('/courses')}
+                  style={{ cursor: 'pointer', color: '#4CAF50', textDecoration: 'underline' }}
+                >
+                  {course.title}
+                </span>
+                {' > '}
+                <span style={{ color: '#333', fontWeight: 500 }}>Final Assessment</span>
+              </Typography>
+            </Box>
+          </motion.div>
+          
+          <div className="w3-content">
+            <QuizModule 
+              courseId={courseId}
+              onQuizComplete={handleQuizComplete}
+              courseProgress={Math.round(courseProgress)}
+            />
+          </div>
+        </div>
+      );
+    }
+
     if (!currentContent) return null;
 
     console.log('Rendering content:', currentContent);
