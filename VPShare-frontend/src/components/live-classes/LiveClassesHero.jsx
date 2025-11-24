@@ -64,7 +64,7 @@ const LiveClassesHero = ({ onEnrollClick, onViewCurriculum }) => {
               <Calendar size={24} />
               <div className="stat-content">
                 <span className="stat-label">Starts</span>
-                <span className="stat-value">Nov 10, 2025</span>
+                <span className="stat-value">Soon</span>
               </div>
             </motion.div>
             

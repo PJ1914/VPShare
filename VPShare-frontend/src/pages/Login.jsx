@@ -203,13 +203,27 @@ function Login() {
         
         if (result.user) {
           const returnPath = getAndClearReturnPath();
+          const scrollTo = location.state?.scrollTo;
+          
           showNotification({
             type: 'success',
             title: '🎉 Welcome back!',
             message: `Successfully signed in with Google.`,
             duration: 3000
           });
+          
+          // Navigate and scroll if needed
           navigate(returnPath);
+          
+          // Scroll to section after navigation if specified
+          if (scrollTo) {
+            setTimeout(() => {
+              const element = document.getElementById(scrollTo);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 500);
+          }
         }
       } catch (popupError) {
         // If popup is blocked or COOP policy interferes, use redirect
@@ -293,13 +307,26 @@ function Login() {
         
         if (result.user) {
           const returnPath = getAndClearReturnPath();
+          const scrollTo = location.state?.scrollTo;
+          
           showNotification({
             type: 'success',
             title: '🎉 Welcome!',
             message: `Successfully signed in with GitHub.`,
             duration: 3000
           });
+          
           navigate(returnPath);
+          
+          // Scroll to section after navigation if specified
+          if (scrollTo) {
+            setTimeout(() => {
+              const element = document.getElementById(scrollTo);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 500);
+          }
         }
       } catch (popupError) {
         // If popup is blocked or COOP policy interferes, use redirect
@@ -370,13 +397,26 @@ function Login() {
       }
       
       const returnPath = getAndClearReturnPath();
+      const scrollTo = location.state?.scrollTo;
+      
       showNotification({
         type: 'success',
         title: `🎉 ${isLogin ? 'Welcome back!' : 'Account created!'}`,
         message: `Successfully ${isLogin ? 'signed in' : 'registered'}.`,
         duration: 3000
       });
+      
       navigate(returnPath);
+      
+      // Scroll to section after navigation if specified
+      if (scrollTo) {
+        setTimeout(() => {
+          const element = document.getElementById(scrollTo);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 500);
+      }
     } catch (error) {
       let errorMessage = 'An error occurred. Please try again.';
       

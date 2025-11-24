@@ -38,7 +38,7 @@ const LiveClasses = () => {
     <>
       <SEO 
         title="Python & AWS Full Stack Development - Live Classes | CodeTapasya"
-        description="12-week mentor-led program from zero to deployed serverless web app. Learn Python, Flask, Django, FastAPI, and AWS. Starts Nov 10, 2025."
+        description="12-week mentor-led program from zero to deployed serverless web app. Learn Python, Flask, Django, FastAPI, and AWS. Starts Soon."
         keywords="python course, aws training, full stack development, flask, django, fastapi, live coding classes, serverless, lambda, dynamodb"
       />
 

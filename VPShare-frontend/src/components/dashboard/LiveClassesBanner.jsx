@@ -30,7 +30,7 @@ const LiveClassesBanner = () => {
         <div className="banner-details">
           <div className="detail-item">
             <Calendar size={18} />
-            <span>Starts Nov 10, 2025</span>
+            <span>Starts Soon</span>
           </div>
           <div className="detail-item">
             <Clock size={18} />

@@ -217,8 +217,14 @@
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+}
+
+.submit-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .spinner {
@@ -227,11 +233,15 @@
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
 }
 
 @keyframes spin {
-  to {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
     transform: rotate(360deg);
   }
 }
@@ -630,5 +640,194 @@
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
     width: 100%;
+  }
+}
+
+/* Login Prompt Section */
+.login-prompt {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--card-bg, white);
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.login-prompt-icon {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-prompt-icon svg {
+  color: #6366f1;
+}
+
+.login-prompt .section-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt .section-title {
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+.login-prompt .section-description {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt .section-description {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.login-prompt-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.login-btn.primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+}
+
+.login-btn.primary:hover {
+  box-shadow: 0 6px 12px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.login-btn.secondary {
+  background: var(--card-bg, white);
+  color: #6366f1;
+  border: 2px solid #6366f1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-btn.secondary {
+    background: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+    border-color: #818cf8;
+  }
+}
+
+.login-btn.secondary:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-btn.secondary:hover {
+    background: rgba(99, 102, 241, 0.2);
+  }
+}
+
+.login-prompt-benefits {
+  text-align: left;
+  background: rgba(99, 102, 241, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 2rem;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt-benefits {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+}
+
+.login-prompt-benefits h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt-benefits h3 {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.login-prompt-benefits ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.login-prompt-benefits li {
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt-benefits li {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.login-prompt-benefits li svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-prompt-benefits li svg {
+    color: #34d399;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-prompt {
+    padding: 2rem 1rem;
+  }
+
+  .login-prompt-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .login-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

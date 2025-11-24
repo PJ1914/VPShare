@@ -54,6 +54,7 @@ const RegistrationForm = () => {
       await addDoc(collection(db, 'liveClassRegistrations'), {
         ...formData,
         userId: user?.uid || null,
+        userEmail: user?.email || formData.email,
         createdAt: serverTimestamp(),
         status: 'pending',
         trialStarted: false
@@ -74,7 +75,18 @@ const RegistrationForm = () => {
       });
     } catch (err) {
       console.error('Error submitting registration:', err);
-      setError('Failed to submit registration. Please try again.');
+      let errorMessage = 'Failed to submit registration. Please try again.';
+      
+      // Provide more specific error messages
+      if (err.code === 'permission-denied') {
+        errorMessage = 'Permission denied. Please check your connection and try again.';
+      } else if (err.code === 'unavailable') {
+        errorMessage = 'Service temporarily unavailable. Please try again in a moment.';
+      } else if (err.message) {
+        errorMessage = `Error: ${err.message}`;
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
