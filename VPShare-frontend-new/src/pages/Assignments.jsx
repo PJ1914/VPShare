@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton';
 import { db } from '../config/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import Pagination from '../components/ui/Pagination';
 
 const Assignments = () => {
     const { user } = useAuth();
@@ -111,6 +112,20 @@ const Assignments = () => {
         return matchesSearch && matchesFilter;
     });
 
+    // Pagination Logic
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter, searchTerm]);
+
+    const totalPages = Math.ceil(filteredAssignments.length / itemsPerPage);
+    const currentAssignments = filteredAssignments.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'pending': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400';
@@ -179,7 +194,7 @@ const Assignments = () => {
 
                 <div className="grid gap-4">
                     <AnimatePresence>
-                        {filteredAssignments.length === 0 ? (
+                        {currentAssignments.length === 0 ? (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -190,7 +205,7 @@ const Assignments = () => {
                                 <p className="text-gray-500 dark:text-gray-400">Try adjusting your filters or search term</p>
                             </motion.div>
                         ) : (
-                            filteredAssignments.map((assignment) => (
+                            currentAssignments.map((assignment) => (
                                 <motion.div
                                     key={assignment.id}
                                     initial={{ opacity: 0, y: 20 }}
@@ -250,6 +265,12 @@ const Assignments = () => {
                         )}
                     </AnimatePresence>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             {/* Submission Modal */}

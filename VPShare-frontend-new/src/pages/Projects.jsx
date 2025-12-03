@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
 
 const Projects = () => {
     const { user } = useAuth();
@@ -76,6 +77,20 @@ const Projects = () => {
         return matchesSearch && matchesFilter;
     });
 
+    // Pagination Logic
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter, searchTerm]);
+
+    const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+    const currentProjects = filteredProjects.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     const getDifficultyColor = (difficulty) => {
         switch (difficulty.toLowerCase()) {
             case 'beginner': return 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400';
@@ -143,7 +158,7 @@ const Projects = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence>
-                        {filteredProjects.map((project) => (
+                        {currentProjects.map((project) => (
                             <motion.div
                                 key={project.id}
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -203,6 +218,12 @@ const Projects = () => {
                         ))}
                     </AnimatePresence>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             {/* Project Details Modal */}

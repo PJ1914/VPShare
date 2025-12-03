@@ -68,26 +68,37 @@ const Navbar = () => {
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-16 items-center">
-                    {/* Logo */}
-                    <div className="flex-shrink-0 flex items-center">
-                        <Link to="/" className="flex items-center space-x-1 group">
-                            <motion.img
-                                src={logoImg}
-                                alt="CodeTapasya"
-                                className="h-14 w-auto object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
-                                whileHover={{ rotate: [0, -5, 5, 0] }}
-                                transition={{ duration: 0.5 }}
-                            />
-                            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 hidden sm:block">
-                                CodeTapasya
-                            </span>
-                        </Link>
+            <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-14 sm:h-16 items-center">
+                    {/* Mobile: Hamburger + Logo on Left */}
+                    <div className="flex items-center space-x-1 sm:space-x-3">
+                        {/* Mobile menu button - LEFT SIDE */}
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="md:hidden inline-flex items-center justify-center p-1 sm:p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none"
+                        >
+                            {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        </button>
+
+                        {/* Logo */}
+                        <div className="flex-shrink-0 flex items-center">
+                            <Link to="/" className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 group">
+                                <motion.img
+                                    src={logoImg}
+                                    alt="CodeTapasya"
+                                    className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                                    whileHover={{ rotate: [0, -5, 5, 0] }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                                <span className="text-base sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600 dark:from-blue-400 dark:via-indigo-400 dark:to-violet-400 hidden sm:block">
+                                    CodeTapasya
+                                </span>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Desktop Navigation - Centered with Animated Pill */}
-                    <div className="hidden md:flex items-center space-x-2 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-1.5 rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                    <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center space-x-1 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-1 rounded-full border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                         {navLinks.map((link) => {
                             const active = isActive(link.path);
                             return (
@@ -95,7 +106,7 @@ const Navbar = () => {
                                     key={link.name}
                                     to={link.path}
                                     className={cn(
-                                        "relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 flex items-center space-x-2",
+                                        "relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2",
                                         active
                                             ? "text-blue-600 dark:text-blue-300"
                                             : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -116,30 +127,46 @@ const Navbar = () => {
                     </div>
 
                     {/* Right Side Actions */}
-                    <div className="hidden md:flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
                         {user ? (
                             <div className="relative" ref={profileRef}>
-                                <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-2 sm:space-x-3">
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
-                                        className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none transition-colors relative cursor-pointer"
+                                        className="p-1.5 sm:p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none transition-colors relative cursor-pointer"
                                     >
-                                        <Bell className="w-5 h-5" />
-                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900"></span>
+                                        <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        <span className="absolute top-1 right-1 sm:top-2 sm:right-2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full ring-1 sm:ring-2 ring-white dark:ring-gray-900"></span>
                                     </motion.button>
 
                                     <button
                                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                        className="flex items-center space-x-2 focus:outline-none group cursor-pointer"
+                                        className="flex items-center space-x-1 sm:space-x-2 focus:outline-none group cursor-pointer"
                                     >
                                         <motion.div
                                             whileHover={{ scale: 1.05 }}
-                                            className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm shadow-md ring-2 ring-white dark:ring-gray-900 group-hover:ring-blue-200 dark:group-hover:ring-blue-900 transition-all"
+                                            className={cn(
+                                                "w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-md ring-2 ring-white dark:ring-gray-900 group-hover:ring-blue-200 dark:group-hover:ring-blue-900 transition-all",
+                                                user.photoURL
+                                                    ? "p-0.5 bg-gradient-to-tr from-blue-500 to-purple-500"
+                                                    : "bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center"
+                                            )}
                                         >
-                                            {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
+                                            {user.photoURL ? (
+                                                <img
+                                                    src={user.photoURL}
+                                                    alt={user.displayName || "User"}
+                                                    className="w-full h-full object-cover rounded-full bg-white dark:bg-gray-900"
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                            ) : (
+                                                <span className="text-white font-semibold text-xs sm:text-sm">
+                                                    {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
+                                                </span>
+                                            )}
                                         </motion.div>
-                                        <ChevronDown className={cn("w-4 h-4 text-gray-500 transition-transform duration-200", isProfileOpen && "transform rotate-180")} />
+                                        <ChevronDown className={cn("w-3 h-3 sm:w-4 sm:h-4 text-gray-500 transition-transform duration-200 hidden sm:block", isProfileOpen && "transform rotate-180")} />
                                     </button>
                                 </div>
 
@@ -201,125 +228,82 @@ const Navbar = () => {
                                 </AnimatePresence>
                             </div>
                         ) : (
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3">
                                 <Link to="/login">
-                                    <Button variant="ghost" size="sm" className="font-medium hover:bg-gray-100 dark:hover:bg-gray-800">Sign In</Button>
+                                    <Button variant="ghost" size="sm" className="font-medium hover:bg-gray-100 dark:hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2">Sign In</Button>
                                 </Link>
                                 <Link to="/signup">
-                                    <Button size="sm" className="shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all">Get Started</Button>
+                                    <Button size="sm" className="shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all text-xs sm:text-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2">Get Started</Button>
                                 </Link>
                             </div>
                         )}
-                    </div>
-
-                    {/* Mobile menu button */}
-                    <div className="flex items-center md:hidden space-x-4">
-                        <button
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none"
-                        >
-                            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Drawer */}
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 overflow-hidden"
-                    >
-                        <div className="px-4 pt-4 pb-6 space-y-2">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    to={link.path}
-                                    className={cn(
-                                        "block px-4 py-3 rounded-xl text-base font-medium transition-all",
-                                        isActive(link.path)
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    )}
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsOpen(false)}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+                        />
+
+                        {/* Drawer */}
+                        <motion.div
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="fixed top-0 left-0 bottom-0 w-[280px] bg-white dark:bg-gray-950 shadow-2xl z-50 md:hidden border-r border-gray-200 dark:border-gray-800 flex flex-col"
+                        >
+                            {/* Drawer Header */}
+                            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                                <div className="flex items-center space-x-2">
+                                    <img src={logoImg} alt="Logo" className="h-8 w-auto" />
+                                    <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                                        CodeTapasya
+                                    </span>
+                                </div>
+                                <button
                                     onClick={() => setIsOpen(false)}
+                                    className="p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
                                 >
-                                    <div className="flex items-center">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Drawer Links */}
+                            <div className="flex-1 overflow-y-auto py-4 px-3 space-y-2">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.name}
+                                        to={link.path}
+                                        className={cn(
+                                            "flex items-center px-4 py-3 rounded-xl text-base font-medium transition-all",
+                                            isActive(link.path)
+                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
+                                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                        )}
+                                        onClick={() => setIsOpen(false)}
+                                    >
                                         <link.icon className="w-5 h-5 mr-3" />
                                         {link.name}
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
+                                    </Link>
+                                ))}
+                            </div>
 
-                        {user ? (
-                            <div className="pt-4 pb-6 border-t border-gray-200 dark:border-gray-800 px-4">
-                                <div className="flex items-center mb-6 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                                    <div className="flex-shrink-0">
-                                        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-md">
-                                            {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
-                                        </div>
-                                    </div>
-                                    <div className="ml-3">
-                                        <div className="text-base font-semibold text-gray-800 dark:text-white">{user.displayName || 'User'}</div>
-                                        <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{user.email}</div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Link
-                                        to="/profile"
-                                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                                        onClick={() => setIsOpen(false)}
-                                    >
-                                        <div className="flex items-center">
-                                            <User className="w-5 h-5 mr-3" />
-                                            Profile
-                                        </div>
-                                    </Link>
-                                    <Link
-                                        to="/prativeda"
-                                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                                        onClick={() => setIsOpen(false)}
-                                    >
-                                        <div className="flex items-center">
-                                            <FileText className="w-5 h-5 mr-3" />
-                                            Resume Maker
-                                        </div>
-                                    </Link>
-                                    <Link
-                                        to="/settings"
-                                        className="block px-4 py-3 rounded-xl text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                                        onClick={() => setIsOpen(false)}
-                                    >
-                                        <div className="flex items-center">
-                                            <Settings className="w-5 h-5 mr-3" />
-                                            Settings
-                                        </div>
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full text-left block px-4 py-3 rounded-xl text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                    >
-                                        <div className="flex items-center">
-                                            <LogOut className="w-5 h-5 mr-3" />
-                                            Sign out
-                                        </div>
-                                    </button>
-                                </div>
+                            {/* Drawer Footer (Optional: Copyright or extra links) */}
+                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 text-center">
+                                © {new Date().getFullYear()} CodeTapasya
                             </div>
-                        ) : (
-                            <div className="p-4 border-t border-gray-200 dark:border-gray-800 grid grid-cols-2 gap-4">
-                                <Link to="/login" onClick={() => setIsOpen(false)}>
-                                    <Button variant="outline" className="w-full justify-center py-3">Sign In</Button>
-                                </Link>
-                                <Link to="/signup" onClick={() => setIsOpen(false)}>
-                                    <Button className="w-full justify-center py-3 shadow-lg">Get Started</Button>
-                                </Link>
-                            </div>
-                        )}
-                    </motion.div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </motion.nav>

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { SkeletonDashboard } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
 import {
     BookOpen, Clock, Trophy, Flame,
     ArrowRight, PlayCircle, CheckCircle,
@@ -175,6 +176,16 @@ const Dashboard = () => {
         visible: { y: 0, opacity: 1 }
     };
 
+    // Pagination Logic
+    const [coursePage, setCoursePage] = useState(1);
+    const coursesPerPage = 4;
+
+    const totalCoursePages = Math.ceil(activeCourses.length / coursesPerPage);
+    const currentActiveCourses = activeCourses.slice(
+        (coursePage - 1) * coursesPerPage,
+        coursePage * coursesPerPage
+    );
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -259,51 +270,59 @@ const Dashboard = () => {
                                     <Link to="/courses" className="text-blue-600 hover:underline mt-2 inline-block">Start your first course</Link>
                                 </Card>
                             ) : (
-                                activeCourses.map((course) => (
-                                    <motion.div key={course.id} variants={itemVariants}>
-                                        <Card className="border-none shadow-sm hover:shadow-md transition-all overflow-hidden group bg-white dark:bg-gray-900">
-                                            <div className="p-6">
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300">
-                                                            {getCategoryIcon(course.category)}
+                                <>
+                                    {currentActiveCourses.map((course) => (
+                                        <motion.div key={course.id} variants={itemVariants}>
+                                            <Card className="border-none shadow-sm hover:shadow-md transition-all overflow-hidden group bg-white dark:bg-gray-900">
+                                                <div className="p-6">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300">
+                                                                {getCategoryIcon(course.category)}
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                                    {course.title}
+                                                                </h3>
+                                                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                                    {course.completedLessons} of {course.totalLessons} lessons completed
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                                {course.title}
-                                                            </h3>
-                                                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                                {course.completedLessons} of {course.totalLessons} lessons completed
+                                                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                                            {course.progress}%
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                            <div
+                                                                className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                                                                style={{ width: `${course.progress}%` }}
+                                                            ></div>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between pt-2">
+                                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                                <span className="font-medium">Next:</span> {course.lastLesson}
                                                             </p>
+                                                            <Button size="sm" className="group-hover:translate-x-1 transition-transform">
+                                                                {course.isStarted ? 'Resume' : 'Start'}
+                                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                                        {course.progress}%
-                                                    </span>
                                                 </div>
-
-                                                <div className="space-y-4">
-                                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                        <div
-                                                            className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
-                                                            style={{ width: `${course.progress}%` }}
-                                                        ></div>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between pt-2">
-                                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                            <span className="font-medium">Next:</span> {course.lastLesson}
-                                                        </p>
-                                                        <Button size="sm" className="group-hover:translate-x-1 transition-transform">
-                                                            {course.isStarted ? 'Resume' : 'Start'}
-                                                            <ArrowRight className="ml-2 h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                ))
+                                            </Card>
+                                        </motion.div>
+                                    ))}
+                                    <Pagination
+                                        currentPage={coursePage}
+                                        totalPages={totalCoursePages}
+                                        onPageChange={setCoursePage}
+                                        className="justify-start"
+                                    />
+                                </>
                             )}
                         </div>
 

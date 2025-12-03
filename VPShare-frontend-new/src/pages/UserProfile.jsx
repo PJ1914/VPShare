@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SkeletonProfile } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage } from '../config/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -84,6 +85,24 @@ const UserProfile = () => {
         totalLearningMinutes: 0
     });
     const [activityData, setActivityData] = useState([]);
+
+    // Pagination Logic
+    const [badgePage, setBadgePage] = useState(1);
+    const badgesPerPage = 4; // Show 4 per page to demonstrate pagination
+
+    const BADGES = [
+        { name: 'First Steps', desc: 'Completed your first lesson', icon: '🚀', unlocked: true },
+        { name: 'Code Warrior', desc: 'Wrote 1000 lines of code', icon: '⚔️', unlocked: true },
+        { name: 'Bug Hunter', desc: 'Fixed 50 bugs', icon: '🐛', unlocked: false },
+        { name: 'Night Owl', desc: 'Coded after midnight', icon: '🦉', unlocked: true },
+        { name: 'Socialite', desc: 'Shared your profile', icon: '🌟', unlocked: false },
+    ];
+
+    const totalBadgePages = Math.ceil(BADGES.length / badgesPerPage);
+    const currentBadges = BADGES.slice(
+        (badgePage - 1) * badgesPerPage,
+        badgePage * badgesPerPage
+    );
 
     useEffect(() => {
         if (user) {
@@ -488,13 +507,7 @@ const UserProfile = () => {
                             </h3>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {[
-                                    { name: 'First Steps', desc: 'Completed your first lesson', icon: '🚀', unlocked: true },
-                                    { name: 'Code Warrior', desc: 'Wrote 1000 lines of code', icon: '⚔️', unlocked: true },
-                                    { name: 'Bug Hunter', desc: 'Fixed 50 bugs', icon: '🐛', unlocked: false },
-                                    { name: 'Night Owl', desc: 'Coded after midnight', icon: '🦉', unlocked: true },
-                                    { name: 'Socialite', desc: 'Shared your profile', icon: '🌟', unlocked: false },
-                                ].map((badge, index) => (
+                                {currentBadges.map((badge, index) => (
                                     <div
                                         key={index}
                                         className={`group relative p-4 rounded-xl border ${badge.unlocked ? 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10 dark:border-yellow-900/30' : 'border-gray-100 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 opacity-60'} flex flex-col items-center text-center transition-all hover:scale-105`}
@@ -510,6 +523,12 @@ const UserProfile = () => {
                                     </div>
                                 ))}
                             </div>
+                            <Pagination
+                                currentPage={badgePage}
+                                totalPages={totalBadgePages}
+                                onPageChange={setBadgePage}
+                                className="mt-6"
+                            />
                         </motion.div>
                     </div>
                 </motion.div>

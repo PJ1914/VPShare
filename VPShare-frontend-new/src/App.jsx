@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
+import PrivateRoute from './components/PrivateRoute';
 
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -32,28 +33,60 @@ function App() {
                 <Layout>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+
+                        {/* Protected Routes */}
+                        <Route path="/dashboard" element={
+                            <PrivateRoute>
+                                <Dashboard />
+                            </PrivateRoute>
+                        } />
 
                         {/* Nested Courses Routes */}
-                        {/* Nested Courses Routes */}
-                        <Route path="/courses">
-                            <Route element={<CoursesLayout />}>
-                                <Route index element={<CourseList />} />
-                                <Route path="assignments" element={<Assignments />} />
-                                <Route path="projects" element={<Projects />} />
-                                <Route path="quizzes" element={<Quizzes />} />
-                            </Route>
+                        <Route path="/courses" element={
+                            <PrivateRoute>
+                                <CoursesLayout />
+                            </PrivateRoute>
+                        }>
+                            <Route index element={<CourseList />} />
+                            <Route path="assignments" element={<Assignments />} />
+                            <Route path="projects" element={<Projects />} />
+                            <Route path="quizzes" element={<Quizzes />} />
                             <Route path=":id" element={<CourseDetail />} />
                         </Route>
 
-                        <Route path="/playground" element={<Playground />} />
-                        <Route path="/profile" element={<UserProfile />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/prativeda" element={<Prativeda />} />
-                        <Route path="/payment" element={<Payment />} />
-                        <Route path="/payment/:plan" element={<Payment />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/playground" element={
+                            <PrivateRoute>
+                                <Playground />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <PrivateRoute>
+                                <UserProfile />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/settings" element={
+                            <PrivateRoute>
+                                <Settings />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/prativeda" element={
+                            <PrivateRoute>
+                                <Prativeda />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/payment" element={
+                            <PrivateRoute>
+                                <Payment />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/payment/:plan" element={
+                            <PrivateRoute>
+                                <Payment />
+                            </PrivateRoute>
+                        } />
+
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </Layout>

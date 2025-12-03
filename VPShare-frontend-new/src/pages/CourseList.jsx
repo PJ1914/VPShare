@@ -14,6 +14,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { SkeletonCourseCard } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -234,6 +235,20 @@ const CourseList = () => {
         return matchesSearch && matchesCategory;
     });
 
+    // Pagination Logic
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedCategory]);
+
+    const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+    const currentCourses = filteredCourses.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8">
@@ -349,7 +364,7 @@ const CourseList = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AnimatePresence mode="wait">
-                        {filteredCourses.length === 0 ? (
+                        {currentCourses.length === 0 ? (
                             <motion.div
                                 key="empty-state"
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -364,7 +379,7 @@ const CourseList = () => {
                                 </p>
                             </motion.div>
                         ) : (
-                            filteredCourses.map((course) => {
+                            currentCourses.map((course) => {
                                 const Icon = getCategoryIcon(course.category);
                                 const isStarted = course.progress > 0;
 
@@ -454,6 +469,12 @@ const CourseList = () => {
                         )}
                     </AnimatePresence>
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </div>
     );

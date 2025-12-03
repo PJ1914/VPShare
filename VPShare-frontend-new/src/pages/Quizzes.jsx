@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import Pagination from '../components/ui/Pagination';
 
 const Quizzes = () => {
     const { user } = useAuth();
@@ -100,6 +101,16 @@ const Quizzes = () => {
             setLoading(false);
         }, 1000);
     }, []);
+
+    // Pagination Logic
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    const totalPages = Math.ceil(quizzes.length / itemsPerPage);
+    const currentQuizzes = quizzes.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     useEffect(() => {
         let timer;
@@ -320,7 +331,7 @@ const Quizzes = () => {
                 </div>
 
                 <div className="grid gap-4">
-                    {quizzes.map((quiz) => (
+                    {currentQuizzes.map((quiz) => (
                         <motion.div
                             key={quiz.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -366,6 +377,12 @@ const Quizzes = () => {
                         </motion.div>
                     ))}
                 </div>
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </div>
     );

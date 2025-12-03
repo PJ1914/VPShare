@@ -427,7 +427,6 @@ try { ${jsFile?.content || ''} } catch (e) { console.error(e.message); }
             case 'run-autocompile': setAutoCompile(!autoCompile); break;
             case 'view-theme-dark': setTheme('vs-dark'); break;
             case 'view-theme-light': setTheme('light'); break;
-            case 'view-theme-light': setTheme('light'); break;
             case 'terminal-clear': setConsoleOutput([]); break;
             case 'edit-format': formatCode(); break;
             default: break;
