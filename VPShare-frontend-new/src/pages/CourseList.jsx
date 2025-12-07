@@ -237,7 +237,7 @@ const CourseList = () => {
 
     // Pagination Logic
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
+    const itemsPerPage = 12;
 
     useEffect(() => {
         setCurrentPage(1);
@@ -257,7 +257,7 @@ const CourseList = () => {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Explore Courses</h1>
                         <p className="text-gray-600 dark:text-gray-400">Loading courses...</p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {[...Array(6)].map((_, index) => (
                             <SkeletonCourseCard key={index} />
                         ))}
@@ -362,7 +362,7 @@ const CourseList = () => {
                     </motion.div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     <AnimatePresence mode="wait">
                         {currentCourses.length === 0 ? (
                             <motion.div
@@ -393,7 +393,7 @@ const CourseList = () => {
                                         layout
                                     >
                                         <Card className="border-none shadow-sm hover:shadow-xl transition-all overflow-hidden group bg-white dark:bg-gray-900 h-full flex flex-col">
-                                            <div className="relative h-48 overflow-hidden">
+                                            <div className="relative h-36 overflow-hidden">
                                                 <img
                                                     src={course.thumbnail}
                                                     alt={course.title}
@@ -417,46 +417,46 @@ const CourseList = () => {
                                                 )}
                                             </div>
 
-                                            <CardContent className="p-6 flex-1 flex flex-col">
-                                                <div className="flex items-center space-x-2 mb-3">
-                                                    <div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300">
-                                                        <Icon className="w-4 h-4" />
+                                            <CardContent className="p-4 flex-1 flex flex-col">
+                                                <div className="flex items-center space-x-2 mb-2">
+                                                    <div className="p-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300">
+                                                        <Icon className="w-3 h-3" />
                                                     </div>
                                                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                                         {course.category}
                                                     </span>
                                                 </div>
 
-                                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                                                     {course.title}
                                                 </h3>
 
-                                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 flex-1">
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 flex-1">
                                                     {course.description}
                                                 </p>
 
-                                                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 pb-3 border-b border-gray-100 dark:border-gray-800">
                                                     <div className="flex items-center space-x-1">
-                                                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                                                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
                                                         <span className="font-medium">{course.rating}</span>
                                                     </div>
                                                     <div className="flex items-center space-x-1">
-                                                        <BookOpen className="w-4 h-4" />
+                                                        <BookOpen className="w-3 h-3" />
                                                         <span>{course.totalModules} modules</span>
                                                     </div>
                                                 </div>
 
                                                 <Link to={`/courses/${course.id}`} className="w-full">
-                                                    <Button className="w-full group-hover:translate-y-[-2px] transition-transform">
+                                                    <Button size="sm" className="w-full group-hover:translate-y-[-2px] transition-transform">
                                                         {isStarted ? (
                                                             <>
-                                                                <PlayCircle className="w-4 h-4 mr-2" />
-                                                                Continue Learning
+                                                                <PlayCircle className="w-3 h-3 mr-1" />
+                                                                Continue
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <CheckCircle className="w-4 h-4 mr-2" />
-                                                                Start Course
+                                                                <CheckCircle className="w-3 h-3 mr-1" />
+                                                                Start
                                                             </>
                                                         )}
                                                     </Button>
