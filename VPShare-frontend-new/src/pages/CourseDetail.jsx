@@ -280,33 +280,33 @@ const CourseDetail = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const navigateContent = (direction) => {
-        if (!currentModule || !currentModule.contents) return;
+    const navigateModule = (direction) => {
+        if (!currentModule || modules.length === 0) return;
 
-        const currentIndex = currentModule.contents.findIndex(c => c.id === currentContent?.id);
-        if (currentIndex === -1) return;
+        const currentModuleIndex = modules.findIndex(m => 
+            (m.id && currentModule.id && m.id === currentModule.id) || 
+            (m.SK && currentModule.SK && m.SK === currentModule.SK)
+        );
 
-        if (direction === 'next') {
-            if (currentIndex < currentModule.contents.length - 1) {
-                handleContentSelect(currentModule, currentModule.contents[currentIndex + 1]);
-            } else {
-                const modIndex = modules.findIndex(m => m.id === currentModule.id || m.SK === currentModule.SK);
-                if (modIndex < modules.length - 1) {
-                    const nextMod = modules[modIndex + 1];
-                    setCurrentModule(nextMod);
-                    setExpandedModules(prev => ({ ...prev, [nextMod.id || nextMod.SK]: true }));
-                }
+        if (currentModuleIndex === -1) return;
+
+        if (direction === 'next' && currentModuleIndex < modules.length - 1) {
+            const nextModule = modules[currentModuleIndex + 1];
+            setCurrentModule(nextModule);
+            setExpandedModules(prev => ({ ...prev, [nextModule.id || nextModule.SK]: true }));
+            
+            // Auto-select first content of the next module
+            if (nextModule.contents && nextModule.contents.length > 0) {
+                handleContentSelect(nextModule, nextModule.contents[0]);
             }
-        } else {
-            if (currentIndex > 0) {
-                handleContentSelect(currentModule, currentModule.contents[currentIndex - 1]);
-            } else {
-                const modIndex = modules.findIndex(m => m.id === currentModule.id || m.SK === currentModule.SK);
-                if (modIndex > 0) {
-                    const prevMod = modules[modIndex - 1];
-                    setCurrentModule(prevMod);
-                    setExpandedModules(prev => ({ ...prev, [prevMod.id || prevMod.SK]: true }));
-                }
+        } else if (direction === 'prev' && currentModuleIndex > 0) {
+            const prevModule = modules[currentModuleIndex - 1];
+            setCurrentModule(prevModule);
+            setExpandedModules(prev => ({ ...prev, [prevModule.id || prevModule.SK]: true }));
+            
+            // Auto-select first content of the previous module
+            if (prevModule.contents && prevModule.contents.length > 0) {
+                handleContentSelect(prevModule, prevModule.contents[0]);
             }
         }
     };
@@ -791,32 +791,44 @@ const CourseDetail = () => {
                                 <div className="flex items-center justify-between pt-12 border-t border-gray-100 dark:border-gray-800">
                                     <Button
                                         variant="outline"
-                                        onClick={() => navigateContent('prev')}
+                                        onClick={() => navigateModule('prev')}
                                         className="group"
                                     >
                                         <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                                         Previous
                                     </Button>
 
-                                    <div className="flex items-center space-x-4">
-                                        {!isCompleted(currentContent.id) && (
-                                            <Button onClick={markAsComplete} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
-                                                Mark Complete
-                                                <Check className="w-4 h-4 ml-2" />
-                                            </Button>
-                                        )}
-                                        <Button
-                                            variant="default"
-                                            onClick={() => {
-                                                markAsComplete();
-                                                navigateContent('next');
-                                            }}
-                                            className="group"
-                                        >
-                                            Next Lesson
-                                            <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    {!isCompleted(currentContent.id) && (
+                                        <Button onClick={markAsComplete} className="bg-green-600 hover:bg-green-700 text-white border-transparent">
+                                            Mark Complete
+                                            <Check className="w-4 h-4 ml-2" />
                                         </Button>
-                                    </div>
+                                    )}
+
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigateModule('next')}
+                                        className="group"
+                                    >
+                                        Next
+                                        <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                </div>
+
+                                <div className="flex items-center justify-center pt-4">
+                                    <Button
+                                        variant="default"
+                                        onClick={() => {
+                                            if (!isCompleted(currentContent.id)) {
+                                                markAsComplete();
+                                            }
+                                            navigateModule('next');
+                                        }}
+                                        className="group"
+                                    >
+                                        {isCompleted(currentContent.id) ? 'Next' : 'Next Lesson'}
+                                        <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
                                 </div>
                             </motion.div>
                         ) : (

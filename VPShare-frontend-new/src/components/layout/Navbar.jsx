@@ -3,9 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     Menu, X, User, LogOut,
     BookOpen, Code, LayoutDashboard, Home,
-    Settings, ChevronDown, Bell, FileText
+    Settings, ChevronDown, Bell, FileText, Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import Button from '../ui/Button';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
@@ -15,6 +16,7 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const { theme, toggleTheme } = useTheme();
     const { user, logout } = useAuth();
     const location = useLocation();
     const profileRef = useRef(null);
@@ -134,40 +136,59 @@ const Navbar = () => {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
+                                        onClick={toggleTheme}
+                                        className="p-1.5 sm:p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none transition-colors cursor-pointer"
+                                        title={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+                                    >
+                                        {theme === 'dark' ? (
+                                            <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        ) : (
+                                            <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        )}
+                                    </motion.button>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
                                         className="p-1.5 sm:p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none transition-colors relative cursor-pointer"
                                     >
                                         <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                                         <span className="absolute top-1 right-1 sm:top-2 sm:right-2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full ring-1 sm:ring-2 ring-white dark:ring-gray-900"></span>
                                     </motion.button>
 
-                                    <button
-                                        onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                        className="flex items-center space-x-1 sm:space-x-2 focus:outline-none group cursor-pointer"
-                                    >
-                                        <motion.div
-                                            whileHover={{ scale: 1.05 }}
-                                            className={cn(
-                                                "w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-md ring-2 ring-white dark:ring-gray-900 group-hover:ring-blue-200 dark:group-hover:ring-blue-900 transition-all",
-                                                user.photoURL
-                                                    ? "p-0.5 bg-gradient-to-tr from-blue-500 to-purple-500"
-                                                    : "bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center"
-                                            )}
+                                    <div className="flex items-center space-x-2">
+                                        <span className="hidden md:inline-block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {user.displayName || 'User'}
+                                        </span>
+                                        <button
+                                            onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                            className="flex items-center space-x-1 sm:space-x-2 focus:outline-none group cursor-pointer"
                                         >
-                                            {user.photoURL ? (
-                                                <img
-                                                    src={user.photoURL}
-                                                    alt={user.displayName || "User"}
-                                                    className="w-full h-full object-cover rounded-full bg-white dark:bg-gray-900"
-                                                    referrerPolicy="no-referrer"
-                                                />
-                                            ) : (
-                                                <span className="text-white font-semibold text-xs sm:text-sm">
-                                                    {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
-                                                </span>
-                                            )}
-                                        </motion.div>
-                                        <ChevronDown className={cn("w-3 h-3 sm:w-4 sm:h-4 text-gray-500 transition-transform duration-200 hidden sm:block", isProfileOpen && "transform rotate-180")} />
-                                    </button>
+                                            <motion.div
+                                                whileHover={{ scale: 1.05 }}
+                                                className={cn(
+                                                    "w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-md ring-2 ring-white dark:ring-gray-900 group-hover:ring-blue-200 dark:group-hover:ring-blue-900 transition-all",
+                                                    user.photoURL
+                                                        ? "p-0.5 bg-gradient-to-tr from-blue-500 to-purple-500"
+                                                        : "bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center"
+                                                )}
+                                            >
+                                                {user.photoURL ? (
+                                                    <img
+                                                        src={user.photoURL}
+                                                        alt={user.displayName || "User"}
+                                                        className="w-full h-full object-cover rounded-full bg-white dark:bg-gray-900"
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                ) : (
+                                                    <span className="text-white font-semibold text-xs sm:text-sm">
+                                                        {user.displayName ? user.displayName[0].toUpperCase() : 'U'}
+                                                    </span>
+                                                )}
+                                            </motion.div>
+                                            <ChevronDown className={cn("w-3 h-3 sm:w-4 sm:h-4 text-gray-500 transition-transform duration-200 hidden sm:block", isProfileOpen && "transform rotate-180")} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Profile Dropdown */}
