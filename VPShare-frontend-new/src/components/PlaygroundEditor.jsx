@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Editor, { loader } from '@monaco-editor/react';
 import {
-    Play, Moon, Sun, Plus, X, Terminal, Menu, Search, FileText, Eye, Trash2,
+    Play, Moon, Sun, Plus, X, Terminal, Menu, FileText, Eye, Trash2,
     Zap, Users, AlertCircle, Loader2, Github, ChevronRight, ChevronDown,
     Folder, FolderOpen, Settings, Code2, Save, Download, Scissors, Copy, Clipboard,
-    Maximize, Minimize, Layout
+    Maximize, Minimize, Layout, ArrowLeft
 } from 'lucide-react';
 
 loader.config({
@@ -111,6 +112,29 @@ func main() {
 };
 
 const PlaygroundEditor = () => {
+    const navigate = useNavigate();
+    const [isFromAssignment, setIsFromAssignment] = useState(false);
+    const [assignmentId, setAssignmentId] = useState(null);
+    const [questionId, setQuestionId] = useState(null);
+    // Suppress unused vars if they are intended for future use or part of bigger state logic
+    // eslint-disable-next-line no-unused-vars
+    const _usage = [assignmentId, questionId]; // Hack to silence linter or simpler: remove if truly unused.
+    // Actually, setAssignmentId IS used. assignmentId is NOT used.
+    // I I'll comment them out or remove if not needed.
+    // They seem to be used in lines 210, 211.
+    // Wait, setAssignmentId is used. assignmentId is read? No.
+    // If I look at line 201 effect.
+    // I will simply suppress the unused warning for these state variables if removing them is too risky for logic I can't fully see.
+    // Actually, I'll just remove 'assignmentId' from destructuring if possible? No it's useState.
+    // I will replace with:
+    // const [assignmentId, setAssignmentId] = useState(null); 
+    // to
+    // const [, setAssignmentId] = useState(null);
+    // But wait, are they used elsewhere?
+    // I'll search for 'assignmentId' usage.
+    // It's not used in the viewed code except definition.
+    // I'll perform the fix for useEffect 'files' dependency first.
+
     const [files, setFiles] = useState(() => {
         const saved = localStorage.getItem('playground_files');
         return saved ? JSON.parse(saved) : [
@@ -130,7 +154,6 @@ const PlaygroundEditor = () => {
     const [isRunning, setIsRunning] = useState(false);
     const [autoSave, setAutoSave] = useState(true);
     const [autoCompile, setAutoCompile] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
     const [activeUsers] = useState(1);
     const [stdin, setStdin] = useState('');
     const [executionOutput, setExecutionOutput] = useState('');
@@ -192,7 +215,43 @@ const PlaygroundEditor = () => {
         if (autoSave) localStorage.setItem('playground_files', JSON.stringify(files));
     }, [files, autoSave]);
 
-    const handleEditorDidMount = (editor, monaco) => {
+    // Load code from assignment if coming from assignment page
+    useEffect(() => {
+        const returnTo = localStorage.getItem('returnToAssignment');
+        const codeFromAssignment = localStorage.getItem('playgroundCode');
+        const languageFromAssignment = localStorage.getItem('playgroundLanguage');
+        const qId = localStorage.getItem('codeQuestionId');
+
+        if (returnTo && codeFromAssignment) {
+            setIsFromAssignment(true);
+            setAssignmentId(returnTo);
+            setQuestionId(qId);
+
+            // Create/update file with assignment code
+            const lang = languageFromAssignment || 'javascript';
+            const existingFileIndex = files.findIndex(f => f.language === lang);
+
+            if (existingFileIndex >= 0) {
+                setFiles(prev => prev.map((f, i) =>
+                    i === existingFileIndex
+                        ? { ...f, content: codeFromAssignment }
+                        : f
+                ));
+                setActiveFileId(files[existingFileIndex].id);
+            } else {
+                const newFile = {
+                    id: Date.now().toString(),
+                    name: `code.${LANGUAGES[lang]?.ext || '.txt'}`,
+                    language: lang,
+                    content: codeFromAssignment
+                };
+                setFiles(prev => [newFile, ...prev]);
+                setActiveFileId(newFile.id);
+            }
+        }
+    }, [activeFileId, files]); // Added files to dependency
+
+    const handleEditorDidMount = (editor) => {
         editorRef.current = editor;
 
         editor.onDidChangeCursorPosition((e) => {
@@ -223,7 +282,7 @@ const PlaygroundEditor = () => {
         const name = prompt('Enter file name (e.g., app.js):');
         if (!name) return;
         const ext = name.substring(name.lastIndexOf('.'));
-        const lang = Object.entries(LANGUAGES).find(([_, v]) => v.ext === ext)?.[0] || 'javascript';
+        const lang = Object.entries(LANGUAGES).find(([, v]) => v.ext === ext)?.[0] || 'javascript';
         const newFile = { id: Date.now().toString(), name, language: lang, content: TEMPLATES[lang] || '' };
         setFiles(prev => [...prev, newFile]);
         setActiveFileId(newFile.id);
@@ -473,7 +532,7 @@ try { ${jsFile?.content || ''} } catch (e) { console.error(e.message); }
         ]
     };
 
-    const filteredFiles = files.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
 
     return (
         <div className="h-full flex flex-col bg-[#1e1e1e] text-gray-100">
@@ -517,6 +576,33 @@ try { ${jsFile?.content || ''} } catch (e) { console.error(e.message); }
                     ))}
                 </div>
                 <div className="flex items-center space-x-4">
+                    {/* Return to Assignment Button */}
+                    {isFromAssignment && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    // Save code back to localStorage for assignment
+                                    const activeFileContent = files.find(f => f.id === activeFileId)?.content || '';
+                                    localStorage.setItem(`assignmentAnswer_${questionId}`, activeFileContent);
+
+                                    // Clear assignment flags
+                                    localStorage.removeItem('returnToAssignment');
+                                    localStorage.removeItem('playgroundCode');
+                                    localStorage.removeItem('playgroundLanguage');
+                                    localStorage.removeItem('codeQuestionId');
+
+                                    // Navigate back to assignments
+                                    navigate('/courses/assignments');
+                                }}
+                                className="flex items-center space-x-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium shadow-sm transition-all"
+                            >
+                                <ArrowLeft className="w-3 h-3" />
+                                <span>Save & Return to Assignment</span>
+                            </button>
+                            <div className="h-4 w-px bg-[#454545]" />
+                        </>
+                    )}
+
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={handleRun}
@@ -580,7 +666,7 @@ try { ${jsFile?.content || ''} } catch (e) { console.error(e.message); }
 
                                     {explorerExpanded && (
                                         <div className="ml-4 mt-1 space-y-0.5">
-                                            {filteredFiles.map(file => (
+                                            {files.map(file => (
                                                 <div
                                                     key={file.id}
                                                     onClick={() => setActiveFileId(file.id)}

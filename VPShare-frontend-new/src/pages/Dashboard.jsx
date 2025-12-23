@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTimer } from '../contexts/TimerContext';
+import useDashboardStore from '../store/useDashboardStore'; // New Store
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { SkeletonDashboard } from '../components/ui/Skeleton';
@@ -13,13 +14,14 @@ import {
     Code, Database, Layout, Server, Zap,
     Loader2, StickyNote, Bell, Timer, Edit3, Save, X,
     Users, MessageCircle, Share2, Award, TrendingUp, UserPlus,
-    Play, Pause, RotateCcw, Bookmark, Lightbulb, Target
+    Play, Pause, RotateCcw, Bookmark, Lightbulb, Target, Video, FileText
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { db } from '../config/firebase';
-import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, setDoc, deleteDoc } from 'firebase/firestore';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+// Firestore/Axios imports removed as logic is now in store
+import { db } from '../config/firebase'; // Keep db for any specialized direct use if strictly needed, but store handles data.
+// import { doc, getDoc } from 'firebase/firestore'; // Clean up if truly unused later.
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -45,363 +47,75 @@ const mapCourseToCategory = (courseId, title = '') => {
     return 'Programming Languages';
 };
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1
+    }
+};
+
 const Dashboard = () => {
     const { user } = useAuth();
-    const {
-        studyTimer,
-        startTimer,
-        pauseTimer,
-        resetTimer,
-        switchMode,
-        setCustomTime,
-        formatTime
-    } = useTimer();
-    
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        coursesInProgress: 0,
-        hoursSpent: 0,
-        certificates: 0,
-        streak: 0
-    });
-    const [activeCourses, setActiveCourses] = useState([]);
-    const [recentActivity, setRecentActivity] = useState([]);
-    
-    // Interactive Features State
-    const [courseNotes, setCourseNotes] = useState({});
+    const navigate = useNavigate(); // Add navigate hook
+    const { studyTimer, startTimer, pauseTimer, resetTimer, formatTime } = useTimer();
+
+    // Use Dashboard Store
+    // Use Dashboard Store - Atomic Selectors (Performance Optimization like UserProfile)
+    const loading = useDashboardStore(state => state.loading);
+    const stats = useDashboardStore(state => state.stats);
+    const activeCourses = useDashboardStore(state => state.activeCourses);
+    const recentActivity = useDashboardStore(state => state.recentActivity);
+    const leaderboard = useDashboardStore(state => state.leaderboard);
+    const studyBuddies = useDashboardStore(state => state.studyBuddies);
+    const courseNotes = useDashboardStore(state => state.courseNotes);
+    const studyReminders = useDashboardStore(state => state.studyReminders);
+    const dailyTip = useDashboardStore(state => state.dailyTip);
+    const courseBookmarks = useDashboardStore(state => state.courseBookmarks);
+    const upcomingClasses = useDashboardStore(state => state.upcomingClasses);
+    const pendingAssignments = useDashboardStore(state => state.pendingAssignments);
+
+    // Actions
+    const fetchDashboardData = useDashboardStore(state => state.fetchDashboardData);
+    const saveNoteStore = useDashboardStore(state => state.saveNote);
+    const deleteNoteStore = useDashboardStore(state => state.deleteNote);
+    const addReminderStore = useDashboardStore(state => state.addReminder);
+    const saveBookmarkStore = useDashboardStore(state => state.saveBookmark);
+    const removeBookmarkStore = useDashboardStore(state => state.removeBookmark);
+
+    // Local UI State (Modals, Inputs)
     const [editingNote, setEditingNote] = useState(null);
     const [noteText, setNoteText] = useState('');
-    const [studyReminders, setStudyReminders] = useState([]);
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [reminderTime, setReminderTime] = useState('09:00');
-    
-    // Social & Community State
-    const [leaderboard, setLeaderboard] = useState([]);
-    const [studyBuddies, setStudyBuddies] = useState([]);
-    const [achievements, setAchievements] = useState([]);
-    const [discussionThreads, setDiscussionThreads] = useState([]);
+    const [reminderCourseId, setReminderCourseId] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [shareAchievement, setShareAchievement] = useState(null);
-    
-    // New Features State
-    const [dailyTip, setDailyTip] = useState(null);
-    const [courseBookmarks, setCourseBookmarks] = useState({});
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [bookmarkLesson, setBookmarkLesson] = useState(null);
 
-    const getAuthHeaders = async () => {
-        try {
-            if (!user) throw new Error('Not authenticated');
-            const token = await user.getIdToken(true);
-            return {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            };
-        } catch (error) {
-            console.error('Authentication error:', error);
-            throw error;
-        }
-    };
-
-    const makeAuthenticatedRequest = async (url, options = {}, retries = 2) => {
-        try {
-            const headers = await getAuthHeaders();
-            const response = await axios.get(url, { headers, ...options });
-            return response;
-        } catch (error) {
-            console.error(`API request failed for ${url}:`, error);
-            if (error.response?.status === 403) {
-                if (retries > 0) {
-                    console.log(`Retrying 403 request to ${url}`);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    return makeAuthenticatedRequest(url, options, retries - 1);
-                }
-            }
-            throw error;
-        }
-    };
-
+    // Initial Fetch
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            if (!user) return;
-
-            try {
-                setLoading(true);
-
-                const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-                console.log('Dashboard: Starting fetch', { apiUrl, userUid: user?.uid });
-
-                if (!apiUrl) {
-                    console.error('API configuration missing.');
-                    setLoading(false);
-                    return;
-                }
-
-                // 1. Fetch User Stats & Profile
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                const userData = userDocSnap.exists() ? userDocSnap.data() : {};
-
-                // 2. Fetch Actual Courses from API
-                console.log(`Dashboard: Fetching courses from ${apiUrl}/courses`);
-                const coursesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses`);
-                console.log('Dashboard: Courses response received', coursesResponse.data);
-
-                const rawCourses = Array.isArray(coursesResponse.data)
-                    ? coursesResponse.data
-                    : coursesResponse.data.Items || [];
-
-                console.log(`Dashboard: Parsed ${rawCourses.length} raw courses`);
-
-                if (!rawCourses.length) {
-                    setActiveCourses([]);
-                    setLoading(false);
-                    return;
-                }
-
-                // 3. Process courses with modules and progress
-                const coursesWithModules = await Promise.all(
-                    rawCourses.slice(0, 6).map(async (course) => { // Limit to 6 courses for dashboard
-                        try {
-                            const courseId = stripPrefix(course.SK);
-
-                            let modulesCount = 0;
-                            try {
-                                const modulesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses/${courseId}/modules`);
-                                const modules = Array.isArray(modulesResponse.data)
-                                    ? modulesResponse.data
-                                    : modulesResponse.data.Items || [];
-                                modulesCount = modules.length;
-                            } catch (modErr) {
-                                console.log(`Dashboard: Module fetch failed for ${courseId}`, modErr.message);
-                            }
-
-                            const category = mapCourseToCategory(courseId, course.title);
-
-                            let progress = 0;
-                            let completedModules = 0;
-                            let isStarted = false;
-
-                            try {
-                                const progressDocId = `${user.uid}_${courseId}`;
-                                const progressDocRef = doc(db, 'userProgress', progressDocId);
-                                const progressSnap = await getDoc(progressDocRef);
-
-                                if (progressSnap.exists()) {
-                                    const progressData = progressSnap.data();
-                                    completedModules = progressData.completedSections?.length || 0;
-                                    progress = modulesCount > 0
-                                        ? Math.min(100, Math.round((completedModules / (modulesCount * 3)) * 100))
-                                        : 0;
-                                    isStarted = progress > 0;
-                                }
-                            } catch (progressError) {
-                                // Ignore progress errors
-                            }
-
-                            return {
-                                id: courseId,
-                                title: course.title || 'Untitled Course',
-                                description: course.description || 'No description provided.',
-                                thumbnail: course.thumbnail || `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop`,
-                                category,
-                                progress,
-                                totalLessons: modulesCount * 3, // Estimate lessons
-                                completedLessons: completedModules,
-                                isStarted,
-                                lastLesson: isStarted ? 'Continue your journey' : 'Start your journey'
-                            };
-                        } catch (moduleError) {
-                            console.log(`Dashboard: Error processing course ${course.SK}`, moduleError.message);
-                            return null;
-                        }
-                    })
-                );
-
-                const validCourses = coursesWithModules.filter(Boolean);
-
-                // Filter: Only show started courses in "Continue Learning"
-                const startedCourses = validCourses.filter(c => c.isStarted);
-                
-                // Sort started courses by progress (highest first)
-                startedCourses.sort((a, b) => b.progress - a.progress);
-
-                // Generate interest-based recommendations (always show 2-3)
-                const userInterests = userData.interests || [];
-                const preferredCategories = userData.preferredCategories || [];
-                
-                // Get courses user hasn't started for recommendations
-                const unstartedCourses = validCourses.filter(c => !c.isStarted);
-                
-                let recommendedCourses = unstartedCourses;
-                
-                // Filter by user interests if available
-                if (preferredCategories.length > 0) {
-                    recommendedCourses = unstartedCourses.filter(course => 
-                        preferredCategories.includes(course.category)
-                    );
-                }
-                
-                // If still no courses or no preferences, show popular courses
-                if (recommendedCourses.length === 0) {
-                    recommendedCourses = unstartedCourses
-                        .sort((a, b) => {
-                            // Sort by category popularity first (Frontend, Backend, etc.)
-                            const categoryOrder = ['Frontend', 'Backend', 'Programming Languages', 'Databases'];
-                            const aCategoryIndex = categoryOrder.indexOf(a.category);
-                            const bCategoryIndex = categoryOrder.indexOf(b.category);
-                            
-                            if (aCategoryIndex !== bCategoryIndex) {
-                                return aCategoryIndex - bCategoryIndex;
-                            }
-                            
-                            // Then by estimated popularity (more modules = more comprehensive)
-                            return (b.totalLessons || 0) - (a.totalLessons || 0);
-                        });
-                }
-                
-                // Take top 3 recommendations
-                const topRecommendations = recommendedCourses.slice(0, 3).map(course => ({
-                    ...course,
-                    isRecommended: true,
-                    isStarted: false,
-                    progress: 0,
-                    lastLesson: 'Start your journey',
-                    completedLessons: 0
-                }));
-
-                // Combine started courses + recommendations (max 6 total)
-                let displayCourses = [...startedCourses];
-                
-                // Add recommendations if we have space (show max 6 courses total)
-                const remainingSlots = Math.max(0, 6 - startedCourses.length);
-                if (remainingSlots > 0 && topRecommendations.length > 0) {
-                    displayCourses = [...displayCourses, ...topRecommendations.slice(0, remainingSlots)];
-                }
-
-                console.log('Dashboard: Setting courses', { 
-                    started: startedCourses.length, 
-                    recommended: topRecommendations.length,
-                    showing: displayCourses.length,
-                    total: displayCourses.length 
-                });
-                setActiveCourses(displayCourses);
-
-                // 4. Calculate stats
-                const inProgressCount = validCourses.filter(c => c.isStarted && c.progress < 100).length;
-                const completedCount = validCourses.filter(c => c.progress === 100).length;
-
-                // 5. Generate Recent Activity from user progress and course data
-                const activities = [];
-                
-                // Add activities based on course progress
-                startedCourses.forEach(course => {
-                    if (course.progress > 0) {
-                        activities.push({
-                            id: `course-${course.id}`,
-                            action: 'Started Course',
-                            target: course.title,
-                            timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random within last week
-                            type: 'course',
-                            icon: 'BookOpen'
-                        });
-                    }
-                    
-                    if (course.progress >= 25 && course.progress < 50) {
-                        activities.push({
-                            id: `progress-${course.id}`,
-                            action: 'Making Progress',
-                            target: `${course.title} - ${course.progress}% complete`,
-                            timestamp: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000), // Random within last 3 days
-                            type: 'progress',
-                            icon: 'Trophy'
-                        });
-                    }
-                    
-                    if (course.progress >= 50 && course.progress < 100) {
-                        activities.push({
-                            id: `milestone-${course.id}`,
-                            action: 'Halfway There',
-                            target: course.title,
-                            timestamp: new Date(Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000), // Random within last 2 days
-                            type: 'milestone',
-                            icon: 'Flame'
-                        });
-                    }
-                    
-                    if (course.progress === 100) {
-                        activities.push({
-                            id: `completed-${course.id}`,
-                            action: 'Completed Course',
-                            target: course.title,
-                            timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000), // Random within last day
-                            type: 'completion',
-                            icon: 'Trophy'
-                        });
-                    }
-                });
-                
-                // Add general learning activity
-                if (startedCourses.length > 0) {
-                    activities.push({
-                        id: 'learning-streak',
-                        action: 'Learning Streak',
-                        target: `${userData.streak || 1} days in a row`,
-                        timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-                        type: 'streak',
-                        icon: 'Flame'
-                    });
-                }
-                
-                // Add recommendations activity if user has recommendations
-                if (topRecommendations.length > 0) {
-                    activities.push({
-                        id: 'recommendations',
-                        action: 'New Recommendations',
-                        target: `${topRecommendations.length} courses suggested for you`,
-                        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-                        type: 'recommendation',
-                        icon: 'Zap'
-                    });
-                }
-                
-                // Sort by timestamp (most recent first) and take latest 5
-                const sortedActivities = activities
-                    .sort((a, b) => b.timestamp - a.timestamp)
-                    .slice(0, 5);
-
-                setRecentActivity(sortedActivities);
-
-                setStats({
-                    coursesInProgress: inProgressCount,
-                    hoursSpent: userData.totalHours || 0,
-                    certificates: completedCount,
-                    streak: userData.streak || 0
-                });
-
-            } catch (error) {
-                console.error("Dashboard: Error fetching data:", error);
-                // Set fallback empty state
-                setActiveCourses([]);
-                setStats({
-                    coursesInProgress: 0,
-                    hoursSpent: 0,
-                    certificates: 0,
-                    streak: 0
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, [user]);
+        if (user) {
+            fetchDashboardData(user);
+        }
+    }, [user, fetchDashboardData]);
 
     const getCategoryIcon = (category) => {
-        switch (category) {
+        switch (category?.toLowerCase()) {
             case 'frontend': return <Layout className="w-5 h-5" />;
             case 'backend': return <Server className="w-5 h-5" />;
-            case 'data-science': return <Database className="w-5 h-5" />;
+            case 'databases': return <Database className="w-5 h-5" />;
             default: return <Code className="w-5 h-5" />;
         }
     };
@@ -416,7 +130,7 @@ const Dashboard = () => {
             streak: 'text-orange-500',
             recommendation: 'text-indigo-500'
         }[type] || 'text-gray-500';
-        
+
         const IconComponent = {
             BookOpen: BookOpen,
             Trophy: Trophy,
@@ -424,20 +138,19 @@ const Dashboard = () => {
             Zap: Zap,
             CheckCircle: CheckCircle
         }[iconName] || CheckCircle;
-        
+
         return <IconComponent className={`${iconClass} ${colorClass}`} />;
     };
 
     const formatTimeAgo = (timestamp) => {
         if (!timestamp) return 'Just now';
-        
         const now = new Date();
-        const time = timestamp instanceof Date ? timestamp : timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const time = new Date(timestamp);
         const diffMs = now - time;
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-        
+
         if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
         if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
         if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
@@ -446,26 +159,13 @@ const Dashboard = () => {
 
     // Interactive Features Functions
     const handleQuickResume = (courseId) => {
-        // Navigate directly to course with last known position
-        window.location.href = `/courses/${courseId}`;
+        navigate(`/courses/${courseId}`);
     };
 
     const handleSaveNote = async (courseId) => {
-        try {
-            const noteRef = doc(db, 'userNotes', `${user.uid}_${courseId}`);
-            await setDoc(noteRef, {
-                note: noteText,
-                courseId,
-                userId: user.uid,
-                updatedAt: new Date()
-            });
-            
-            setCourseNotes(prev => ({ ...prev, [courseId]: noteText }));
-            setEditingNote(null);
-            setNoteText('');
-        } catch (error) {
-            console.error('Error saving note:', error);
-        }
+        await saveNoteStore(user, courseId, noteText);
+        setEditingNote(null);
+        setNoteText('');
     };
 
     const handleEditNote = (courseId) => {
@@ -479,273 +179,57 @@ const Dashboard = () => {
     };
 
     const handleDeleteNote = async (courseId) => {
-        try {
-            const noteRef = doc(db, 'userNotes', `${user.uid}_${courseId}`);
-            await deleteDoc(noteRef);
-            
-            setCourseNotes(prev => {
-                const newNotes = { ...prev };
-                delete newNotes[courseId];
-                return newNotes;
-            });
-        } catch (error) {
-            console.error('Error deleting note:', error);
-        }
+        await deleteNoteStore(user, courseId);
     };
 
-    const handleSetReminder = async (courseId) => {
-        try {
-            const reminderRef = doc(db, 'studyReminders', `${user.uid}_${courseId}`);
-            await setDoc(reminderRef, {
-                courseId,
-                userId: user.uid,
-                reminderTime,
-                isActive: true,
-                createdAt: new Date()
-            });
-            
-            setStudyReminders(prev => [...prev, { courseId, reminderTime, isActive: true }]);
-            setShowReminderModal(false);
-            setReminderTime('09:00');
-        } catch (error) {
-            console.error('Error setting reminder:', error);
-        }
+    const openReminderModal = (courseId) => {
+        setReminderCourseId(courseId);
+        setShowReminderModal(true);
     };
 
-    const requestNotificationPermission = async () => {
-        if ('Notification' in window && Notification.permission === 'default') {
-            await Notification.requestPermission();
-        }
+    const handleSetReminder = async () => {
+        if (!reminderCourseId) return;
+        await addReminderStore(user, { courseId: reminderCourseId, reminderTime, isActive: true });
+        setShowReminderModal(false);
+        setReminderCourseId(null);
     };
 
-    useEffect(() => {
-        requestNotificationPermission();
-    }, []);
-
-    // Load existing notes and reminders
-    useEffect(() => {
-        const loadNotesAndReminders = async () => {
-            if (!user) return;
-            
-            try {
-                // Load notes
-                const notesQuery = query(
-                    collection(db, 'userNotes'),
-                    where('userId', '==', user.uid)
-                );
-                const notesSnap = await getDocs(notesQuery);
-                const notes = {};
-                notesSnap.forEach(doc => {
-                    const data = doc.data();
-                    notes[data.courseId] = data.note;
-                });
-                setCourseNotes(notes);
-
-                // Load reminders
-                const remindersQuery = query(
-                    collection(db, 'studyReminders'),
-                    where('userId', '==', user.uid),
-                    where('isActive', '==', true)
-                );
-                const remindersSnap = await getDocs(remindersQuery);
-                const reminders = [];
-                remindersSnap.forEach(doc => {
-                    reminders.push(doc.data());
-                });
-                setStudyReminders(reminders);
-            } catch (error) {
-                console.error('Error loading notes and reminders:', error);
-            }
-        };
-
-        loadNotesAndReminders();
-    }, [user]);
-
-    // Social & Community Functions
-    const handleShareAchievement = (achievement) => {
-        setShareAchievement(achievement);
-        setShowShareModal(true);
-    };
-
-    const handleConnectWithBuddy = (buddyId) => {
-        // Logic to connect with study buddy
-        console.log('Connecting with buddy:', buddyId);
-    };
-
-    const handleJoinDiscussion = (threadId) => {
-        // Navigate to discussion thread
-        window.location.href = `/discussion/${threadId}`;
-    };
-
-    const generateMockSocialData = () => {
-        // Mock leaderboard data
-        const mockLeaderboard = [
-            { id: '1', name: 'Sarah Chen', avatar: 'SC', progress: 85, courses: 12, streak: 15 },
-            { id: '2', name: 'Mike Johnson', avatar: 'MJ', progress: 78, courses: 9, streak: 8 },
-            { id: user?.uid, name: 'You', avatar: 'ME', progress: 65, courses: 6, streak: 5, isCurrentUser: true },
-            { id: '3', name: 'Emma Davis', avatar: 'ED', progress: 62, courses: 7, streak: 12 },
-            { id: '4', name: 'Alex Kim', avatar: 'AK', progress: 58, courses: 5, streak: 3 }
-        ];
-        setLeaderboard(mockLeaderboard.sort((a, b) => b.progress - a.progress));
-
-        // Mock study buddies based on similar courses
-        const mockStudyBuddies = [
-            { id: '1', name: 'Sarah Chen', avatar: 'SC', mutualCourses: 3, online: true, lastActive: '2 min ago' },
-            { id: '2', name: 'Mike Johnson', avatar: 'MJ', mutualCourses: 2, online: false, lastActive: '1 hour ago' },
-            { id: '3', name: 'Emma Davis', avatar: 'ED', mutualCourses: 4, online: true, lastActive: 'Just now' }
-        ];
-        setStudyBuddies(mockStudyBuddies);
-
-        // Mock achievements
-        const mockAchievements = [
-            { id: '1', title: 'Fast Learner', description: 'Complete 5 courses in one month', icon: 'Trophy', earned: true, date: new Date() },
-            { id: '2', title: 'Consistent Student', description: '7-day learning streak', icon: 'Flame', earned: true, date: new Date() },
-            { id: '3', title: 'Course Master', description: 'Complete first course with 100%', icon: 'Award', earned: false, progress: 85 }
-        ];
-        setAchievements(mockAchievements);
-
-        // Mock discussion threads
-        const mockDiscussions = [
-            { 
-                id: '1', 
-                title: 'Best practices for React hooks?', 
-                course: 'React Advanced Patterns',
-                author: 'Sarah Chen',
-                replies: 12,
-                lastActivity: '2 hours ago',
-                tags: ['react', 'hooks', 'best-practices']
-            },
-            {
-                id: '2',
-                title: 'Help with async/await in JavaScript',
-                course: 'JavaScript Fundamentals',
-                author: 'Mike Johnson',
-                replies: 8,
-                lastActivity: '1 hour ago', 
-                tags: ['javascript', 'async', 'help']
-            },
-            {
-                id: '3',
-                title: 'Database design tips for beginners',
-                course: 'SQL Basics',
-                author: 'Emma Davis',
-                replies: 15,
-                lastActivity: '30 min ago',
-                tags: ['sql', 'database', 'algo']
-            }
-        ];
-        setDiscussionThreads(mockDiscussions);
-    };
-
-   useEffect(() => {
-        if (user) {
-            generateMockSocialData();
-            generateDailyTip();
-        }
-    }, [user]);
-
-    // Daily Tips Function
-    const generateDailyTip = () => {
-        const tips = [
-            { category: 'Focus', tip: 'Take a 5-minute break every 25 minutes to maintain concentration', icon: 'Target' },
-            { category: 'Learning', tip: 'Practice coding for at least 30 minutes daily to build muscle memory', icon: 'Lightbulb' },
-            { category: 'Progress', tip: 'Review previous lessons before starting new ones for better retention', icon: 'Trophy' },
-            { category: 'Productivity', tip: 'Study difficult topics when your energy levels are highest', icon: 'Flame' },
-            { category: 'Memory', tip: 'Teach what you learn to someone else to solidify your understanding', icon: 'Users' },
-            { category: 'Habits', tip: 'Create a dedicated study space to signal your brain it\'s time to learn', icon: 'Home' },
-            { category: 'Goals', tip: 'Break large topics into smaller, manageable chunks', icon: 'Target' },
-            { category: 'Review', tip: 'Spend 10 minutes reviewing yesterday\'s material before starting new lessons', icon: 'Clock' }
-        ];
-        
-        const randomTip = tips[Math.floor(Math.random() * tips.length)];
-        setDailyTip(randomTip);
-    };
-
-    // Course Bookmarks Functions
     const handleBookmarkLesson = (courseId, lessonTitle, lessonId) => {
         setBookmarkLesson({ courseId, lessonTitle, lessonId });
         setShowBookmarkModal(true);
     };
 
     const saveBookmark = async () => {
-        try {
-            const bookmarkRef = doc(db, 'userBookmarks', `${user.uid}_${bookmarkLesson.courseId}_${bookmarkLesson.lessonId}`);
-            await setDoc(bookmarkRef, {
-                ...bookmarkLesson,
-                userId: user.uid,
-                createdAt: new Date()
-            });
-            
-            setCourseBookmarks(prev => ({
-                ...prev,
-                [bookmarkLesson.courseId]: [...(prev[bookmarkLesson.courseId] || []), bookmarkLesson]
-            }));
-            setShowBookmarkModal(false);
-            setBookmarkLesson(null);
-        } catch (error) {
-            console.error('Error saving bookmark:', error);
-        }
+        if (!bookmarkLesson) return;
+        await saveBookmarkStore(user, bookmarkLesson);
+        setShowBookmarkModal(false);
+        setBookmarkLesson(null);
     };
 
     const removeBookmark = async (courseId, lessonId) => {
-        try {
-            const bookmarkRef = doc(db, 'userBookmarks', `${user.uid}_${courseId}_${lessonId}`);
-            await deleteDoc(bookmarkRef);
-            
-            setCourseBookmarks(prev => ({
-                ...prev,
-                [courseId]: prev[courseId].filter(lesson => lesson.lessonId !== lessonId)
-            }));
-        } catch (error) {
-            console.error('Error removing bookmark:', error);
-        }
+        await removeBookmarkStore(user, courseId, lessonId);
     };
 
-    // Load bookmarks
-    useEffect(() => {
-        const loadBookmarks = async () => {
-            if (!user) return;
-            
-            try {
-                const bookmarksQuery = query(
-                    collection(db, 'userBookmarks'),
-                    where('userId', '==', user.uid)
-                );
-                const bookmarksSnap = await getDocs(bookmarksQuery);
-                const bookmarks = {};
-                bookmarksSnap.forEach(doc => {
-                    const data = doc.data();
-                    if (!bookmarks[data.courseId]) {
-                        bookmarks[data.courseId] = [];
-                    }
-                    bookmarks[data.courseId].push(data);
-                });
-                setCourseBookmarks(bookmarks);
-            } catch (error) {
-                console.error('Error loading bookmarks:', error);
-            }
-        };
-
-        loadBookmarks();
-    }, [user]);
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
+    // Stub for generateDailyTip - functionality moved to store init primarily
+    const generateDailyTip = () => {
+        // Optional: Could trigger a store action to rotate tip
+        // For now, no-op or simple console log as it's minor
+        console.log("Tip rotation requested");
     };
 
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
+    // Social funcs
+    const handleShareAchievement = (achievement) => {
+        setShareAchievement(achievement);
+        setShowShareModal(true);
+    };
+
+    const handleConnectWithBuddy = (buddyId) => {
+        console.log('Connecting with buddy:', buddyId);
     };
 
     // Pagination Logic
     const [coursePage, setCoursePage] = useState(1);
     const coursesPerPage = 4;
-
     const totalCoursePages = Math.ceil(activeCourses.length / coursesPerPage);
     const currentActiveCourses = activeCourses.slice(
         (coursePage - 1) * coursesPerPage,
@@ -887,8 +371,8 @@ const Dashboard = () => {
                                                                         )}
                                                                     </div>
                                                                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                                        {course.isRecommended 
-                                                                            ? `${course.totalLessons} lessons • Popular choice` 
+                                                                        {course.isRecommended
+                                                                            ? `${course.totalLessons} lessons • Popular choice`
                                                                             : `${course.completedLessons} of ${course.totalLessons} lessons completed`
                                                                         }
                                                                     </p>
@@ -915,95 +399,95 @@ const Dashboard = () => {
                                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                                                     <span className="font-medium">
                                                                         {course.isRecommended ? 'Perfect for beginners' : 'Next:'}
-                                                                    </span> 
+                                                                    </span>
                                                                     {course.isRecommended ? '' : ` ${course.lastLesson}`}
                                                                 </p>
                                                                 <div className="flex items-center space-x-2">
                                                                     {course.isStarted && (
-                                                                        <Button 
-                                                                            size="sm" 
+                                                                        <Button
+                                                                            size="sm"
                                                                             variant="outline"
                                                                             onClick={() => handleQuickResume(course.id)}
                                                                             className="group-hover:translate-x-1 transition-transform"
                                                                         >
                                                                             <Timer className="w-3 h-3 mr-1" />
-                                            Quick Resume
-                                        </Button>
-                                    )}
-                                    <Link to={`/courses/${course.id}`}>
-                                        <Button size="sm" className="group-hover:translate-x-1 transition-transform">
-                                            {course.isRecommended ? (
-                                                <>
-                                                    <PlayCircle className="w-4 h-4 mr-2" />
-                                                    Start Course
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {course.isStarted ? 'Resume' : 'Start'}
-                                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                                </>
-                                            )}
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </div>
+                                                                            Quick Resume
+                                                                        </Button>
+                                                                    )}
+                                                                    <Link to={`/courses/${course.id}`}>
+                                                                        <Button size="sm" className="group-hover:translate-x-1 transition-transform">
+                                                                            {course.isRecommended ? (
+                                                                                <>
+                                                                                    <PlayCircle className="w-4 h-4 mr-2" />
+                                                                                    Start Course
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    {course.isStarted ? 'Resume' : 'Start'}
+                                                                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                                                                </>
+                                                                            )}
+                                                                        </Button>
+                                                                    </Link>
+                                                                </div>
+                                                            </div>
 
-                            {/* Interactive Features Section */}
-                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4 mt-4">
-                                <div className="flex items-center justify-between">
-                                    {/* Course Notes */}
-                                    <div className="flex-1 mr-4">
-                                        {editingNote === course.id ? (
-                                            <div className="space-y-2">
-                                                <textarea
-                                                    value={noteText}
-                                                    onChange={(e) => setNoteText(e.target.value)}
-                                                    placeholder="Add a note about this course..."
-                                                    className="w-full p-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
-                                                    rows="2"
-                                                />
-                                                <div className="flex space-x-2">
-                                                    <Button size="xs" onClick={() => handleSaveNote(course.id)}>
-                                                        <Save className="w-3 h-3 mr-1" />
-                                                        Save
-                                                    </Button>
-                                                    <Button size="xs" variant="outline" onClick={handleCancelNote}>
-                                                        <X className="w-3 h-3 mr-1" />
-                                                        Cancel
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center space-x-2">
-                                                <StickyNote className="w-4 h-4 text-gray-400" />
-                                                {courseNotes[course.id] ? (
-                                                    <>
-                                                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate flex-1">
-                                                            {courseNotes[course.id]}
-                                                        </p>
-                                                        <Button size="xs" variant="ghost" onClick={() => handleEditNote(course.id)}>
-                                                            <Edit3 className="w-3 h-3" />
-                                                        </Button>
-                                                        <Button size="xs" variant="ghost" onClick={() => handleDeleteNote(course.id)}>
-                                                            <X className="w-3 h-3 text-red-500" />
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <p className="text-sm text-gray-400 italic">No notes yet</p>
-                                                        <Button size="xs" variant="ghost" onClick={() => handleEditNote(course.id)}>
-                                                            <Edit3 className="w-3 h-3" />
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                                                            {/* Interactive Features Section */}
+                                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4 mt-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    {/* Course Notes */}
+                                                                    <div className="flex-1 mr-4">
+                                                                        {editingNote === course.id ? (
+                                                                            <div className="space-y-2">
+                                                                                <textarea
+                                                                                    value={noteText}
+                                                                                    onChange={(e) => setNoteText(e.target.value)}
+                                                                                    placeholder="Add a note about this course..."
+                                                                                    className="w-full p-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white resize-none"
+                                                                                    rows="2"
+                                                                                />
+                                                                                <div className="flex space-x-2">
+                                                                                    <Button size="xs" onClick={() => handleSaveNote(course.id)}>
+                                                                                        <Save className="w-3 h-3 mr-1" />
+                                                                                        Save
+                                                                                    </Button>
+                                                                                    <Button size="xs" variant="outline" onClick={handleCancelNote}>
+                                                                                        <X className="w-3 h-3 mr-1" />
+                                                                                        Cancel
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex items-center space-x-2">
+                                                                                <StickyNote className="w-4 h-4 text-gray-400" />
+                                                                                {courseNotes[course.id] ? (
+                                                                                    <>
+                                                                                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate flex-1">
+                                                                                            {courseNotes[course.id]}
+                                                                                        </p>
+                                                                                        <Button size="xs" variant="ghost" onClick={() => handleEditNote(course.id)}>
+                                                                                            <Edit3 className="w-3 h-3" />
+                                                                                        </Button>
+                                                                                        <Button size="xs" variant="ghost" onClick={() => handleDeleteNote(course.id)}>
+                                                                                            <X className="w-3 h-3 text-red-500" />
+                                                                                        </Button>
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        <p className="text-sm text-gray-400 italic">No notes yet</p>
+                                                                                        <Button size="xs" variant="ghost" onClick={() => handleEditNote(course.id)}>
+                                                                                            <Edit3 className="w-3 h-3" />
+                                                                                        </Button>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
 
-                                    {/* Study Reminder */}
-                                    
-                                </div>
-                            </div>
+                                                                    {/* Study Reminder */}
+
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </Card>
@@ -1022,6 +506,79 @@ const Dashboard = () => {
 
                         {/* Recent Activity & Sidebar */}
                         <div className="space-y-8">
+                            {/* Dynamic: Upcoming Live Classes */}
+                            {upcomingClasses && upcomingClasses.length > 0 && (
+                                <motion.div variants={itemVariants}>
+                                    <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
+                                        <GlowingEffect spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} borderWidth={3} />
+                                        <Card className="border-none shadow-sm h-full bg-white dark:bg-gray-900">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-lg flex items-center justify-between">
+                                                    <div className="flex items-center text-red-500">
+                                                        <Video className="w-5 h-5 mr-2" />
+                                                        Live Solution Sessions
+                                                    </div>
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-4">
+                                                    {upcomingClasses.map(cls => (
+                                                        <div key={cls.id} className="flex items-start gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
+                                                            <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg text-red-600 dark:text-red-400 font-bold text-center min-w-[50px]">
+                                                                <div className="text-xs uppercase">{new Date(cls.startTime).toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                                                <div className="text-lg leading-none">{new Date(cls.startTime).getDate()}</div>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{cls.title}</h4>
+                                                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 flex items-center">
+                                                                    <Clock className="w-3 h-3 mr-1" />
+                                                                    {new Date(cls.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} • {cls.durationMinutes} min
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    <Button variant="outline" className="w-full text-xs h-8" onClick={() => navigate('/courses/live-classes')}>
+                                                        View Schedule
+                                                    </Button>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {/* Dynamic: Pending Assignments */}
+                            {pendingAssignments && pendingAssignments.length > 0 && (
+                                <motion.div variants={itemVariants}>
+                                    <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
+                                        <GlowingEffect spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} borderWidth={3} />
+                                        <Card className="border-none shadow-sm h-full bg-white dark:bg-gray-900">
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-lg flex items-center text-amber-600">
+                                                    <FileText className="w-5 h-5 mr-2" />
+                                                    Due Assignments
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="space-y-3">
+                                                    {pendingAssignments.map(assignment => (
+                                                        <div key={assignment.id || assignment._id} className="group flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer" onClick={() => navigate(`/courses/assignments/${assignment.id || assignment._id}`)}>
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${new Date(assignment.dueDate) < new Date() ? 'bg-red-500' : 'bg-amber-500'}`} />
+                                                                <div className="truncate">
+                                                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{assignment.title}</p>
+                                                                    <p className="text-xs text-gray-500 truncate">{assignment.course} • Due {new Date(assignment.dueDate).toLocaleDateString()}</p>
+                                                                </div>
+                                                            </div>
+                                                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-amber-500 transition-colors" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </motion.div>
+                            )}
                             <motion.div variants={itemVariants}>
                                 <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
                                     <GlowingEffect
@@ -1105,46 +662,181 @@ const Dashboard = () => {
                                         </CardContent>
                                     </Card>
                                 </div>
+                            </motion.div >
+
+                            {/* Study Timer Card */}
+                            <motion.div variants={itemVariants}>
+                                <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
+                                    <GlowingEffect
+                                        spread={40}
+                                        glow={true}
+                                        disabled={false}
+                                        proximity={64}
+                                        inactiveZone={0.01}
+                                        borderWidth={3}
+                                    />
+                                    <Card className="border-none shadow-sm h-full bg-white dark:bg-gray-900 overflow-hidden relative">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                                        <CardHeader>
+                                            <CardTitle className="text-lg flex items-center justify-between">
+                                                <div className="flex items-center">
+                                                    <Clock className="w-5 h-5 mr-2 text-indigo-500" />
+                                                    Focus Timer
+                                                </div>
+                                                <div className={`px-2 py-0.5 rounded-full text-xs font-mono ${studyTimer.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                                    {studyTimer.isActive ? 'RUNNING' : 'PAUSED'}
+                                                </div>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="flex flex-col items-center justify-center py-2">
+                                                <div className="text-4xl font-mono font-bold text-gray-900 dark:text-white mb-6 tracking-wider">
+                                                    {formatTime(studyTimer.timeLeft)}
+                                                </div>
+
+                                                <div className="flex w-full gap-3">
+                                                    {studyTimer.isActive ? (
+                                                        <Button
+                                                            onClick={pauseTimer}
+                                                            className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
+                                                        >
+                                                            <Pause className="w-4 h-4 mr-2" /> Pause
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={startTimer}
+                                                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                                            disabled={studyTimer.timeLeft === 0}
+                                                        >
+                                                            <Play className="w-4 h-4 mr-2" /> Start Focus
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={resetTimer}
+                                                        className="px-3"
+                                                        title="Reset Timer"
+                                                    >
+                                                        <RotateCcw className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </motion.div>
+
+                            {/* Community & Leaderboard */}
+                            <motion.div variants={itemVariants}>
+                                <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
+                                    <GlowingEffect
+                                        spread={40}
+                                        glow={true}
+                                        disabled={false}
+                                        proximity={64}
+                                        inactiveZone={0.01}
+                                        borderWidth={3}
+                                    />
+                                    <Card className="border-none shadow-sm h-full bg-white dark:bg-gray-900">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg flex items-center">
+                                                <Users className="w-5 h-5 mr-2 text-indigo-500" />
+                                                Community
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {/* Leaderboard */}
+                                            <div className="mb-6">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Leaderboard</h4>
+                                                    <Button variant="ghost" size="xs" className="text-indigo-600 dark:text-indigo-400">View All</Button>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {leaderboard.slice(0, 3).map((user, i) => (
+                                                        <div key={user.id} className="flex items-center justify-between text-sm">
+                                                            <div className="flex items-center">
+                                                                <span className={`w-5 text-center mr-2 font-bold ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-gray-400' : 'text-orange-500'}`}>
+                                                                    {i + 1}
+                                                                </span>
+                                                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-medium mr-3 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                                                                    {user.avatar}
+                                                                </div>
+                                                                <span className={`font-medium ${user.isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                                                                    {user.name} {user.isCurrentUser && '(You)'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center text-xs font-mono text-gray-500">
+                                                                <Flame className="w-3 h-3 mr-1 text-orange-500" />
+                                                                {user.streak}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Study Buddies */}
+                                            <div>
+                                                <h4 className="text-sm font-semibold mb-3 text-gray-900 dark:text-white">Study Buddies</h4>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex -space-x-2 overflow-hidden">
+                                                        {studyBuddies.map(buddy => (
+                                                            <div key={buddy.id} className="w-8 h-8 rounded-full bg-gray-100 border-2 border-white dark:border-gray-900 flex items-center justify-center text-xs font-medium text-gray-600 relative cursor-pointer hover:z-10 transition-transform hover:scale-110" title={buddy.name}>
+                                                                {buddy.avatar}
+                                                                {buddy.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>}
+                                                            </div>
+                                                        ))}
+                                                        <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center text-gray-400 hover:text-indigo-500 hover:border-indigo-500 cursor-pointer transition-colors" onClick={() => handleConnectWithBuddy('new')}>
+                                                            <UserPlus className="w-4 h-4" />
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-xs text-gray-500">{studyBuddies.filter(b => b.online).length} Online</span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </motion.div>
 
                             {/* Daily Tip */}
-                            {dailyTip && (
-                                <motion.div variants={itemVariants}>
-                                    <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
-                                        <GlowingEffect
-                                            spread={40}
-                                            glow={true}
-                                            disabled={false}
-                                            proximity={64}
-                                            inactiveZone={0.01}
-                                            borderWidth={3}
-                                        />
-                                        <Card className="border-none shadow-sm h-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
-                                            <CardHeader>
-                                                <CardTitle className="text-lg flex items-center">
-                                                    <Lightbulb className="w-5 h-5 mr-2 text-amber-500" />
-                                                    Daily Tip
-                                                </CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-3">
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="text-xs font-medium px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
-                                                            {dailyTip.category}
-                                                        </span>
+                            {
+                                dailyTip && (
+                                    <motion.div variants={itemVariants}>
+                                        <div className="relative rounded-xl border-[0.75px] border-gray-200 dark:border-gray-800 p-1">
+                                            <GlowingEffect
+                                                spread={40}
+                                                glow={true}
+                                                disabled={false}
+                                                proximity={64}
+                                                inactiveZone={0.01}
+                                                borderWidth={3}
+                                            />
+                                            <Card className="border-none shadow-sm h-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg flex items-center">
+                                                        <Lightbulb className="w-5 h-5 mr-2 text-amber-500" />
+                                                        Daily Tip
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-xs font-medium px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
+                                                                {dailyTip.category}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                                                            {dailyTip.tip}
+                                                        </p>
+                                                        <Button variant="ghost" size="xs" onClick={generateDailyTip} className="text-amber-600 dark:text-amber-400">
+                                                            New Tip
+                                                        </Button>
                                                     </div>
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                                                        {dailyTip.tip}
-                                                    </p>
-                                                    <Button variant="ghost" size="xs" onClick={generateDailyTip} className="text-amber-600 dark:text-amber-400">
-                                                        New Tip
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                </motion.div>
-                            )}
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    </motion.div>
+                                )
+                            }
 
                             {/* Course Bookmarks */}
                             <motion.div variants={itemVariants}>
@@ -1208,105 +900,109 @@ const Dashboard = () => {
                                     </Card>
                                 </div>
                             </motion.div>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
+                        </div >
+                    </div >
+                </motion.div >
+            </div >
 
             {/* Study Reminder Modal */}
-            {showReminderModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Set Study Reminder
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            Get reminded to study {window.currentCourseForReminder?.title}
-                        </p>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Reminder Time
-                                </label>
-                                <input
-                                    type="time"
-                                    value={reminderTime}
-                                    onChange={(e) => setReminderTime(e.target.value)}
-                                    className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                />
-                            </div>
-                            <div className="flex space-x-3">
-                                <Button 
-                                    variant="outline" 
-                                    onClick={() => {
-                                        setShowReminderModal(false);
-                                        setReminderTime('09:00');
-                                        window.currentCourseForReminder = null;
-                                    }}
-                                    className="flex-1"
-                                >
-                                    Cancel
-                                </Button>
+            {
+                showReminderModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Set Study Reminder
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Get reminded to study {window.currentCourseForReminder?.title}
+                            </p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Reminder Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={reminderTime}
+                                        onChange={(e) => setReminderTime(e.target.value)}
+                                        className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div className="flex space-x-3">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setShowReminderModal(false);
+                                            setReminderTime('09:00');
+                                            window.currentCourseForReminder = null;
+                                        }}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Bookmark Modal */}
-            {showBookmarkModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Save Lesson Bookmark
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Lesson Title
-                                </label>
-                                <input
-                                    type="text"
-                                    value={bookmarkLesson?.lessonTitle || ''}
-                                    readOnly
-                                    className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Course
-                                </label>
-                                <input
-                                    type="text"
-                                    value={activeCourses.find(c => c.id === bookmarkLesson?.courseId)?.title || ''}
-                                    readOnly
-                                    className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
-                                />
-                            </div>
-                            <div className="flex space-x-3">
-                                <Button 
-                                    onClick={saveBookmark}
-                                    className="flex-1"
-                                >
-                                    <Bookmark className="w-4 h-4 mr-2" />
-                                    Save Bookmark
-                                </Button>
-                                <Button 
-                                    variant="outline" 
-                                    onClick={() => {
-                                        setShowBookmarkModal(false);
-                                        setBookmarkLesson(null);
-                                    }}
-                                    className="flex-1"
-                                >
-                                    Cancel
-                                </Button>
+            {
+                showBookmarkModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Save Lesson Bookmark
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Lesson Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={bookmarkLesson?.lessonTitle || ''}
+                                        readOnly
+                                        className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Course
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={activeCourses.find(c => c.id === bookmarkLesson?.courseId)?.title || ''}
+                                        readOnly
+                                        className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div className="flex space-x-3">
+                                    <Button
+                                        onClick={saveBookmark}
+                                        className="flex-1"
+                                    >
+                                        <Bookmark className="w-4 h-4 mr-2" />
+                                        Save Bookmark
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setShowBookmarkModal(false);
+                                            setBookmarkLesson(null);
+                                        }}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

@@ -177,4 +177,35 @@ const SkeletonCourseCard = () => {
     );
 };
 
-export { Skeleton, SkeletonCard, SkeletonStats, SkeletonProfile, SkeletonDashboard, SkeletonCourseCard };
+const LiveClassesSkeleton = () => {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-64" />
+                        <Skeleton className="h-6 w-96" />
+                    </div>
+                    <Skeleton className="h-10 w-40 rounded-lg" />
+                </div>
+
+                {/* Tabs */}
+                <div className="mb-8 flex gap-2 border-b border-gray-200 dark:border-gray-800 pb-2">
+                    <Skeleton className="h-10 w-32 rounded-lg" />
+                    <Skeleton className="h-10 w-40 rounded-lg" />
+                    <Skeleton className="h-10 w-32 rounded-lg" />
+                </div>
+
+                {/* Content Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <SkeletonCourseCard key={i} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export { Skeleton, SkeletonCard, SkeletonStats, SkeletonProfile, SkeletonDashboard, SkeletonCourseCard, LiveClassesSkeleton };

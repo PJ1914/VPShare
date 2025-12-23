@@ -76,7 +76,7 @@ const Payment = () => {
                         animate={{ opacity: 1, height: 'auto' }}
                         className="max-w-3xl mx-auto mb-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3"
                     >
-                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                         <div className="flex-1">
                             <h3 className="text-sm font-medium text-red-800 dark:text-red-300">Payment Error</h3>
                             <p className="text-sm text-red-700 dark:text-red-400 mt-1">{error}</p>
@@ -106,7 +106,7 @@ const Payment = () => {
                                     )}
                                 >
                                     {plan.popular && (
-                                        <div className="absolute -top-3 right-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                                        <div className="absolute -top-3 right-4 bg-linear-to-r from-orange-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
                                             <Star className="w-3 h-3 fill-current" />
                                             POPULAR
                                         </div>
@@ -130,7 +130,7 @@ const Payment = () => {
                                     <ul className="space-y-2 mt-4">
                                         {plan.features.slice(0, 3).map((feature, i) => (
                                             <li key={i} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 shrink-0" />
                                                 <span className="line-clamp-1">{feature}</span>
                                             </li>
                                         ))}
@@ -171,7 +171,7 @@ const Payment = () => {
                                     <ul className="space-y-2">
                                         {selectedPlan.features.map((feature, i) => (
                                             <li key={i} className="flex items-start text-sm text-gray-600 dark:text-gray-300">
-                                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 shrink-0" />
                                                 <span>{feature}</span>
                                             </li>
                                         ))}

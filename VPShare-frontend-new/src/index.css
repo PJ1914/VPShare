@@ -1,53 +1,7 @@
 /* Trigger rebuild */
 @import "tailwindcss";
 
-@theme {
-    /* Prativeda Primary */
-    --color-prativeda-primary-50: #f5e8e8;
-    --color-prativeda-primary-100: #e8c9cd;
-    --color-prativeda-primary-200: #d9a7af;
-    --color-prativeda-primary-300: #ca8591;
-    --color-prativeda-primary-400: #bf6a7a;
-    --color-prativeda-primary-500: #b35063;
-    --color-prativeda-primary-600: #ac495b;
-    --color-prativeda-primary-700: #a34050;
-    --color-prativeda-primary-800: #9a3746;
-    --color-prativeda-primary-900: #8b2635;
-    --color-prativeda-primary-950: #6d1d28;
 
-    /* Prativeda Secondary */
-    --color-prativeda-secondary-50: #f7f8f7;
-    --color-prativeda-secondary-100: #e0e2db;
-    --color-prativeda-secondary-200: #d2d4c8;
-    --color-prativeda-secondary-300: #bbbfb0;
-    --color-prativeda-secondary-400: #a4a998;
-    --color-prativeda-secondary-500: #8d9480;
-    --color-prativeda-secondary-600: #767d6b;
-    --color-prativeda-secondary-700: #5f6556;
-    --color-prativeda-secondary-800: #484e42;
-    --color-prativeda-secondary-900: #2e3532;
-    --color-prativeda-secondary-950: #1f2421;
-
-    /* Prativeda Success */
-    --color-prativeda-success-50: #f9fdf5;
-    --color-prativeda-success-100: #f1fae8;
-    --color-prativeda-success-200: #e7f5d8;
-    --color-prativeda-success-300: #ddefc5;
-    --color-prativeda-success-400: #d3efbd;
-    --color-prativeda-success-500: #c3e8a8;
-    --color-prativeda-success-600: #a8d987;
-    --color-prativeda-success-700: #8bc966;
-    --color-prativeda-success-800: #6eb945;
-    --color-prativeda-success-900: #4f8f2a;
-
-    /* Prativeda Warning */
-    --color-prativeda-warning-500: #f59e0b;
-    --color-prativeda-warning-600: #d97706;
-
-    /* Prativeda Danger */
-    --color-prativeda-danger-500: #ef4444;
-    --color-prativeda-danger-600: #dc2626;
-}
 
 /* Database Animation for REST API component */
 .database {
@@ -95,5 +49,23 @@
     100% {
         offset-distance: 100%;
         opacity: 0;
+    }
+}
+
+/* ========================================
+   Theme Variables
+   ======================================== */
+
+:root {
+    --radius: 1rem;
+    --accent: oklch(0.89 0 0);
+    --destructive-foreground: oklch(0.985 0 0);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: oklch(0.125 0 0);
+        --accent: oklch(0.229 0 0);
+        --destructive-foreground: oklch(0.985 0 0);
     }
 }

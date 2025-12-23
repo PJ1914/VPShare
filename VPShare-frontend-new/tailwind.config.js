@@ -23,6 +23,7 @@ export default {
                 error: '#ef4444',
                 warning: '#f59e0b',
                 info: '#3b82f6',
+                'destructive-foreground': 'var(--destructive-foreground)',
 
                 // Prativeda Specific Colors
                 'prativeda-primary': {

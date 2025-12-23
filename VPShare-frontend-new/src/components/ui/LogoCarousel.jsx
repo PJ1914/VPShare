@@ -55,28 +55,30 @@ const InfoColumn = React.memo(
                     inactiveZone={0.01}
                     borderWidth={3}
                 />
-                <AnimatePresence>
-                    <motion.div
-                        key={`${currentItem.title}-${currentIndex}`}
-                        className="relative flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl overflow-hidden"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <div className="h-32 overflow-hidden">
-                            <img
-                                src={currentItem.image}
-                                alt={currentItem.title}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="p-4 flex-1 flex flex-col justify-center">
-                            <h4 className="font-bold text-gray-900 dark:text-white mb-1 text-sm md:text-base line-clamp-1">{currentItem.title}</h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{currentItem.description}</p>
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
+                <div className="relative w-full h-full rounded-xl overflow-hidden">
+                    <AnimatePresence mode="popLayout">
+                        <motion.div
+                            key={`${currentItem.title}-${currentIndex}`}
+                            className="absolute inset-0 flex flex-col bg-white dark:bg-gray-900"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <div className="h-32 overflow-hidden shrink-0">
+                                <img
+                                    src={currentItem.image}
+                                    alt={currentItem.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="p-4 flex-1 flex flex-col justify-center">
+                                <h4 className="font-bold text-gray-900 dark:text-white mb-1 text-sm md:text-base line-clamp-1">{currentItem.title}</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{currentItem.description}</p>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
             </motion.div>
         )
     }

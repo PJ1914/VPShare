@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BookOpen, FileText, FolderGit2, BrainCircuit, Crown, ChevronRight } from 'lucide-react';
+import { BookOpen, FileText, FolderGit2, BrainCircuit, Crown, ChevronRight, Video } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,11 +12,12 @@ const CourseSidebar = () => {
         { name: 'Assignments', path: '/courses/assignments', icon: FileText },
         { name: 'Projects', path: '/courses/projects', icon: FolderGit2 },
         { name: 'Quizzes', path: '/courses/quizzes', icon: BrainCircuit },
+        { name: 'Live Classes', path: '/courses/live-classes', icon: Video },
     ];
 
     return (
         <motion.div
-            className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-[calc(100vh-5rem)] sticky top-20 hidden lg:flex flex-col overflow-y-auto z-40 shadow-sm"
+            className="bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-[calc(100vh-4rem)] sticky top-16 hidden lg:flex flex-col overflow-y-auto z-40 shadow-sm"
             initial={{ width: 72 }}
             animate={{ width: isExpanded ? 256 : 72 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}

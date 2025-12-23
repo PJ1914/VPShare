@@ -279,10 +279,10 @@ const Home = () => {
                                 borderWidth={3}
                             />
                             <div className="relative flex flex-col gap-4 h-full rounded-xl bg-white dark:bg-gray-900 p-6 shadow-lg">
-                                <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-[10px] px-2 py-1 rounded-bl-lg font-bold uppercase tracking-wider z-10">
+                                <div className="absolute top-0 right-0 bg-linear-to-r from-blue-600 to-purple-600 text-white text-[10px] px-2 py-1 rounded-bl-lg font-bold uppercase tracking-wider z-10 shadow-md">
                                     Winner
                                 </div>
-                                <h4 className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">CodeTapasya</h4>
+                                <h4 className="font-bold text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-purple-600 mb-2">CodeTapasya</h4>
                                 <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                                     <li className="flex items-center gap-2"><span className="text-green-500">✓</span> Interactive Coding Environment</li>
                                     <li className="flex items-center gap-2"><span className="text-green-500">✓</span> AI-Powered Real-time Feedback</li>
@@ -337,7 +337,6 @@ const Home = () => {
                     </div>
 
                     <motion.div
-                        key={activeFeatureIndex}
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
@@ -361,7 +360,7 @@ const Home = () => {
                         </p>
                     </div>
 
-                    <ul className="grid grid-cols-1 grid-rows-none gap-4 md:grid-cols-12 md:grid-rows-2 lg:gap-4 xl:max-h-[34rem]">
+                    <ul className="grid grid-cols-1 grid-rows-none gap-4 md:grid-cols-12 md:grid-rows-2 lg:gap-4">
                         {features.map((feature, index) => {
                             const Icon = feature.icon;
                             const area = index === 3 ? "md:col-span-6 xl:col-span-12" : "md:col-span-6 xl:col-span-4";
@@ -447,10 +446,10 @@ const Home = () => {
                         className="w-full h-full flex items-center justify-center"
                     >
                         <IconCloud iconSlugs={[
-                            "typescript", "javascript", "dart", "java", "react", "flutter", "android",
-                            "html5", "css3", "nodedotjs", "express", "nextdotjs", "prisma", "amazonaws",
+                            "typescript", "javascript", "dart", "openjdk", "react", "flutter", "android",
+                            "html5", "css3", "nodedotjs", "express", "nextdotjs", "prisma", "amazonwebservices",
                             "postgresql", "firebase", "nginx", "vercel", "testinglibrary", "jest",
-                            "cypress", "docker", "git", "jira", "github", "gitlab", "visualstudiocode",
+                            "cypress", "docker", "git", "jira", "github", "gitlab", "visualstudio",
                             "androidstudio", "sonarqube", "figma"
                         ]} />
                     </motion.div>

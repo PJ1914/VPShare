@@ -1,36 +1,39 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Instagram, Mail, Home, Code, BookOpen, Trophy } from 'lucide-react';
-import logoImg from '../../assets/CT Logo.png';
+import { Github, Linkedin, Instagram, Mail, Home, Code, BookOpen, Trophy, LayoutDashboard, Video, FileText, Sparkles, Rocket, CreditCard } from 'lucide-react';
+import logoImg from '../../assets/CT Logo-2.png';
 
 const Footer = () => {
     const footerSections = [
         {
-            title: 'Quick Links',
+            title: 'Explore',
             links: [
                 { name: 'Home', path: '/', icon: Home },
-                { name: 'Courses', path: '/courses', icon: BookOpen },
+                { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+                { name: 'All Courses', path: '/courses', icon: BookOpen },
+                { name: 'Hackathons', path: '/hackathons', icon: Trophy },
                 { name: 'Playground', path: '/playground', icon: Code },
-                { name: 'Hackathons', path: '/hackathon', icon: Trophy },
             ]
         },
         {
-            title: 'Platform',
+            title: 'Resources',
             links: [
-                { name: 'Dashboard', path: '/dashboard' },
-                { name: 'Live Classes', path: '/live-classes' },
-                { name: 'Prativeda (Resume)', path: '/prativeda' },
-                { name: 'Profile', path: '/profile' },
+                { name: 'Live Classes', path: '/courses/live-classes', icon: Video },
+                { name: 'Assignments', path: '/courses/assignments', icon: FileText },
+                { name: 'Prativeda AI', path: '/prativeda', icon: Sparkles },
+                { name: 'Projects', path: '/courses/projects', icon: Rocket },
+                { name: 'Pricing Plans', path: '/payment', icon: CreditCard },
             ]
         },
         {
-            title: 'Legal',
+            title: 'Company & Legal',
             links: [
+                { name: 'About Us', path: '/about' },
                 { name: 'Privacy Policy', path: '/privacy-policy' },
-                { name: 'Terms & Conditions', path: '/terms-conditions' },
+                { name: 'Terms of Service', path: '/terms-conditions' },
                 { name: 'Refund Policy', path: '/refund-policy' },
-                { name: 'Shipping Policy', path: '/shipping-policy' },
+                { name: 'Contact Support', path: 'mailto:support@codetapasya.com', icon: Mail },
             ]
         },
     ];

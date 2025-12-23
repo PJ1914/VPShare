@@ -7,29 +7,34 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-    const [theme, setTheme] = useState(() => {
-        // Check local storage or system preference
-        if (typeof window !== 'undefined') {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) return savedTheme;
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        return 'light';
-    });
-
+    // Purely automatic theme management based on system preference
     useEffect(() => {
-        const root = window.document.documentElement;
-        root.classList.remove('light', 'dark');
-        root.classList.add(theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
+        const applyTheme = (e) => {
+            const root = window.document.documentElement;
+            // Remove potential manual classes if any residue exists
+            root.classList.remove('light', 'dark');
 
+            if (e.matches) {
+                root.classList.add('dark');
+            } else {
+                root.classList.add('light');
+            }
+        };
+
+        // Initial check
+        applyTheme(mediaQuery);
+
+        // Listen for system changes
+        mediaQuery.addEventListener('change', applyTheme);
+
+        return () => mediaQuery.removeEventListener('change', applyTheme);
+    }, []);
+
+    // No toggle function needed as per requirements
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{}}>
             {children}
         </ThemeContext.Provider>
     );

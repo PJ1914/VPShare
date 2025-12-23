@@ -29,16 +29,87 @@ export function AuthProvider({ children }) {
         return () => unsubscribe();
     }, []);
 
-    const signup = async (email, password, name) => {
+    const signup = async (email, password, name, username) => {
+        // Validation: Check username uniqueness
+        if (username) {
+            try {
+                const { collection, query, where, getDocs } = await import('firebase/firestore');
+                const { db } = await import('../config/firebase');
+
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where('username', '==', username.toLowerCase()));
+                const snapshot = await getDocs(q);
+
+                if (!snapshot.empty) {
+                    throw new Error("Username is already taken. Please choose another.");
+                }
+            } catch (error) {
+                if (error.code === 'permission-denied') {
+                    console.warn("Skipping username uniqueness check due to permission settings.");
+                    // Proceed without throwing error
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Create User
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Update Profile
         await updateProfile(userCredential.user, {
             displayName: name
         });
+
+        // Store username in Firestore
+        if (username) {
+            try {
+                const { doc, setDoc } = await import('firebase/firestore');
+                const { db } = await import('../config/firebase');
+
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    username: username.toLowerCase(),
+                    userName: username.toLowerCase(),
+                    email: email,
+                    displayName: name,
+                    createdAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.error("Error saving username:", error);
+            }
+        }
         return userCredential;
     };
 
-    const login = (email, password) => {
-        return signInWithEmailAndPassword(auth, email, password);
+    const login = async (identifier, password) => {
+        // Check if identifier is an email
+        if (identifier.includes('@')) {
+            return signInWithEmailAndPassword(auth, identifier, password);
+        }
+
+        // Handle username login
+        try {
+            const { collection, query, where, getDocs } = await import('firebase/firestore');
+            const { db } = await import('../config/firebase');
+
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('username', '==', identifier.toLowerCase()));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                throw new Error("Username not found");
+            }
+
+            const userDoc = querySnapshot.docs[0].data();
+            if (!userDoc.email) {
+                throw new Error("No email associated with this username");
+            }
+
+            return signInWithEmailAndPassword(auth, userDoc.email, password);
+        } catch (error) {
+            // Pass through the specific error or default
+            throw error;
+        }
     };
 
     const loginWithGoogle = () => {
@@ -54,7 +125,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         signup,
-        login,
+        login, // Updated to handle both email and username
         loginWithGoogle,
         logout
     };

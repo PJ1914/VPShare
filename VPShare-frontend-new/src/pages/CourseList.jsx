@@ -117,16 +117,25 @@ const CourseList = () => {
                 }
 
                 addLog(`Fetching courses from ${apiUrl}/courses`);
-                const coursesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses`);
-                addLog('Courses response received', coursesResponse.data);
 
-                const rawCourses = Array.isArray(coursesResponse.data)
-                    ? coursesResponse.data
-                    : coursesResponse.data.Items || [];
+                try {
+                    const coursesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses`);
+                    addLog('Courses response received', coursesResponse.data);
 
-                addLog(`Parsed ${rawCourses.length} raw courses`);
+                    const rawCourses = Array.isArray(coursesResponse.data)
+                        ? coursesResponse.data
+                        : coursesResponse.data.Items || [];
 
-                if (!rawCourses.length) {
+                    addLog(`Parsed ${rawCourses.length} raw courses`);
+
+                    if (!rawCourses.length) {
+                        setCourses([]);
+                        setLoading(false);
+                        return;
+                    }
+                } catch (error) {
+                    addLog(`Courses endpoint not available (404), using empty list`);
+                    console.warn('Courses endpoint not implemented on backend, showing empty state');
                     setCourses([]);
                     setLoading(false);
                     return;
@@ -271,14 +280,14 @@ const CourseList = () => {
         <div className="py-8 relative">
             <button
                 onClick={() => setShowDebug(!showDebug)}
-                className="fixed bottom-4 right-4 z-[100] p-3 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800"
+                className="fixed bottom-4 right-4 z-50 p-3 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800"
                 title="Toggle Debug Info"
             >
                 <Bug className="w-5 h-5" />
             </button>
 
             {showDebug && (
-                <div className="fixed inset-x-0 bottom-0 h-96 bg-gray-900 text-green-400 p-4 z-[99] overflow-y-auto font-mono text-xs border-t-2 border-green-500 shadow-2xl">
+                <div className="fixed inset-x-0 bottom-0 h-96 bg-gray-900 text-green-400 p-4 z-40 overflow-y-auto font-mono text-xs border-t-2 border-green-500 shadow-2xl">
                     <div className="flex justify-between items-center mb-2 border-b border-gray-700 pb-2">
                         <h3 className="font-bold text-lg">Debug Console</h3>
                         <button onClick={() => setShowDebug(false)} className="text-gray-400 hover:text-white">Close</button>
@@ -400,7 +409,7 @@ const CourseList = () => {
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                     loading="lazy"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
                                                 {isStarted && (
                                                     <div className="absolute bottom-3 left-3 right-3">
                                                         <div className="flex items-center justify-between text-white text-xs mb-1">
