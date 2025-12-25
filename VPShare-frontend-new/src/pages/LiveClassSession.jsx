@@ -25,6 +25,17 @@ const LiveClassSession = () => {
     const [attendanceMarked, setAttendanceMarked] = useState(false);
     const [markingAttendance, setMarkingAttendance] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            if (user) {
+                const tokenResult = await user.getIdTokenResult();
+                setIsAdmin(tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true);
+            }
+        };
+        checkAdmin();
+    }, [user]);
 
     // ... getEmbedUrl logic ...
     const getEmbedUrl = (url) => {
@@ -225,6 +236,7 @@ const LiveClassSession = () => {
                         liveClassHook={liveClassHook}
                         classData={classData}
                         className="h-[600px] lg:h-full lg:max-h-full" // Ensure it fills the grid cell
+                        isAdmin={isAdmin}
                     />
                 </div>
             </div>

@@ -113,7 +113,7 @@ const Navbar = () => {
                                         whileHover={{ rotate: [0, -5, 5, 0] }}
                                         transition={{ duration: 0.5 }}
                                     />
-                                    <span className="text-base sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 dark:from-cyan-400 dark:via-blue-400 dark:to-indigo-400 hidden sm:block leading-none mt-2">
+                                    <span className="text-base sm:text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 dark:from-cyan-400 dark:via-blue-400 dark:to-indigo-400 hidden sm:block leading-snug mt-4.5 pb-1">
                                         CodeTapasya
                                     </span>
                                 </Link>
@@ -216,7 +216,7 @@ const Navbar = () => {
                                                         {user.displayName || 'User'}
                                                     </p>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                                        {user.email}
+                                                        {user.username ? `@${user.username}` : user.email}
                                                     </p>
                                                 </div>
                                                 <div className="p-2">

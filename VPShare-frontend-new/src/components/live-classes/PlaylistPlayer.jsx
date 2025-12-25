@@ -4,8 +4,9 @@ import { Play, CheckCircle, Clock, ChevronLeft, List, X, BookOpen, Layers, Messa
 import Button from '../ui/Button';
 import ClassroomSidebar from './ClassroomSidebar';
 import { useLiveClass } from '../../hooks/useLiveClass';
+import YouTube from 'react-youtube';
 
-const PlaylistPlayer = ({ series, onClose }) => {
+const PlaylistPlayer = ({ series, onClose, isAdmin, onAddEpisode }) => {
     const sortedEpisodes = React.useMemo(() =>
         [...(series?.videos || [])].sort((a, b) => new Date(a.startTime) - new Date(b.startTime)),
         [series]);
@@ -21,13 +22,81 @@ const PlaylistPlayer = ({ series, onClose }) => {
         }
     }, [series, sortedEpisodes]);
 
-    const getEmbedUrl = (url) => {
-        if (!url) return '';
-        const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-        if (ytMatch && ytMatch[1]) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&modestbranding=1`;
-        const vimeoMatch = url.match(/(?:vimeo\.com\/|player\.vimeo\.com\/video\/)([0-9]+)/);
-        if (vimeoMatch && vimeoMatch[1]) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-        return url;
+    const playerRef = React.useRef(null);
+    const progressInterval = React.useRef(null);
+    const { updateWatchProgress, getWatchProgress } = liveClassHook;
+    const [lastSavedTime, setLastSavedTime] = useState(0);
+
+    // Initial Resume Logic
+    const onPlayerReady = async (event) => {
+        playerRef.current = event.target; // Store player instance
+        if (!currentVideo?.id) return;
+        try {
+            const progress = await getWatchProgress(currentVideo.id);
+            if (progress?.lastPosition && progress.lastPosition > 0) {
+                // YouTube API seekTo
+                event.target.seekTo(progress.lastPosition);
+            }
+        } catch (error) {
+            console.error('Failed to load progress', error);
+        }
+    };
+
+    // Track Progress via Interval when playing
+    const onPlayerStateChange = (event) => {
+        // 1 = Playing
+        if (event.data === 1) {
+            startProgressTracking();
+        } else {
+            stopProgressTracking();
+        }
+    };
+
+    const startProgressTracking = () => {
+        if (progressInterval.current) clearInterval(progressInterval.current);
+        progressInterval.current = setInterval(async () => {
+            if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+                const currentTime = await playerRef.current.getCurrentTime();
+                const duration = await playerRef.current.getDuration();
+
+                // Save if moved more than 15s
+                if (Math.abs(currentTime - lastSavedTime) > 15) {
+                    updateWatchProgress(currentVideo.id, currentTime, duration || 3600);
+                    setLastSavedTime(currentTime);
+                }
+            }
+        }, 15000);
+    };
+
+    const stopProgressTracking = () => {
+        if (progressInterval.current) clearInterval(progressInterval.current);
+    };
+
+    // Jump to Time handler passed to Sidebar
+    const handleJumpToTime = (seconds) => {
+        if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+            playerRef.current.seekTo(seconds, true);
+        }
+    };
+
+    // Clean up
+    useEffect(() => {
+        return () => stopProgressTracking();
+    }, []);
+
+    // Reset last saved when video changes
+    useEffect(() => {
+        setLastSavedTime(0);
+        playerRef.current = null;
+    }, [currentVideo]);
+
+    // URL Normalizer to ensure ReactPlayer recognizes it
+    // Get YouTube ID Helper
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
     };
 
     if (!series) return null;
@@ -63,18 +132,30 @@ const PlaylistPlayer = ({ series, onClose }) => {
 
                 {/* Video Player */}
                 <div className="flex-1 bg-black flex items-center justify-center relative">
-                    {currentVideo?.recordingLink ? (
-                        <iframe
-                            src={getEmbedUrl(currentVideo.recordingLink)}
-                            className="w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            title={currentVideo.title}
-                        />
+                    {currentVideo?.recordingLink && getYouTubeId(currentVideo.recordingLink) ? (
+                        <div className="w-full h-full relative">
+                            <YouTube
+                                videoId={getYouTubeId(currentVideo.recordingLink)}
+                                className="w-full h-full absolute inset-0"
+                                iframeClassName="w-full h-full"
+                                onReady={onPlayerReady}
+                                onStateChange={onPlayerStateChange}
+                                opts={{
+                                    height: '100%',
+                                    width: '100%',
+                                    playerVars: {
+                                        autoplay: 0,
+                                        modestbranding: 1,
+                                        rel: 0,
+                                        origin: window.location.origin, // Fix origin mismatch
+                                    },
+                                }}
+                            />
+                        </div>
                     ) : (
                         <div className="text-center p-8 text-gray-400">
                             <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                            <p>Select an episode to start watching</p>
+                            <p>Select an episode or check URL</p>
                         </div>
                     )}
                 </div>
@@ -154,7 +235,17 @@ const PlaylistPlayer = ({ series, onClose }) => {
                                 <div className="h-full overflow-y-auto p-2 space-y-1">
                                     <div className="px-2 py-3">
                                         <h3 className="font-bold text-white text-lg line-clamp-1">{series.name}</h3>
-                                        <p className="text-xs text-gray-500">{sortedEpisodes.length} Episodes</p>
+                                        <div className="flex items-center justify-between mt-1">
+                                            <p className="text-xs text-gray-500">{sortedEpisodes.length} Episodes</p>
+                                            {isAdmin && onAddEpisode && (
+                                                <button
+                                                    onClick={() => onAddEpisode(series.name)}
+                                                    className="text-xs text-blue-400 hover:text-blue-300 font-medium hover:underline"
+                                                >
+                                                    + Add Episode
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     {sortedEpisodes.map((video, index) => {
                                         const isActive = currentVideo?.id === video.id;
@@ -195,6 +286,10 @@ const PlaylistPlayer = ({ series, onClose }) => {
                                     liveClassHook={liveClassHook}
                                     classData={currentVideo}
                                     className="h-full rounded-none border-none bg-transparent shadow-none"
+                                    isAdmin={isAdmin}
+
+                                    getCurrentTime={() => playerRef.current && typeof playerRef.current.getCurrentTime === 'function' ? playerRef.current.getCurrentTime() : 0}
+                                    onJumpToTime={handleJumpToTime}
                                 />
                             )}
                         </div>
@@ -203,15 +298,17 @@ const PlaylistPlayer = ({ series, onClose }) => {
             </AnimatePresence>
 
             {/* Re-open Sidebar Button (Desktop) */}
-            {!isSidebarOpen && (
-                <button
-                    onClick={() => setSidebarOpen(true)}
-                    className="absolute top-4 right-4 z-10 p-2 bg-gray-900/50 backdrop-blur rounded-lg text-white hover:bg-gray-900 border border-gray-700 shadow-lg hidden md:block"
-                >
-                    <List className="w-5 h-5" />
-                </button>
-            )}
-        </motion.div>
+            {
+                !isSidebarOpen && (
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="absolute top-4 right-4 z-10 p-2 bg-gray-900/50 backdrop-blur rounded-lg text-white hover:bg-gray-900 border border-gray-700 shadow-lg hidden md:block"
+                    >
+                        <List className="w-5 h-5" />
+                    </button>
+                )
+            }
+        </motion.div >
     );
 };
 

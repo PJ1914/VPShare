@@ -993,7 +993,7 @@ const UserProfile = () => {
                         )}
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center justify-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 mb-0.5" />
-                          {user.email}
+                          {profileData.username ? `@${profileData.username}` : user.email}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed max-w-sm mx-auto">
                           {profileData.bio || "No bio yet. Click edit to add one!"}

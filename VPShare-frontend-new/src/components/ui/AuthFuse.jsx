@@ -5,7 +5,7 @@ import { useState, useId, useEffect, useMemo } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { cva } from "class-variance-authority";
-import { Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, Loader2, Github } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from "../../contexts/AuthContext";
@@ -294,7 +294,7 @@ function SignUpForm() {
 }
 
 function AuthFormContainer({ isSignIn }) {
-    const { loginWithGoogle } = useAuth();
+    const { loginWithGoogle, loginWithGithub } = useAuth();
     const navigate = useNavigate();
 
     const handleGoogle = async () => {
@@ -303,6 +303,16 @@ function AuthFormContainer({ isSignIn }) {
             navigate("/dashboard");
         } catch (error) {
             console.error("Google login failed", error);
+        }
+    };
+
+    const handleGithub = async () => {
+        try {
+            await loginWithGithub();
+            navigate("/dashboard");
+        } catch (error) {
+            const msg = getFriendlyErrorMessage(error);
+            if (msg) alert(msg); // minimal error handling since this component lacks local error state for social auth
         }
     };
 
@@ -318,10 +328,16 @@ function AuthFormContainer({ isSignIn }) {
             <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200 dark:after:border-gray-800">
                 <span className="relative z-10 bg-blue-50 dark:bg-gray-950 px-2 text-gray-500">Or continue with</span>
             </div>
-            <Button variant="outline" type="button" onClick={handleGoogle} className="w-full">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google icon" className="mr-2 h-4 w-4" />
-                Continue with Google
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" type="button" onClick={handleGoogle} className="w-full">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google icon" className="mr-2 h-4 w-4" />
+                    Google
+                </Button>
+                <Button variant="outline" type="button" onClick={handleGithub} className="w-full">
+                    <Github className="mr-2 h-4 w-4" />
+                    GitHub
+                </Button>
+            </div>
         </div>
     )
 }

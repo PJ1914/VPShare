@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, FileText, Link as LinkIcon } from 'lucide-react';
+import { MessageCircle, FileText, Link as LinkIcon, Bookmark, List } from 'lucide-react';
 import QAModule from './QAModule';
 import SmartNotes from './SmartNotes';
+import BookmarksModule from './BookmarksModule';
+import ChaptersModule from './ChaptersModule';
 
-const ClassroomSidebar = ({ classId, liveClassHook, classData, className = '' }) => {
-    const [activeTab, setActiveTab] = useState('qa'); // qa, notes, resources
+const ClassroomSidebar = ({ classId, liveClassHook, classData, className = '', isAdmin = false, getCurrentTime, onJumpToTime }) => {
+    const [activeTab, setActiveTab] = useState('qa'); // qa, notes, resources, bookmarks, chapters
 
     return (
         <div className={`flex flex-col bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl ${className}`}>
@@ -14,14 +16,16 @@ const ClassroomSidebar = ({ classId, liveClassHook, classData, className = '' })
                 {[
                     { id: 'qa', label: 'Q&A', icon: MessageCircle },
                     { id: 'notes', label: 'Notes', icon: FileText },
+                    { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
+                    { id: 'chapters', label: 'Chapters', icon: List },
                     { id: 'resources', label: 'Resources', icon: LinkIcon }
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-1 px-4 py-4 font-medium transition-all flex items-center justify-center gap-2 text-sm relative ${activeTab === tab.id
-                                ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-900'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            ? 'text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-900'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -43,6 +47,22 @@ const ClassroomSidebar = ({ classId, liveClassHook, classData, className = '' })
                 )}
                 {activeTab === 'notes' && (
                     <SmartNotes classId={classId} useLiveClassHook={liveClassHook} />
+                )}
+                {activeTab === 'bookmarks' && (
+                    <BookmarksModule
+                        classId={classId}
+                        useLiveClassHook={liveClassHook}
+                        getCurrentTime={getCurrentTime}
+                        onJumpToTime={onJumpToTime}
+                    />
+                )}
+                {activeTab === 'chapters' && (
+                    <ChaptersModule
+                        classId={classId}
+                        useLiveClassHook={liveClassHook}
+                        isAdmin={isAdmin}
+                        onJumpToTime={onJumpToTime}
+                    />
                 )}
                 {activeTab === 'resources' && (
                     <div className="p-6 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900/50">

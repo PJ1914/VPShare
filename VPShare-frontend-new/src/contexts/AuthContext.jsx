@@ -6,7 +6,12 @@ import {
     onAuthStateChanged,
     updateProfile,
     GoogleAuthProvider,
-    signInWithPopup
+    GithubAuthProvider,
+    signInWithPopup,
+    linkWithPopup,
+    unlink,
+    fetchSignInMethodsForEmail,
+    reauthenticateWithPopup
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
@@ -21,7 +26,24 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser) {
+                // Fetch username from Firestore
+                try {
+                    const { doc, getDoc } = await import('firebase/firestore');
+                    const { db } = await import('../config/firebase');
+                    const userDocRef = doc(db, 'users', currentUser.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+
+                    if (userDocSnap.exists()) {
+                        const userData = userDocSnap.data();
+                        currentUser.username = userData.username || userData.userName; // Handle both cases
+                        currentUser.displayName = currentUser.displayName || userData.displayName; // Fallback
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile in AuthContext:", error);
+                }
+            }
             setUser(currentUser);
             setLoading(false);
         });
@@ -117,6 +139,60 @@ export function AuthProvider({ children }) {
         return signInWithPopup(auth, provider);
     };
 
+    const loginWithGithub = async () => {
+        const provider = new GithubAuthProvider();
+        provider.addScope('repo'); // Required for Projects feature
+        provider.addScope('read:user');
+
+        try {
+            const result = await signInWithPopup(auth, provider);
+            // Capture the GitHub Access Token in case it's not set in custom claims
+            const credential = GithubAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                localStorage.setItem('github_access_token', credential.accessToken);
+            }
+            return result;
+        } catch (error) {
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                throw new Error("An account with this email already exists. Please sign in with your existing method (Google/Email) and link GitHub in settings.");
+            }
+            throw error;
+        }
+    };
+
+    const linkGithub = async () => {
+        if (!auth.currentUser) throw new Error("No user logged in");
+        const provider = new GithubAuthProvider();
+        provider.addScope('repo');
+        provider.addScope('read:user');
+
+        try {
+            const result = await linkWithPopup(auth.currentUser, provider);
+            // Capture the GitHub Access Token
+            const credential = GithubAuthProvider.credentialFromResult(result);
+            if (credential?.accessToken) {
+                localStorage.setItem('github_access_token', credential.accessToken);
+            }
+            return result;
+        } catch (error) {
+            console.error("Link GitHub Error:", error);
+            throw error;
+        }
+    };
+
+    const unlinkGithub = async () => {
+        if (!auth.currentUser) throw new Error("No user logged in");
+
+        // Find github provider
+        const provider = auth.currentUser.providerData.find(
+            p => p.providerId === 'github.com'
+        );
+
+        if (provider) {
+            return unlink(auth.currentUser, provider.providerId);
+        }
+    };
+
     const logout = () => {
         return signOut(auth);
     };
@@ -127,6 +203,9 @@ export function AuthProvider({ children }) {
         signup,
         login, // Updated to handle both email and username
         loginWithGoogle,
+        loginWithGithub,
+        linkGithub,
+        unlinkGithub,
         logout
     };
 

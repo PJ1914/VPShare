@@ -127,6 +127,104 @@ export const useLiveClass = () => {
         return useLiveClassStore.getState().fetchLeaderboard(api);
     }, [createAuthApi]);
 
+    // 9. Video Progress
+    const updateWatchProgress = useCallback(async (id, currentTime, totalDuration) => {
+        try {
+            const api = await createAuthApi();
+            const response = await api.post(`/live-classes/${id}/progress`, { currentTime, totalDuration });
+            return response.data;
+        } catch (err) {
+            console.error('Failed to update progress', err);
+            // Don't throw for background updates
+        }
+    }, [createAuthApi]);
+
+    const getWatchProgress = useCallback(async (id) => {
+        try {
+            const api = await createAuthApi();
+            const response = await api.get(`/live-classes/${id}/progress`);
+            return response.data;
+        } catch (err) {
+            console.error('Failed to fetch progress', err);
+            return null;
+        }
+    }, [createAuthApi]);
+
+    // 10. Bookmarks
+    const addBookmark = useCallback(async (id, timestamp, note) => {
+        setLoading(true);
+        try {
+            const api = await createAuthApi();
+            const response = await api.post(`/live-classes/${id}/bookmarks`, { timestamp, note });
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to add bookmark');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [createAuthApi]);
+
+    const getBookmarks = useCallback(async (id) => {
+        try {
+            const api = await createAuthApi();
+            const response = await api.get(`/live-classes/${id}/bookmarks`);
+            return response.data;
+        } catch (err) {
+            console.error('Failed to fetch bookmarks', err);
+            return [];
+        }
+    }, [createAuthApi]);
+
+    const deleteBookmark = useCallback(async (id, bookmarkId, timestamp) => {
+        try {
+            const api = await createAuthApi();
+            // Note: Query param timestamp required by backend
+            const response = await api.delete(`/live-classes/${id}/bookmarks/${bookmarkId}?timestamp=${timestamp}`);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to delete bookmark');
+            throw err;
+        }
+    }, [createAuthApi]);
+
+    // 11. Chapters
+    const addChapter = useCallback(async (id, chapterData) => {
+        setLoading(true);
+        try {
+            const api = await createAuthApi();
+            const response = await api.post(`/live-classes/${id}/chapters`, chapterData);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to add chapter');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [createAuthApi]);
+
+    const getChapters = useCallback(async (id) => {
+        try {
+            const api = await createAuthApi();
+            const response = await api.get(`/live-classes/${id}/chapters`);
+            return response.data;
+        } catch (err) {
+            console.error('Failed to fetch chapters', err);
+            return [];
+        }
+    }, [createAuthApi]);
+
+    const deleteChapter = useCallback(async (id, chapterId, startTime) => {
+        try {
+            const api = await createAuthApi();
+            const response = await api.delete(`/live-classes/${id}/chapters/${chapterId}?startTime=${startTime}`);
+            return response.data;
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to delete chapter');
+            throw err;
+        }
+    }, [createAuthApi]);
+
     return {
         loading,
         error,
@@ -137,6 +235,15 @@ export const useLiveClass = () => {
         askQuestion,
         getQuestions,
         submitFeedback,
-        getLeaderboard
+        getLeaderboard,
+        updateWatchProgress,
+        getWatchProgress,
+        addBookmark,
+        getBookmarks,
+        deleteBookmark,
+        addChapter,
+        getChapters,
+        deleteChapter
     };
 };
+

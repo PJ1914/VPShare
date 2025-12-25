@@ -67,7 +67,7 @@ const LiveClasses = () => {
         const checkAdmin = async () => {
             if (user) {
                 const tokenResult = await user.getIdTokenResult();
-                setIsAdmin(tokenResult.claims.admin === true);
+                setIsAdmin(tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true);
             }
         };
         checkAdmin();
@@ -224,6 +224,22 @@ const LiveClasses = () => {
                     series={selectedSeries}
                     onClose={() => setSelectedSeries(null)}
                     onReviewNotes={handleEnterClassroom}
+                    isAdmin={isAdmin}
+                    onAddEpisode={(seriesName) => {
+                        // Pre-fill modal for new episode
+                        setEditingClass(null);
+                        setError('');
+                        setSuccess('');
+                        setFormData({
+                            title: '',
+                            category: seriesName, // Auto-fill series name
+                            startTime: '',
+                            durationMinutes: 60,
+                            meetingLink: '',
+                            recordingLink: ''
+                        });
+                        setIsModalOpen(true);
+                    }}
                 />
 
                 {/* Header */}
@@ -414,7 +430,7 @@ const LiveClasses = () => {
                                         let displayName = entry.userName || entry.username;
                                         if (!displayName) {
                                             if (isCurrentUser) {
-                                                displayName = user.displayName || user.email?.split('@')[0] || 'You';
+                                                displayName = user.username ? `@${user.username}` : (user.displayName || user.email?.split('@')[0] || 'You');
                                             } else {
                                                 displayName = `Student ${entryUserId?.slice(0, 4) || '???'}`;
                                             }
@@ -462,7 +478,7 @@ const LiveClasses = () => {
                         <Card className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 z-10">
                             <div className="p-6">
                                 <div className="flex justify-between mb-6">
-                                    <h2 className="text-2xl font-bold">{editingClass ? 'Edit Class' : 'Schedule Class'}</h2>
+                                    <h2 className="text-2xl font-bold">{editingClass ? 'Edit Class' : 'Schedule Class / Add Episode'}</h2>
                                     <button onClick={() => setIsModalOpen(false)}><X className="w-6 h-6" /></button>
                                 </div>
                                 <form onSubmit={handleSave} className="space-y-4">
@@ -509,19 +525,22 @@ const LiveClasses = () => {
                                         <Input
                                             value={formData.meetingLink}
                                             onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })}
-                                            required
+                                            required={!formData.recordingLink}
                                         />
                                     </div>
-                                    {editingClass && (
-                                        <div>
-                                            <label className="block text-sm font-medium mb-1">Recording Link</label>
-                                            <Input
-                                                value={formData.recordingLink}
-                                                onChange={(e) => setFormData({ ...formData, recordingLink: e.target.value })}
-                                                placeholder="YouTube/Vimeo URL"
-                                            />
-                                        </div>
-                                    )}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">
+                                            Recording Link <span className="text-gray-400 font-normal">(Optional)</span>
+                                        </label>
+                                        <Input
+                                            value={formData.recordingLink}
+                                            onChange={(e) => setFormData({ ...formData, recordingLink: e.target.value })}
+                                            placeholder="YouTube/Vimeo URL (Paste here to publish as Episode)"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            If providing a recording link, the class will be marked as "Completed" and appear in the library immediately.
+                                        </p>
+                                    </div>
                                     <div className="pt-4 flex gap-3">
                                         <Button type="submit" className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600">Save Class</Button>
                                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAuth } from "../../contexts/AuthContext";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Github } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getFriendlyErrorMessage } from "../../lib/auth-helpers";
 
@@ -314,7 +314,7 @@ export const SignInFlow = ({ className }) => {
     const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
     const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
 
-    const { login, loginWithGoogle } = useAuth();
+    const { login, loginWithGoogle, loginWithGithub } = useAuth();
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
@@ -340,6 +340,21 @@ export const SignInFlow = ({ className }) => {
         setLoading(true);
         try {
             const res = await loginWithGoogle();
+            setLoggedInName(res.user?.displayName || "User");
+
+            setReverseCanvasVisible(true);
+            setTimeout(() => setInitialCanvasVisible(false), 50);
+            setTimeout(() => setStep("success"), 1500);
+        } catch (err) {
+            setError(getFriendlyErrorMessage(err));
+            setLoading(false);
+        }
+    };
+
+    const handleGithubLogin = async () => {
+        setLoading(true);
+        try {
+            const res = await loginWithGithub();
             setLoggedInName(res.user?.displayName || "User");
 
             setReverseCanvasVisible(true);
@@ -423,14 +438,25 @@ export const SignInFlow = ({ className }) => {
                                 </div>
 
                                 <div className="space-y-3 sm:space-y-4">
-                                    <button
-                                        onClick={handleGoogleLogin}
-                                        disabled={loading}
-                                        className="w-full flex items-center justify-center gap-2 bg-white/70 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 rounded-full py-2.5 sm:py-3 px-4 transition-colors font-medium disabled:opacity-50 cursor-pointer shadow-sm text-sm sm:text-base"
-                                    >
-                                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
-                                        <span>Continue with Google</span>
-                                    </button>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={handleGoogleLogin}
+                                            disabled={loading}
+                                            className="w-full flex items-center justify-center gap-2 bg-white/70 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 rounded-xl py-2.5 sm:py-3 px-4 transition-colors font-medium disabled:opacity-50 cursor-pointer shadow-sm text-sm"
+                                        >
+                                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
+                                            <span>Google</span>
+                                        </button>
+
+                                        <button
+                                            onClick={handleGithubLogin}
+                                            disabled={loading}
+                                            className="w-full flex items-center justify-center gap-2 bg-white/70 hover:bg-white dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 rounded-xl py-2.5 sm:py-3 px-4 transition-colors font-medium disabled:opacity-50 cursor-pointer shadow-sm text-sm"
+                                        >
+                                            <Github className="h-5 w-5" />
+                                            <span>GitHub</span>
+                                        </button>
+                                    </div>
 
                                     <div className="flex items-center gap-4">
                                         <div className="h-px bg-gray-300 dark:bg-white/10 flex-1" />
