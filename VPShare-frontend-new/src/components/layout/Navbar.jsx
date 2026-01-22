@@ -17,7 +17,6 @@ const Navbar = () => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const { theme, toggleTheme } = useTheme();
-    const [isAdmin, setIsAdmin] = useState(false);
     const { user, logout } = useAuth();
     const location = useLocation();
     const profileRef = useRef(null);
@@ -26,24 +25,6 @@ const Navbar = () => {
     useMotionValueEvent(scrollY, "change", (latest) => {
         setIsScrolled(latest > 20);
     });
-
-    // Check if user is admin
-    useEffect(() => {
-        const checkAdminStatus = async () => {
-            if (user) {
-                try {
-                    const tokenResult = await user.getIdTokenResult();
-                    setIsAdmin(tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true);
-                } catch (error) {
-                    console.error('Error checking admin status:', error);
-                    setIsAdmin(false);
-                }
-            } else {
-                setIsAdmin(false);
-            }
-        };
-        checkAdminStatus();
-    }, [user]);
 
     // Close profile dropdown when clicking outside
     useEffect(() => {
@@ -212,9 +193,21 @@ const Navbar = () => {
                                                 className="absolute right-0 mt-2 w-64 rounded-2xl shadow-xl bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
                                             >
                                                 <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-                                                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                                                        {user.displayName || 'User'}
-                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                                            {user.displayName || 'User'}
+                                                        </p>
+                                                        {user.isPremium && (
+                                                            <span className="shrink-0 text-[10px] bg-gradient-to-r from-amber-200 to-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full font-bold shadow-sm border border-yellow-200 flex items-center gap-1">
+                                                                <Trophy className="w-3 h-3" /> PRO
+                                                            </span>
+                                                        )}
+                                                        {user.isAdmin && (
+                                                            <span className="shrink-0 text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold border border-purple-200">
+                                                                ADMIN
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                                                         {user.username ? `@${user.username}` : user.email}
                                                     </p>
@@ -244,7 +237,7 @@ const Navbar = () => {
                                                         <Trophy className="mr-3 h-4 w-4" />
                                                         Hackathons
                                                     </Link>
-                                                    {isAdmin && (
+                                                    {user.isAdmin && (
                                                         <Link
                                                             to="/admin"
                                                             className="flex items-center px-4 py-2.5 text-sm text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-colors font-medium"

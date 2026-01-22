@@ -8,11 +8,16 @@ const Layout = ({ children }) => {
     const location = useLocation();
     const [showNavbar, setShowNavbar] = useState(false);
     const isPlayground = location.pathname === '/playground';
+    const isLearning = location.pathname.includes('/learn/');
 
     // Reset navbar visibility when route changes
     useEffect(() => {
         setShowNavbar(false);
     }, [location.pathname]);
+
+    if (isLearning) {
+        return <>{children}</>;
+    }
 
     if (isPlayground) {
         return (

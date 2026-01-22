@@ -28,8 +28,12 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
-                // Fetch username from Firestore
                 try {
+                    // 1. Check Admin Status (Custom Claims)
+                    const tokenResult = await currentUser.getIdTokenResult();
+                    currentUser.isAdmin = tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true;
+
+                    // 2. Fetch User Profile & Subscription from Firestore
                     const { doc, getDoc } = await import('firebase/firestore');
                     const { db } = await import('../config/firebase');
                     const userDocRef = doc(db, 'users', currentUser.uid);
@@ -37,11 +41,26 @@ export function AuthProvider({ children }) {
 
                     if (userDocSnap.exists()) {
                         const userData = userDocSnap.data();
-                        currentUser.username = userData.username || userData.userName; // Handle both cases
-                        currentUser.displayName = currentUser.displayName || userData.displayName; // Fallback
+                        currentUser.username = userData.username || userData.userName;
+                        currentUser.displayName = currentUser.displayName || userData.displayName;
+                        
+                        // Check Premium Status
+                        const sub = userData.subscription;
+                        if (sub && sub.status === 'active' && sub.expiresAt) {
+                            // Handle Firestore Timestamp or Date string
+                            const expiry = sub.expiresAt.toDate ? sub.expiresAt.toDate() : new Date(sub.expiresAt);
+                            currentUser.isPremium = expiry > new Date();
+                            currentUser.plan = sub.plan;
+                        } else {
+                            currentUser.isPremium = false;
+                        }
+                    } else {
+                        currentUser.isPremium = false;
                     }
                 } catch (error) {
                     console.error("Error fetching user profile in AuthContext:", error);
+                    currentUser.isAdmin = false;
+                    currentUser.isPremium = false;
                 }
             }
             setUser(currentUser);

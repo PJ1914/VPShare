@@ -30,6 +30,8 @@ import Payment from './pages/Payment';
 import Settings from './pages/Settings';
 import Prativeda from './pages/Prativeda';
 import Admin from './pages/Admin';
+import AdminCourses from './pages/AdminCourses';
+import LessonView from './pages/LessonView';
 
 import HackathonsPage from './pages/HackathonsPage';
 import HackathonDetailPage from './pages/HackathonDetailPage';
@@ -80,6 +82,18 @@ function App() {
                                 <Route path=":id" element={<CourseDetail />} />
                             </Route>
 
+                            {/* Learning View (Standalone) */}
+                            <Route path="/courses/:courseId/learn" element={
+                                <PrivateRoute>
+                                    <LessonView />
+                                </PrivateRoute>
+                            } />
+                            <Route path="/courses/:courseId/learn/:lessonId" element={
+                                <PrivateRoute>
+                                    <LessonView />
+                                </PrivateRoute>
+                            } />
+
                             <Route path="/playground" element={
                                 <PrivateRoute>
                                     <Playground />
@@ -113,7 +127,7 @@ function App() {
                             } />
                             <Route path="/admin/courses" element={
                                 <AdminRoute>
-                                    <Admin defaultTab="courses" />
+                                    <AdminCourses />
                                 </AdminRoute>
                             } />
                             <Route path="/admin/hackathons" element={
