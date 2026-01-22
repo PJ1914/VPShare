@@ -7,6 +7,10 @@ import Image from '@tiptap/extension-image';
 import YouTube from '@tiptap/extension-youtube';
 import Placeholder from '@tiptap/extension-placeholder';
 import QuizNode from './extensions/QuizNode';
+import FlipCardNode from './extensions/FlipCardNode';
+import TimelineNode from './extensions/TimelineNode';
+import MindMapNode from './extensions/MindMapNode';
+import InfoHotspotNode from './extensions/InfoHotspotNode';
 import EditorToolbar from './EditorToolbar';
 import EditorBubbleMenu from './EditorBubbleMenu';
 import EditorFloatingMenu from './EditorFloatingMenu';
@@ -47,6 +51,10 @@ const TiptapEditor = ({ content, onChange, editable = true, placeholder = 'Start
                 emptyEditorClass: 'is-editor-empty',
             }),
             QuizNode,
+            FlipCardNode,
+            TimelineNode,
+            MindMapNode,
+            InfoHotspotNode,
         ],
         content: content || {
             type: 'doc',

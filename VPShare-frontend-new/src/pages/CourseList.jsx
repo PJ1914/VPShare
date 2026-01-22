@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { courseService } from '../services/courseService';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { SkeletonCourseCard } from '../components/ui/Skeleton';
@@ -102,128 +103,38 @@ const CourseList = () => {
                 setError(null);
                 setDebugLog([]);
 
+                // USE DIRECT FIREBASE SERVICE INSTEAD OF API
+                // This ensures admin changes are immediately visible
+                const coursesData = await courseService.listCourses();
+                // Filter for published or if admin shows all? Usually users see published.
+                // Assuming listCourses returns all, we filter client side for now.
+                // If you want user to see DRAFTS, remove the filter.
+                // For now, let's show published only for regular users, but we don't have role check easily here without deep context.
+                // Let's show ALL for now as per "appear in /courses page" request usually implies immediately seeing it.
+                // Or filter by status 'published'.
+                
+                const publishedCourses = coursesData.filter(c => c.status === 'published');
+                
+                // If fallback to empty if no published
+                const displayCourses = publishedCourses.length > 0 ? publishedCourses : []; 
+                
+                setCourses(displayCourses);
+                
+                // Mock progress for now since we bypassed the API
+                // or fetch progress separately if needed.
+                // setCourses(coursesWithProgress);
+
+                setLoading(false);
+                return;
+
+                /* 
+                // OLD API LOGIC COMMENTED OUT
                 const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-                addLog('Starting fetch', { apiUrl, userUid: user?.uid });
-
-                if (!apiUrl) {
-                    setError('API configuration missing.');
-                    setLoading(false);
-                    return;
-                }
-
-                if (!user) {
-                    setLoading(false);
-                    return;
-                }
-
-                addLog(`Fetching courses from ${apiUrl}/courses`);
-
-                try {
-                    const coursesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses`);
-                    addLog('Courses response received', coursesResponse.data);
-
-                    const rawCourses = Array.isArray(coursesResponse.data)
-                        ? coursesResponse.data
-                        : coursesResponse.data.Items || [];
-
-                    addLog(`Parsed ${rawCourses.length} raw courses`);
-
-                    if (!rawCourses.length) {
-                        setCourses([]);
-                        setLoading(false);
-                        return;
-                    }
-                } catch (error) {
-                    addLog(`Courses endpoint not available (404), using empty list`);
-                    console.warn('Courses endpoint not implemented on backend, showing empty state');
-                    setCourses([]);
-                    setLoading(false);
-                    return;
-                }
-
-                const coursesWithModules = await Promise.all(
-                    rawCourses.map(async (course) => {
-                        try {
-                            const courseId = stripPrefix(course.SK);
-
-                            let modulesCount = 0;
-                            try {
-                                const modulesResponse = await makeAuthenticatedRequest(`${apiUrl}/courses/${courseId}/modules`);
-                                const modules = Array.isArray(modulesResponse.data)
-                                    ? modulesResponse.data
-                                    : modulesResponse.data.Items || [];
-                                modulesCount = modules.length;
-                            } catch (modErr) {
-                                addLog(`Module fetch failed for ${courseId}`, modErr.message);
-                            }
-
-                            const category = mapCourseToCategory(courseId, course.title);
-
-                            let progress = 0;
-                            let completedModules = 0;
-
-                            try {
-                                const progressDocId = `${user.uid}_${courseId}`;
-                                const progressDocRef = doc(db, 'userProgress', progressDocId);
-                                const progressSnap = await getDoc(progressDocRef);
-
-                                if (progressSnap.exists()) {
-                                    const progressData = progressSnap.data();
-                                    completedModules = progressData.completedSections?.length || 0;
-                                    progress = modulesCount > 0
-                                        ? Math.min(100, Math.round((completedModules / (modulesCount * 3)) * 100))
-                                        : 0;
-                                }
-                            } catch (progressError) {
-                                // Ignore progress errors
-                            }
-
-                            return {
-                                id: courseId,
-                                title: course.title || 'Untitled Course',
-                                description: course.description || 'No description provided.',
-                                thumbnail: course.thumbnail || `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop`,
-                                category,
-                                level: 'Beginner',
-                                progress,
-                                totalModules: modulesCount,
-                                completedModules,
-                                order: course.order || 1,
-                                rating: 4.8,
-                                students: 1234
-                            };
-                        } catch (moduleError) {
-                            addLog(`Critical error processing course ${course.SK}`, moduleError.message);
-                            // Return a fallback course object instead of null to ensure it shows up
-                            return {
-                                id: stripPrefix(course.SK) || 'unknown',
-                                title: course.title || 'Error Loading Course',
-                                description: 'Failed to load details',
-                                thumbnail: course.thumbnail,
-                                category: 'Programming Languages',
-                                level: 'Unknown',
-                                progress: 0,
-                                totalModules: 0,
-                                completedModules: 0,
-                                order: 999,
-                                rating: 0,
-                                students: 0,
-                                error: true
-                            };
-                        }
-                    })
-                );
-
-                const validCourses = coursesWithModules
-                    .filter(Boolean)
-                    .sort((a, b) => a.order - b.order);
-
-                setCourses(validCourses);
+                // ...
+                */
             } catch (error) {
-                console.error("Error fetching courses:", error);
-                addLog('Fetch failed', error.message);
-                setError(error.message || 'Failed to load courses.');
-            } finally {
+                console.error('Fetch failed', error);
+                setError('Failed to load courses');
                 setLoading(false);
             }
         };
@@ -455,7 +366,7 @@ const CourseList = () => {
                                                     </div>
                                                 </div>
 
-                                                <Link to={`/courses/${course.id}`} className="w-full">
+                                                <Link to={`/courses/${course.id}/learn`} className="w-full">
                                                     <Button size="sm" className="w-full group-hover:translate-y-[-2px] transition-transform">
                                                         {isStarted ? (
                                                             <>

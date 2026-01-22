@@ -12,7 +12,17 @@ const LessonView = () => {
     const [course, setCourse] = useState(null);
     const [lesson, setLesson] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+               // setSidebarOpen(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -77,14 +87,16 @@ const LessonView = () => {
     const isLast = currentIndex === (course.syllabus?.length || 0) - 1;
 
     return (
-        <div className="flex h-screen bg-white dark:bg-gray-950 overflow-hidden">
-            {/* Sidebar */}
-            <div 
-                className={`fixed inset-y-0 left-0 z-50 w-80 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 ease-in-out ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                } lg:relative lg:translate-x-0`}
-            >
-                <div className="h-full flex flex-col">
+        <div className="flex flex-col h-screen bg-white dark:bg-gray-950 overflow-hidden">
+            
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Sidebar */}
+                <div 
+                    className={`absolute inset-y-0 left-0 z-30 w-80 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 ease-in-out ${
+                        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="h-full flex flex-col">
                     <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                         <Link to="/courses" className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
                             <ChevronLeft className="w-4 h-4" />
@@ -134,15 +146,21 @@ const LessonView = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative w-full lg:w-auto">
-                {/* Navbar for Mobile */}
-                <div className="lg:hidden p-4 border-b border-gray-200 dark:border-gray-800 flex items-center bg-white dark:bg-gray-900">
-                    <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
-                        <Menu className="w-6 h-6" />
+                {/* Main Content */}
+            <div 
+                className={`flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300 ${
+                    sidebarOpen ? 'lg:ml-80' : 'ml-0'
+                }`}
+            >
+                {/* Mobile Menu Toggle (Only when sidebar is closed) */}
+                {!sidebarOpen && (
+                    <button 
+                        onClick={() => setSidebarOpen(true)} 
+                        className="absolute top-4 left-4 z-20 p-2 rounded-md bg-white/80 dark:bg-gray-900/80 backdrop-blur border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 shadow-sm"
+                    >
+                        <Menu className="w-5 h-5" />
                     </button>
-                    <span className="ml-3 font-semibold truncate">{lesson?.title || 'Loading...'}</span>
-                </div>
+                )}
 
                 <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950 p-6 lg:p-12">
                     <div className="max-w-4xl mx-auto">
@@ -174,6 +192,7 @@ const LessonView = () => {
 
                                 <div className="prose dark:prose-invert max-w-none">
                                     <TiptapEditor 
+                                        key={lesson?.id}
                                         content={lesson?.content || lesson?.draft_content} 
                                         editable={false} 
                                     />
@@ -208,6 +227,7 @@ const LessonView = () => {
                         </Button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -45,7 +45,6 @@ export const courseService = {
             title: data.title || 'Untitled Course',
             description: data.description || '',
             isPremium: data.isPremium ?? false,
-            price: data.price ?? 0,
             authorId: data.authorId || null,
             thumbnailUrl: data.thumbnailUrl || '',
             status: data.status || 'draft',

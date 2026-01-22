@@ -81,7 +81,14 @@ function App() {
                                 <Route path="live-classes/:id" element={<LiveClassSession />} />
                                 <Route path=":id" element={<CourseDetail />} />
                             </Route>
+
+                            {/* Learning View (Standalone) */}
                             <Route path="/courses/:courseId/learn" element={
+                                <PrivateRoute>
+                                    <LessonView />
+                                </PrivateRoute>
+                            } />
+                            <Route path="/courses/:courseId/learn/:lessonId" element={
                                 <PrivateRoute>
                                     <LessonView />
                                 </PrivateRoute>

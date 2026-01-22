@@ -9,7 +9,11 @@ import {
     Braces,
     HelpCircle,
     MoreHorizontal,
-    Table
+    Table,
+    RotateCw,
+    GitCommit,
+    Network,
+    Info
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -185,8 +189,42 @@ const EditorFloatingMenu = ({ editor }) => {
                         icon={MoreHorizontal}
                         label="More"
                         color="green"
+                    />                    <FloatingMenuButton 
+                        onClick={() => {
+                            editor.chain().focus().setFlipCard().run();
+                            setIsOpen(false);
+                        }}
+                        icon={RotateCw}
+                        label="Flip Card"
+                        color="orange"
                     />
-                </div>
+                    <FloatingMenuButton 
+                        onClick={() => {
+                            editor.chain().focus().setTimeline().run();
+                            setIsOpen(false);
+                        }}
+                        icon={GitCommit}
+                        label="Timeline"
+                        color="orange"
+                    />
+                     <FloatingMenuButton 
+                         onClick={() => {
+                            editor.chain().focus().setMindMap().run();
+                            setIsOpen(false);
+                        }}
+                        icon={Network}
+                        label="Mind Map"
+                        color="orange"
+                    />
+                    <FloatingMenuButton 
+                        onClick={() => {
+                            editor.chain().focus().setInfoHotspot().run();
+                            setIsOpen(false);
+                        }}
+                        icon={Info}
+                        label="Info Hotspot"
+                        color="blue"
+                    />                </div>
             )}
         </div>
     );

@@ -14,7 +14,11 @@ import {
     ListOrdered,
     Undo,
     Redo,
-    Code
+    Code,
+    RotateCw,
+    GitCommit,
+    Network,
+    PlusCircle
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -74,6 +78,22 @@ const EditorToolbar = ({ editor }) => {
                 explanation: ''
             }
         }).run();
+    };
+
+    const addFlipCard = () => {
+        editor.chain().focus().insertContent({ type: 'flipCard' }).run();
+    };
+
+    const addTimeline = () => {
+        editor.chain().focus().insertContent({ type: 'timeline' }).run();
+    };
+
+    const addMindMap = () => {
+        editor.chain().focus().insertContent({ type: 'mindMap' }).run();
+    };
+
+    const addInfoHotspot = () => {
+        editor.chain().focus().insertContent({ type: 'infoHotspot' }).run();
     };
 
     return (
@@ -183,6 +203,38 @@ const EditorToolbar = ({ editor }) => {
                 className="text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30"
             >
                 <HelpCircle className="w-4 h-4" />
+            </ToolbarButton>
+
+            <ToolbarButton
+                onClick={addFlipCard}
+                title="Add Flip Card"
+                className="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+            >
+                <RotateCw className="w-4 h-4" />
+            </ToolbarButton>
+
+            <ToolbarButton
+                onClick={addTimeline}
+                title="Add Timeline"
+                className="text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30"
+            >
+                <GitCommit className="w-4 h-4" />
+            </ToolbarButton>
+
+            <ToolbarButton
+                onClick={addMindMap}
+                title="Add Mind Map"
+                className="text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+            >
+                <Network className="w-4 h-4" />
+            </ToolbarButton>
+
+            <ToolbarButton
+                onClick={addInfoHotspot}
+                title="Add Info Hotspot"
+                className="text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30"
+            >
+                <PlusCircle className="w-4 h-4" />
             </ToolbarButton>
 
             <ToolbarDivider />
