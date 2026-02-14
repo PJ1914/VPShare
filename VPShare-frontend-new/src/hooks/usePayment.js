@@ -45,7 +45,7 @@ export const usePayment = () => {
         try {
             // 1. Get Authentication Token
             const token = await user.getIdToken();
-            const apiUrl = import.meta.env.VITE_API_BASE_URL;
+            const apiUrl = import.meta.env.VITE_HACKATHON_PAYMENT_API_URL;
 
             if (!apiUrl) {
                 throw new Error("API URL is not configured.");

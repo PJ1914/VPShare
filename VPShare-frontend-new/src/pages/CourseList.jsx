@@ -16,6 +16,7 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import { SkeletonCourseCard } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
+import { cn } from '../lib/utils';
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -112,14 +113,14 @@ const CourseList = () => {
                 // For now, let's show published only for regular users, but we don't have role check easily here without deep context.
                 // Let's show ALL for now as per "appear in /courses page" request usually implies immediately seeing it.
                 // Or filter by status 'published'.
-                
+
                 const publishedCourses = coursesData.filter(c => c.status === 'published');
-                
+
                 // If fallback to empty if no published
-                const displayCourses = publishedCourses.length > 0 ? publishedCourses : []; 
-                
+                const displayCourses = publishedCourses.length > 0 ? publishedCourses : [];
+
                 setCourses(displayCourses);
-                
+
                 // Mock progress for now since we bypassed the API
                 // or fetch progress separately if needed.
                 // setCourses(coursesWithProgress);
@@ -302,6 +303,7 @@ const CourseList = () => {
                             currentCourses.map((course) => {
                                 const Icon = getCategoryIcon(course.category);
                                 const isStarted = course.progress > 0;
+                                const isLocked = !user?.isPremium && course.isPremium;
 
                                 return (
                                     <motion.div
@@ -321,6 +323,15 @@ const CourseList = () => {
                                                     loading="lazy"
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
+
+                                                {/* Premium Badge */}
+                                                {course.isPremium && (
+                                                    <div className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow flex items-center gap-1 z-10">
+                                                        <Shield className="w-3 h-3 fill-current" />
+                                                        PREMIUM
+                                                    </div>
+                                                )}
+
                                                 {isStarted && (
                                                     <div className="absolute bottom-3 left-3 right-3">
                                                         <div className="flex items-center justify-between text-white text-xs mb-1">
@@ -367,8 +378,19 @@ const CourseList = () => {
                                                 </div>
 
                                                 <Link to={`/courses/${course.id}/learn`} className="w-full">
-                                                    <Button size="sm" className="w-full group-hover:translate-y-[-2px] transition-transform">
-                                                        {isStarted ? (
+                                                    <Button
+                                                        size="sm"
+                                                        className={cn(
+                                                            "w-full group-hover:translate-y-[-2px] transition-transform",
+                                                            isLocked ? "bg-amber-600 hover:bg-amber-700 text-white" : ""
+                                                        )}
+                                                    >
+                                                        {isLocked ? (
+                                                            <>
+                                                                <Lock className="w-3 h-3 mr-1" />
+                                                                Unlock
+                                                            </>
+                                                        ) : isStarted ? (
                                                             <>
                                                                 <PlayCircle className="w-3 h-3 mr-1" />
                                                                 Continue

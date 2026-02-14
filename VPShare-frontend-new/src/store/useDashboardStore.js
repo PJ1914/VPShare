@@ -27,6 +27,25 @@ const mapCourseToCategory = (courseId, title = '') => {
 
 const stripPrefix = (id) => id && id.includes('#') ? id.split('#')[1] : id;
 
+const MOCK_COURSES = [
+    { id: 'html-basics', title: 'HTML5 Mastery', description: 'Master the building blocks of the web.', thumbnail: 'https://images.unsplash.com/photo-1621839673705-6617adf9e890?w=400&h=250&fit=crop', category: 'Frontend', totalLessons: 12, isPremium: false },
+    { id: 'css-advanced', title: 'Advanced CSS & Tailwind', description: 'Create stunning responsive layouts.', thumbnail: 'https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?w=400&h=250&fit=crop', category: 'Frontend', totalLessons: 15, isPremium: false },
+    { id: 'js-depth', title: 'JavaScript in Depth', description: 'From closures to async programming.', thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=250&fit=crop', category: 'Frontend', totalLessons: 20, isPremium: true },
+    { id: 'react-pro', title: 'React Pro: Hooks & Patterns', description: 'Build scalable React applications.', thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=250&fit=crop', category: 'Frontend', totalLessons: 18, isPremium: true },
+    { id: 'node-backend', title: 'Node.js Backend Systems', description: 'Build REST APIs and Microservices.', thumbnail: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=250&fit=crop', category: 'Backend', totalLessons: 25, isPremium: true },
+    { id: 'python-data', title: 'Python for Data Science', description: 'Analyze data with Pandas and NumPy.', thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=250&fit=crop', category: 'Data Science', totalLessons: 22, isPremium: true }
+];
+
+const MOCK_ASSIGNMENTS = [
+    { id: '1', title: 'Responsive Landing Page', courseId: 'html-basics', status: 'pending', dueDate: new Date(Date.now() + 86400000 * 2).toISOString() },
+    { id: '2', title: 'Array Methods Practice', courseId: 'js-depth', status: 'pending', dueDate: new Date(Date.now() + 86400000 * 5).toISOString() }
+];
+
+const MOCK_LIVE_CLASSES = [
+    { id: '1', title: 'Live Code Review: React Patterns', startTime: new Date(Date.now() + 3600000 * 24).toISOString(), duration: 60, instructor: 'Alex Dev' },
+    { id: '2', title: 'System Design Q&A', startTime: new Date(Date.now() + 3600000 * 48).toISOString(), duration: 90, instructor: 'Sarah Arch' }
+];
+
 const useDashboardStore = create(
     devtools(
         persist(
@@ -98,36 +117,67 @@ const useDashboardStore = create(
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
 
-                        // 3. Parallel Fetches - Hybrid (Firebase + Backend)
+                        // 3. Parallel Fetches - Hybrid (Firebase + Backend + Mock Fallback)
                         const progressQuery = query(collection(db, 'userProgress'), where('userId', '==', user.uid));
+
+                        const { courseService } = await import('../services/courseService');
+
+                        // Define Fallback Data Generators
+                        const getCourses = async () => {
+                            try {
+                                const res = await api.get('/courses');
+                                if (res.data && (Array.isArray(res.data) || Array.isArray(res.data.Items)) && (res.data.length || res.data.Items?.length) > 0) return res.data.Items || res.data;
+                                throw new Error("API empty");
+                            } catch (apiErr) {
+                                // console.warn("API Courses failed, trying Firestore...");
+                                const fsCourses = await courseService.listCourses();
+                                if (fsCourses && fsCourses.length > 0) return fsCourses;
+
+                                // console.warn("Firestore Courses empty, using Mock Data...");
+                                return MOCK_COURSES;
+                            }
+                        };
+
+                        const getAssignments = async () => {
+                            try {
+                                const res = await api.get('/assignments');
+                                if (res.data && Array.isArray(res.data)) return res.data;
+                                throw new Error("API empty");
+                            } catch (e) {
+                                return MOCK_ASSIGNMENTS;
+                            }
+                        };
+
+                        const getLiveClasses = async () => {
+                            try {
+                                const res = await api.get('/live-classes');
+                                if (res.data && Array.isArray(res.data)) return res.data;
+                                throw new Error("API empty");
+                            } catch (e) {
+                                return MOCK_LIVE_CLASSES;
+                            }
+                        };
 
                         const [
                             userDocSnap,
-                            // New: Leaderboard Users
                             usersDocsSnap,
                             notesSnap,
                             remindersSnap,
                             bookmarksSnap,
                             progressSnap,
-                            // Backend Fetches (Fail gracefully to avoid blocking)
-                            coursesRes,
-                            assignmentsRes,
-                            liveClassesRes
+                            coursesData,
+                            assignmentsData,
+                            liveClassesData
                         ] = await Promise.all([
-                            // Firebase (Profile & Personal Config)
                             getDoc(doc(db, 'users', user.uid)),
-                            // Leaderboard - Fetch top 10 users by XP
                             getDocs(query(collection(db, 'users'), orderBy('xp', 'desc'), limit(10))),
                             getDocs(query(collection(db, 'userNotes'), where('userId', '==', user.uid))),
                             getDocs(query(collection(db, 'studyReminders'), where('userId', '==', user.uid), where('isActive', '==', true))),
                             getDocs(query(collection(db, 'userBookmarks'), where('userId', '==', user.uid))),
                             getDocs(progressQuery),
-
-                            // Backend (Content) - assignments/classes are "major stuff"
-                            // Note: We use the api instance we created above
-                            api.get('/courses').catch(() => ({ data: [] })),
-                            api.get('/assignments').catch(() => ({ data: [] })),
-                            api.get('/live-classes').catch(() => ({ data: [] }))
+                            getCourses(),
+                            getAssignments(),
+                            getLiveClasses()
                         ]);
 
                         const userData = userDocSnap.exists() ? userDocSnap.data() : {};
@@ -155,21 +205,21 @@ const useDashboardStore = create(
                             if (cId) progressMap[cId] = data;
                         });
 
-                        // Process Backend Data: Assignments
-                        const allAssignments = Array.isArray(assignmentsRes.data) ? assignmentsRes.data : [];
+                        // Process Data: Assignments
+                        const allAssignments = Array.isArray(assignmentsData) ? assignmentsData : [];
                         const pendingAssignments = allAssignments
                             .filter(a => a.status === 'pending')
                             .slice(0, 5); // Top 5 pending
 
-                        // Process Backend Data: Live Classes
-                        const allLiveClasses = Array.isArray(liveClassesRes.data) ? liveClassesRes.data : [];
+                        // Process Data: Live Classes
+                        const allLiveClasses = Array.isArray(liveClassesData) ? liveClassesData : [];
                         const upcomingClasses = allLiveClasses
                             .filter(c => new Date(c.startTime) > new Date())
                             .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
                             .slice(0, 3); // Top 3 upcoming
 
-                        // Process Backend Data: Courses
-                        const rawCourses = Array.isArray(coursesRes.data) ? coursesRes.data : (coursesRes.data?.Items || []);
+                        // Process Data: Courses
+                        const rawCourses = coursesData || [];
                         const processedCourses = rawCourses.slice(0, 10).map((course) => {
                             const courseId = stripPrefix(course.SK || course.id);
                             const pData = progressMap[courseId];
@@ -196,7 +246,8 @@ const useDashboardStore = create(
                                 completedLessons,
                                 isStarted,
                                 lastLesson: isStarted ? 'Continue your journey' : 'Start your journey',
-                                isRecommended: false
+                                isRecommended: false,
+                                isPremium: course.isPremium // Ensure premium flag is passed
                             };
                         });
 

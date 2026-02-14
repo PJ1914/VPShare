@@ -41,6 +41,8 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import JudgingDashboard from './pages/JudgingDashboard';
 
 import SubmissionPage from './pages/SubmissionPage';
+import EventRegistration from './pages/EventRegistration';
+import AdminEventRegistrations from './pages/AdminEventRegistrations';
 
 import GlobalScrollbar from './components/ui/GlobalScrollbar';
 
@@ -178,7 +180,15 @@ function App() {
                                 </AdminRoute>
                             } />
 
+                            {/* Event Registration (Public) */}
+                            <Route path="/event-registration" element={<EventRegistration />} />
 
+                            {/* Admin: Event Registrations */}
+                            <Route path="/admin/event-registrations" element={
+                                <AdminRoute>
+                                    <AdminEventRegistrations />
+                                </AdminRoute>
+                            } />
 
                             <Route path="*" element={<NotFound />} />
                         </Routes>

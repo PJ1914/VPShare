@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -24,51 +24,71 @@ export function useAuth() {
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [profileVersion, setProfileVersion] = useState(0); // State to force re-renders
+
+    const fetchUserProfile = useCallback(async (currentUser) => {
+        if (!currentUser) return null;
+
+        try {
+            // 1. Check Admin Status (Custom Claims)
+            const tokenResult = await currentUser.getIdTokenResult(true); // Force refresh token
+            currentUser.isAdmin = tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true;
+
+            // 2. Fetch User Profile & Subscription from Firestore
+            const { doc, getDoc } = await import('firebase/firestore');
+            const { db } = await import('../config/firebase');
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                currentUser.username = userData.username || userData.userName;
+                currentUser.displayName = currentUser.displayName || userData.displayName;
+
+                // Check Premium Status
+                const sub = userData.subscription;
+                if (sub && sub.status === 'active' && sub.expiresAt) {
+                    // Handle Firestore Timestamp or Date string
+                    const expiry = sub.expiresAt.toDate ? sub.expiresAt.toDate() : new Date(sub.expiresAt);
+                    currentUser.isPremium = expiry > new Date();
+                    currentUser.plan = sub.plan;
+                } else {
+                    currentUser.isPremium = false;
+                }
+            } else {
+                currentUser.isPremium = false;
+            }
+        } catch (error) {
+            console.error("Error fetching user profile in AuthContext:", error);
+            currentUser.isAdmin = false;
+            currentUser.isPremium = false;
+        }
+
+        // Return original object to modify in place and preserve methods
+        return currentUser;
+    }, []);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
-                try {
-                    // 1. Check Admin Status (Custom Claims)
-                    const tokenResult = await currentUser.getIdTokenResult();
-                    currentUser.isAdmin = tokenResult.claims.role === 'admin' || tokenResult.claims.admin === true;
-
-                    // 2. Fetch User Profile & Subscription from Firestore
-                    const { doc, getDoc } = await import('firebase/firestore');
-                    const { db } = await import('../config/firebase');
-                    const userDocRef = doc(db, 'users', currentUser.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-
-                    if (userDocSnap.exists()) {
-                        const userData = userDocSnap.data();
-                        currentUser.username = userData.username || userData.userName;
-                        currentUser.displayName = currentUser.displayName || userData.displayName;
-                        
-                        // Check Premium Status
-                        const sub = userData.subscription;
-                        if (sub && sub.status === 'active' && sub.expiresAt) {
-                            // Handle Firestore Timestamp or Date string
-                            const expiry = sub.expiresAt.toDate ? sub.expiresAt.toDate() : new Date(sub.expiresAt);
-                            currentUser.isPremium = expiry > new Date();
-                            currentUser.plan = sub.plan;
-                        } else {
-                            currentUser.isPremium = false;
-                        }
-                    } else {
-                        currentUser.isPremium = false;
-                    }
-                } catch (error) {
-                    console.error("Error fetching user profile in AuthContext:", error);
-                    currentUser.isAdmin = false;
-                    currentUser.isPremium = false;
-                }
+                const updatedUser = await fetchUserProfile(currentUser);
+                setUser(updatedUser);
+            } else {
+                setUser(null);
             }
-            setUser(currentUser);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [fetchUserProfile]);
+
+    const refreshProfile = async () => {
+        if (auth.currentUser) {
+            await fetchUserProfile(auth.currentUser);
+            // Force re-render by updating version state
+            setProfileVersion(prev => prev + 1);
+        }
+    };
 
     const signup = async (email, password, name, username) => {
         // Validation: Check username uniqueness
@@ -225,7 +245,8 @@ export function AuthProvider({ children }) {
         loginWithGithub,
         linkGithub,
         unlinkGithub,
-        logout
+        logout,
+        refreshProfile // Added
     };
 
     return (

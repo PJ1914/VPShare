@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Edit2, Trash2, Save, X, FileText, BookOpen,
-    Calendar, Clock, User, Search, Filter, AlertCircle, Sparkles, Trophy
+    Calendar, Clock, User, Search, Filter, AlertCircle, Sparkles, Trophy, Users
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
@@ -571,6 +571,13 @@ const Admin = ({ defaultTab = 'assignments', hideTabs = false }) => {
                         >
                             <Trophy className="w-5 h-5 inline mr-2" />
                             Hackathons
+                        </button>
+                        <button
+                            onClick={() => navigate('/admin/event-registrations')}
+                            className="pb-3 px-4 font-medium transition-colors cursor-pointer text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                        >
+                            <Users className="w-5 h-5 inline mr-2" />
+                            Event Registrations
                         </button>
                     </div>
                 )}

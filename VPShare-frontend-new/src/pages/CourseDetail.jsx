@@ -155,7 +155,8 @@ const CourseDetail = () => {
                     id: courseId,
                     title: courseData.title || "Untitled Course",
                     description: courseData.description || "",
-                    thumbnail: courseData.thumbnail
+                    thumbnail: courseData.thumbnail,
+                    isPremium: courseData.isPremium ?? false // Added
                 });
 
                 // 2. Fetch Modules
@@ -236,6 +237,7 @@ const CourseDetail = () => {
                     contentBlocks: content.content_blocks || [],
                     explanationBlocks: content.explanation_blocks || [],
                     order: content.order || 1,
+                    isFree: content.isFree ?? false, // Added default false
                     ...content
                 })).sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -263,6 +265,15 @@ const CourseDetail = () => {
         fetchContents();
     }, [currentModule, courseId]);
 
+    // Check lock status
+    const isContentLocked = (content) => {
+        if (!content || !course) return false;
+        // If user is premium, everything is unlocked
+        if (user?.isPremium) return false;
+        // If course is premium, or content is explicitly NOT free
+        return course.isPremium || !content.isFree;
+    };
+
     const handleContentSelect = (module, content) => {
         setCurrentModule(module);
         setCurrentContent(content);
@@ -283,8 +294,8 @@ const CourseDetail = () => {
     const navigateModule = (direction) => {
         if (!currentModule || modules.length === 0) return;
 
-        const currentModuleIndex = modules.findIndex(m => 
-            (m.id && currentModule.id && m.id === currentModule.id) || 
+        const currentModuleIndex = modules.findIndex(m =>
+            (m.id && currentModule.id && m.id === currentModule.id) ||
             (m.SK && currentModule.SK && m.SK === currentModule.SK)
         );
 
@@ -294,7 +305,7 @@ const CourseDetail = () => {
             const nextModule = modules[currentModuleIndex + 1];
             setCurrentModule(nextModule);
             setExpandedModules(prev => ({ ...prev, [nextModule.id || nextModule.SK]: true }));
-            
+
             // Auto-select first content of the next module
             if (nextModule.contents && nextModule.contents.length > 0) {
                 handleContentSelect(nextModule, nextModule.contents[0]);
@@ -303,7 +314,7 @@ const CourseDetail = () => {
             const prevModule = modules[currentModuleIndex - 1];
             setCurrentModule(prevModule);
             setExpandedModules(prev => ({ ...prev, [prevModule.id || prevModule.SK]: true }));
-            
+
             // Auto-select first content of the previous module
             if (prevModule.contents && prevModule.contents.length > 0) {
                 handleContentSelect(prevModule, prevModule.contents[0]);
@@ -596,8 +607,10 @@ const CourseDetail = () => {
         );
     }
 
-    if (!user) return <div className="p-8 text-center">Please log in to view this course.</div>;
-    if (!course) return <div className="p-8 text-center">Course not found.</div>;
+    if (!user) return <div className="p-8 text-center text-gray-500">Please log in to view this course.</div>;
+    if (!course) return <div className="p-8 text-center text-gray-500">Course not found.</div>;
+
+    const currentLocked = isContentLocked(currentContent);
 
     return (
         <div className="flex h-screen bg-white dark:bg-gray-950 overflow-hidden font-sans relative">
@@ -633,7 +646,10 @@ const CourseDetail = () => {
                                 <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white font-bold shrink-0">
                                     {course.title.charAt(0)}
                                 </div>
-                                <span className="font-semibold text-gray-900 dark:text-white truncate">{course.title}</span>
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="font-semibold text-gray-900 dark:text-white truncate text-sm">{course.title}</span>
+                                    {course.isPremium && <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Premium Course</span>}
+                                </div>
                             </div>
                             <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 hover:bg-gray-200 rounded">
                                 <X className="w-5 h-5" />
@@ -686,6 +702,7 @@ const CourseDetail = () => {
                                                         {module.contents?.map((content, cIdx) => {
                                                             const isActive = currentContent?.id === content.id;
                                                             const completed = isCompleted(content.id);
+                                                            const locked = isContentLocked(content);
 
                                                             return (
                                                                 <button
@@ -699,11 +716,19 @@ const CourseDetail = () => {
                                                                     )}
                                                                 >
                                                                     <div className={cn("mr-3", completed ? "text-green-500" : "text-gray-400")}>
-                                                                        {completed ? <CheckCircle className="w-4 h-4" /> : (
-                                                                            isActive ? <div className="w-4 h-4 rounded-full border-2 border-current" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                                                                        {/* Lock Icon Logic */}
+                                                                        {locked ? (
+                                                                            <Lock className="w-4 h-4 text-gray-400" />
+                                                                        ) : (
+                                                                            completed ? <CheckCircle className="w-4 h-4" /> : (
+                                                                                isActive ? <div className="w-4 h-4 rounded-full border-2 border-current" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                                                                            )
                                                                         )}
                                                                     </div>
-                                                                    <div className="flex-1 text-left truncate">{content.title}</div>
+                                                                    <div className="flex-1 text-left truncate flex items-center justify-between">
+                                                                        <span>{content.title}</span>
+                                                                        {locked && <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded">PRO</span>}
+                                                                    </div>
                                                                 </button>
                                                             );
                                                         })}
@@ -747,7 +772,38 @@ const CourseDetail = () => {
 
                 <main className="flex-1 overflow-y-auto" ref={contentRef}>
                     <div className="max-w-4xl mx-auto px-4 py-8 lg:px-12 lg:py-12">
-                        {currentContent ? (
+                        {currentContent && currentLocked ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-300">
+                                <div className="bg-amber-100 dark:bg-amber-900/20 p-6 rounded-full mb-6 relative">
+                                    <Lock className="w-12 h-12 text-amber-600 dark:text-amber-400" />
+                                    <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-1.5 rounded-full shadow-sm">
+                                        <Shield className="w-4 h-4" />
+                                    </div>
+                                </div>
+                                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                                    Unlock Detailed Lesson
+                                </h2>
+                                <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mb-8 leading-relaxed">
+                                    Ensure you have the full picture. This premium lesson contains advanced concepts and examples.
+                                </p>
+                                <div className="flex gap-4">
+                                    <Button
+                                        onClick={() => navigate('/payment/monthly')}
+                                        className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-500/25 pl-6 pr-8"
+                                        size="lg"
+                                    >
+                                        <Shield className="w-4 h-4 mr-2" />
+                                        Unlock Full Access
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate('/courses')}
+                                    >
+                                        Browse Other Courses
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : currentContent ? (
                             <motion.div
                                 key={currentContent.id}
                                 initial={{ opacity: 0, y: 10 }}

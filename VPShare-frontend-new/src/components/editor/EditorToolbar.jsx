@@ -18,7 +18,11 @@ import {
     RotateCw,
     GitCommit,
     Network,
-    PlusCircle
+    PlusCircle,
+    Sparkles,
+    Loader2,
+    Maximize2,
+    Minimize2
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -44,30 +48,19 @@ const ToolbarDivider = () => (
     <div className="w-px h-6 bg-gray-300 dark:bg-gray-700" />
 );
 
-const EditorToolbar = ({ editor }) => {
+const EditorToolbar = ({
+    editor,
+    openLinkModal,
+    openImageModal,
+    openYouTubeModal,
+    openAiModal,
+    isAiLoading,
+    isFullScreen,
+    toggleFullScreen
+}) => {
     if (!editor) return null;
 
-    const addLink = () => {
-        const url = window.prompt('Enter URL:');
-        if (url) {
-            editor.chain().focus().setLink({ href: url }).run();
-        }
-    };
-
-    const addImage = () => {
-        const url = window.prompt('Enter image URL:');
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
-        }
-    };
-
-    const addYouTube = () => {
-        const url = window.prompt('Enter YouTube URL:');
-        if (url) {
-            editor.commands.setYoutubeVideo({ src: url });
-        }
-    };
-
+    // Direct insert helpers for nodes that don't need modals yet
     const addQuiz = () => {
         editor.chain().focus().insertContent({
             type: 'quiz',
@@ -121,7 +114,7 @@ const EditorToolbar = ({ editor }) => {
                 <Highlighter className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-                onClick={addLink}
+                onClick={openLinkModal}
                 isActive={editor.isActive('link')}
                 title="Add Link"
             >
@@ -182,13 +175,13 @@ const EditorToolbar = ({ editor }) => {
 
             {/* Media */}
             <ToolbarButton
-                onClick={addImage}
+                onClick={openImageModal}
                 title="Add Image"
             >
                 <ImageIcon className="w-4 h-4" />
             </ToolbarButton>
             <ToolbarButton
-                onClick={addYouTube}
+                onClick={openYouTubeModal}
                 title="Add YouTube Video"
             >
                 <Youtube className="w-4 h-4" />
@@ -196,7 +189,16 @@ const EditorToolbar = ({ editor }) => {
 
             <ToolbarDivider />
 
-            {/* Interactive */}
+            {/* INTERACTIVE & AI */}
+            <ToolbarButton
+                onClick={openAiModal}
+                disabled={isAiLoading}
+                title="AI Magic Format (Gemini)"
+                className="text-amber-500 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+            >
+                {isAiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            </ToolbarButton>
+
             <ToolbarButton
                 onClick={addQuiz}
                 title="Add Quiz Block"
@@ -253,6 +255,17 @@ const EditorToolbar = ({ editor }) => {
                 title="Redo"
             >
                 <Redo className="w-4 h-4" />
+            </ToolbarButton>
+
+            <ToolbarDivider />
+
+            {/* View Mode */}
+            <ToolbarButton
+                onClick={toggleFullScreen}
+                title={isFullScreen ? "Minimize Editor" : "Maximize Editor"}
+                className={isFullScreen ? "text-blue-600 bg-blue-50 dark:bg-blue-900/20" : ""}
+            >
+                {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </ToolbarButton>
         </div>
     );

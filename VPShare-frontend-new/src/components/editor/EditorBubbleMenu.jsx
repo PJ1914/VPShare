@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import {
-    Bold,
-    Italic,
     Link as LinkIcon,
-    Heading1,
-    Heading2,
     Quote,
-    Code,
     Highlighter,
-    Strikethrough
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -26,22 +20,8 @@ const BubbleMenuButton = ({ onClick, isActive, title, children }) => (
     </button>
 );
 
-const EditorBubbleMenu = ({ editor }) => {
+const EditorBubbleMenu = ({ editor, openLinkModal }) => {
     if (!editor) return null;
-
-    const addLink = () => {
-        const previousUrl = editor.getAttributes('link').href;
-        const url = window.prompt('Enter URL:', previousUrl);
-        
-        if (url === null) return;
-        
-        if (url === '') {
-            editor.chain().focus().extendMarkRange('link').unsetLink().run();
-            return;
-        }
-        
-        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-    };
 
     return (
         <BubbleMenu
@@ -59,7 +39,7 @@ const EditorBubbleMenu = ({ editor }) => {
             >
                 <span className="font-bold text-white text-sm">B</span>
             </BubbleMenuButton>
-            
+
             <BubbleMenuButton
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 isActive={editor.isActive('italic')}
@@ -67,11 +47,15 @@ const EditorBubbleMenu = ({ editor }) => {
             >
                 <span className="italic text-white text-sm">i</span>
             </BubbleMenuButton>
-            
+
             <BubbleMenuButton
-                onClick={addLink}
+                onClick={() => {
+                    // If link is active, clicking it again should act based on context, 
+                    // usually we open modal to edit or remove. 
+                    if (openLinkModal) openLinkModal();
+                }}
                 isActive={editor.isActive('link')}
-                title="Add Link"
+                title="Add/Edit Link"
             >
                 <LinkIcon className="w-4 h-4 text-white" />
             </BubbleMenuButton>
@@ -85,7 +69,7 @@ const EditorBubbleMenu = ({ editor }) => {
             >
                 <span className="font-bold text-white text-base">T</span>
             </BubbleMenuButton>
-            
+
             <BubbleMenuButton
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                 isActive={editor.isActive('heading', { level: 2 })}

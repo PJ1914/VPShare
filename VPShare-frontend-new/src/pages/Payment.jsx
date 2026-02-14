@@ -16,7 +16,7 @@ const Payment = () => {
     const { plan: planId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, refreshProfile } = useAuth();
     const { initiatePayment, loading, error, clearError } = usePayment();
 
     const [selectedPlanId, setSelectedPlanId] = useState(planId || 'monthly');
@@ -29,7 +29,11 @@ const Payment = () => {
         }
     }, [selectedPlanId, navigate, planId]);
 
-    const handlePaymentSuccess = (response) => {
+    const handlePaymentSuccess = async (response) => {
+        // Refresh profile to update subscription status immediately
+        if (refreshProfile) {
+            await refreshProfile();
+        }
         // Navigate to success page or dashboard
         navigate('/dashboard?payment=success');
     };

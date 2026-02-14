@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, FolderGit2, BrainCircuit, Crown, ChevronRight, Video } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CourseSidebar = () => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const navigate = useNavigate();
 
     const links = [
         { name: 'All Courses', path: '/courses', icon: BookOpen, end: true },
@@ -115,13 +116,17 @@ const CourseSidebar = () => {
                             <p className="text-xs text-purple-100 mb-3 leading-relaxed">
                                 Get unlimited access to all courses and features.
                             </p>
-                            <button className="w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-colors flex items-center justify-center group">
+                            <button
+                                onClick={() => navigate('/payment/monthly')}
+                                className="w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-bold transition-colors flex items-center justify-center group"
+                            >
                                 Upgrade Now
                                 <ChevronRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                             </button>
                         </motion.div>
                     ) : (
                         <motion.button
+                            onClick={() => navigate('/payment/monthly')}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}

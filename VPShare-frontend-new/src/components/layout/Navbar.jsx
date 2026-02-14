@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     Menu, X, User, LogOut,
     BookOpen, Code, LayoutDashboard, Home,
-    Settings, ChevronDown, Bell, FileText, Sun, Moon, Shield, Trophy
+    Settings, ChevronDown, Bell, FileText, Sun, Moon, Shield, Trophy, Ticket
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -41,7 +41,8 @@ const Navbar = () => {
         { name: 'Home', path: '/', icon: Home },
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { name: 'Courses', path: '/courses', icon: BookOpen },
-        { name: 'Hackathons', path: '/hackathons', icon: Trophy },
+        // { name: 'Hackathons', path: '/hackathons', icon: Trophy },
+        { name: 'Registrations', path: '/event-registration', icon: Ticket },
         { name: 'Playground', path: '/playground', icon: Code },
     ];
 
