@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import PlaygroundEditor from '../components/PlaygroundEditor';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import SEO from '../components/SEO';
+import { getSEOForPage } from '../utils/seo';
 
 function Playground() {
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -54,6 +56,7 @@ function Playground() {
 
     return (
         <div className="h-screen bg-gray-950 relative">
+            <SEO {...getSEOForPage('playground')} />
             {/* Fullscreen toggle button */}
             <button
                 onClick={toggleFullscreen}

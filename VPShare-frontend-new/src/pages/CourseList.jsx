@@ -17,6 +17,8 @@ import axiosRetry from 'axios-retry';
 import { SkeletonCourseCard } from '../components/ui/Skeleton';
 import Pagination from '../components/ui/Pagination';
 import { cn } from '../lib/utils';
+import SEO from '../components/SEO';
+import { getSEOForPage } from '../utils/seo';
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -190,6 +192,7 @@ const CourseList = () => {
 
     return (
         <div className="py-8 relative">
+            <SEO {...getSEOForPage('courses')} />
             <button
                 onClick={() => setShowDebug(!showDebug)}
                 className="fixed bottom-4 right-4 z-50 p-3 bg-gray-900 text-white rounded-full shadow-lg hover:bg-gray-800"

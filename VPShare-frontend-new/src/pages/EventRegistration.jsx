@@ -11,6 +11,8 @@ import { Card, CardContent } from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import { cn } from '../lib/utils';
 import { useEventPayment, EVENT_COURSES } from '../hooks/useEventPayment';
+import SEO from '../components/SEO';
+import { getSEOForPage } from '../utils/seo';
 
 const EventRegistration = () => {
     const {
@@ -194,6 +196,7 @@ const EventRegistration = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
+            <SEO {...getSEOForPage('eventRegistration')} />
             <div className="max-w-6xl mx-auto">
                 {/* Hero Section */}
                 <div className="text-center mb-10">

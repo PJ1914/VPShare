@@ -5,6 +5,8 @@ import { Trophy, Medal, Award, ArrowLeft, Crown, TrendingUp } from 'lucide-react
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import axios from 'axios';
+import SEO from '../components/SEO';
+import { getSEOForPage } from '../utils/seo';
 
 const Leaderboard = () => {
     const { id } = useParams();
@@ -37,7 +39,7 @@ const Leaderboard = () => {
             try {
                 const res = await api.get(`/assignments/${id}/leaderboard`);
                 setLeaders(res.data || []);
-                
+
                 // Optionally fetch assignment title
                 const assignmentRes = await api.get('/assignments');
                 const assignment = (assignmentRes.data || []).find(a => (a.id || a._id) === id);
@@ -86,6 +88,7 @@ const Leaderboard = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+            <SEO {...getSEOForPage('leaderboard')} />
             {/* Header */}
             <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10 shadow-sm">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -168,11 +171,10 @@ const Leaderboard = () => {
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                className={`${
-                                                    isCurrentUser 
-                                                        ? 'bg-blue-50 dark:bg-blue-900/20' 
+                                                className={`${isCurrentUser
+                                                        ? 'bg-blue-50 dark:bg-blue-900/20'
                                                         : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                                                } transition-colors`}
+                                                    } transition-colors`}
                                             >
                                                 {/* Rank */}
                                                 <td className="px-6 py-4">
@@ -208,18 +210,17 @@ const Leaderboard = () => {
 
                                                 {/* Status */}
                                                 <td className="px-6 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                        leader.status === 'Graded' 
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${leader.status === 'Graded'
                                                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                                             : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                                                    }`}>
+                                                        }`}>
                                                         {leader.status}
                                                     </span>
                                                 </td>
 
                                                 {/* Submitted */}
                                                 <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                                    {leader.submittedAt 
+                                                    {leader.submittedAt
                                                         ? new Date(leader.submittedAt).toLocaleString()
                                                         : 'N/A'}
                                                 </td>

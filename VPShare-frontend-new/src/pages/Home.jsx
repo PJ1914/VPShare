@@ -18,6 +18,8 @@ import DatabaseWithRestApi from "@/components/ui/database-with-rest-api";
 import TypingCode from "@/components/ui/TypingCode";
 import { heroSlides, features, featureHighlights } from "@/data/home";
 import { cn } from "@/lib/utils";
+import SEO from '../components/SEO';
+import { getSEOForPage } from '../utils/seo';
 
 
 
@@ -312,6 +314,7 @@ const Home = () => {
 
     return (
         <div className="overflow-hidden bg-white dark:bg-gray-950">
+            <SEO {...getSEOForPage('home')} />
             {/* Feature Steps Section */}
             <HeroGeometric>
                 <FeatureSteps

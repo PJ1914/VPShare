@@ -24,8 +24,8 @@ export const EVENT_COURSES = {
         id: 'machine-learning',
         name: 'Machine Learning',
         originalPrice: 3000,
-        price: 1,
-        amount: 100, // in paise
+        price: 1500,
+        amount: 150000, // in paise
         description: 'Complete Machine Learning course with hands-on projects'
     },
     'full-stack': {

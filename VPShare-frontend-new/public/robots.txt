@@ -1,0 +1,28 @@
+# robots.txt for CodeTapasya
+# https://codetapasya.com/robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /payment/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://codetapasya.com/sitemap.xml
+
+# Crawl-delay for specific bots
+User-agent: Googlebot
+Crawl-delay: 0
+
+User-agent: Bingbot
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /

@@ -45,6 +45,7 @@ import EventRegistration from './pages/EventRegistration';
 import AdminEventRegistrations from './pages/AdminEventRegistrations';
 
 import GlobalScrollbar from './components/ui/GlobalScrollbar';
+import ScrollToTop from './components/ScrollToTop';
 
 // Placeholder components for routes
 const NotFound = () => <div className="p-8 text-center text-2xl">404 - Page Not Found</div>;
@@ -55,6 +56,7 @@ function App() {
             <AuthProvider>
                 <TimerProvider>
                     <GlobalScrollbar />
+                    <ScrollToTop />
                     <Layout>
                         <Routes>
                             <Route path="/" element={<Home />} />
