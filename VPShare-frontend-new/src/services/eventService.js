@@ -24,9 +24,12 @@ export const saveEventRegistration = async (registrationData) => {
             phone: registrationData.phone,
             courseSelected: registrationData.courseSelected,
             amountPaid: registrationData.amountPaid,
+            couponCode: registrationData.couponCode || null,
+            discountApplied: registrationData.discountApplied || 0,
             razorpayOrderId: registrationData.razorpayOrderId,
             razorpayPaymentId: registrationData.razorpayPaymentId,
             paymentStatus: registrationData.paymentStatus || 'success',
+            registrationId: registrationData.registrationId || null,
             createdAt: serverTimestamp()
         });
         return { id: docRef.id, ...registrationData };

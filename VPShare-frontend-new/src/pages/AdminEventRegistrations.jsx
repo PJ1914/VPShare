@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Download, AlertCircle, X, Calendar,
     Users, IndianRupee, FileSpreadsheet, Loader2,
-    CheckCircle, ChevronDown, ChevronUp, ArrowLeft
+    CheckCircle, ChevronDown, ChevronUp, ArrowLeft, Ticket
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -365,6 +365,7 @@ const AdminEventRegistrations = () => {
                                             { key: 'email', label: 'Email' },
                                             { key: 'phone', label: 'Phone' },
                                             { key: 'courseSelected', label: 'Course' },
+                                            { key: 'couponCode', label: 'Coupon' },
                                             { key: 'amountPaid', label: 'Amount' },
                                             { key: 'createdAt', label: 'Date' }
                                         ].map((col) => (
@@ -409,8 +410,17 @@ const AdminEventRegistrations = () => {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
-                                                    <CheckCircle className="w-3.5 h-3.5" />
+                                                {reg.couponCode ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 uppercase">
+                                                        <Ticket className="w-3 h-3" />
+                                                        {reg.couponCode}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className="flex items-center gap-1 font-bold text-gray-900 dark:text-white">
                                                     ₹{Number(reg.amountPaid).toLocaleString()}
                                                 </span>
                                             </td>

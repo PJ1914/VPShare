@@ -47,6 +47,8 @@ const TiptapEditor = ({ content, onChange, editable = true, placeholder = 'Start
                 },
                 // Disable default codeBlock so we can use the advanced one
                 codeBlock: false,
+                // Disable default Link so we can use custom configured one
+                link: false,
             }),
             CodeBlockLowlight
                 .extend({
@@ -180,8 +182,8 @@ const TiptapEditor = ({ content, onChange, editable = true, placeholder = 'Start
             // contentResult can be HTML string or JSON object depending on aiService implementation
             const contentResult = await analyzeAndFormatContent(rawContent);
 
-            // Tiptap's insertContent handles both HTML string and JSON Document/Array
-            editor.chain().focus().insertContent(contentResult).run();
+            // Append to the end of the document instead of replacing
+            editor.chain().focus('end').insertContent(contentResult).run();
         } catch (error) {
             console.error("AI Formatting Error:", error);
             alert("Failed to format content with AI. Please check the console for details.");

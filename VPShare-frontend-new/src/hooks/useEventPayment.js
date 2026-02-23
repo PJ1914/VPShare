@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { saveEventRegistration } from '../services/eventService';
 
 // Helper to load Razorpay script
@@ -24,16 +26,16 @@ export const EVENT_COURSES = {
         id: 'machine-learning',
         name: 'Machine Learning',
         originalPrice: 3000,
-        price: 1500,
-        amount: 150000, // in paise
+        price: 1499,
+        amount: 149900, // in paise
         description: 'Complete Machine Learning course with hands-on projects'
     },
     'full-stack': {
         id: 'full-stack',
         name: 'Full Stack Development',
         originalPrice: 3000,
-        price: 1500,
-        amount: 150000,
+        price: 1499,
+        amount: 149900,
         description: 'End-to-end Full Stack Development course'
     },
     'combo': {
@@ -58,7 +60,12 @@ export const useEventPayment = () => {
         loadRazorpayScript().then(setRazorpayLoaded);
     }, []);
 
-    const initiateEventPayment = useCallback(async (formData, selectedCourse) => {
+    const initiateEventPayment = useCallback(async (formData, selectedCourse, couponCode = null, discountAmount = 0, user = null) => {
+        if (!user) {
+            setError('Please login to continue with registration.');
+            return;
+        }
+
         if (!razorpayLoaded) {
             setError('Razorpay SDK failed to load. Please check your connection.');
             return;
@@ -75,11 +82,17 @@ export const useEventPayment = () => {
                 throw new Error('Payment API URL is not configured.');
             }
 
+            // Calculate final amount (discount is in rupees, convert to paise)
+            const discountPaise = discountAmount * 100;
+            const finalAmount = selectedCourse.amount - discountPaise;
+
             // 1. Create Order via backend (server determines the amount — never trust frontend)
             const orderPayload = {
                 payment_type: 'event_registration',
                 course: selectedCourse.id,
-                amount: selectedCourse.amount,
+                amount: finalAmount,
+                coupon_code: couponCode || null,
+                user_id: user.uid, // Firebase UID for course enrollment
                 notes: {
                     fullName: formData.fullName,
                     email: formData.email,
@@ -124,8 +137,10 @@ export const useEventPayment = () => {
                             razorpay_signature: response.razorpay_signature,
                             payment_type: 'event_registration',
                             course: selectedCourse.id,
-                            amount: selectedCourse.amount,
+                            amount: finalAmount,
                             email: formData.email,
+                            coupon_code: couponCode || null,
+                            user_id: user.uid, // Firebase UID for backend storage
                             // Include all student data for Lambda to store
                             fullName: formData.fullName,
                             rollNumber: formData.rollNumber,
@@ -143,7 +158,39 @@ export const useEventPayment = () => {
                             }
                         );
 
-                        // 4. Store in Firestore for admin panel
+                        // 4. Enroll user in course(s) by creating userProgress documents
+                        try {
+                            const coursesToEnroll = [];
+                            
+                            // Determine which courses to enroll based on selection
+                            if (selectedCourse.id === 'combo') {
+                                coursesToEnroll.push('machine-learning', 'full-stack');
+                            } else {
+                                coursesToEnroll.push(selectedCourse.id);
+                            }
+
+                            // Create userProgress document for each course
+                            for (const courseId of coursesToEnroll) {
+                                const progressDoc = doc(db, 'userProgress', `${user.uid}_${courseId}`);
+                                await setDoc(progressDoc, {
+                                    userId: user.uid,
+                                    courseId: courseId,
+                                    completedSections: [],
+                                    currentSection: null,
+                                    progress: 0,
+                                    enrolledAt: serverTimestamp(),
+                                    lastAccessedAt: serverTimestamp(),
+                                    paymentId: response.razorpay_payment_id,
+                                    registrationId: verifyResponse.data.registration_id
+                                }, { merge: true });
+                                console.log(`✅ Course enrolled: ${courseId} for user ${user.uid}`);
+                            }
+                        } catch (enrollError) {
+                            console.error('⚠️ Course enrollment failed:', enrollError);
+                            // Don't fail the flow - payment succeeded, they can contact support
+                        }
+
+                        // 5. Store in Firestore for admin panel
                         const regData = {
                             fullName: formData.fullName,
                             rollNumber: formData.rollNumber,
@@ -151,7 +198,10 @@ export const useEventPayment = () => {
                             email: formData.email,
                             phone: formData.phone,
                             courseSelected: selectedCourse.name,
-                            amountPaid: selectedCourse.price,
+                            originalPrice: selectedCourse.price,
+                            amountPaid: (finalAmount / 100), // Convert paise to rupees
+                            couponCode: couponCode || null,
+                            discountApplied: discountAmount || 0,
                             razorpayOrderId: response.razorpay_order_id,
                             razorpayPaymentId: response.razorpay_payment_id,
                             paymentStatus: 'success',

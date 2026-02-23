@@ -14,7 +14,7 @@ import {
     Code, Database, Layout, Server, Zap,
     Loader2, StickyNote, Bell, Timer, Edit3, Save, X,
     Users, MessageCircle, Share2, Award, TrendingUp, UserPlus,
-    Play, Pause, RotateCcw, Bookmark, Lightbulb, Target, Video, FileText
+    Play, Pause, RotateCcw, Bookmark, Lightbulb, Target, Video, FileText, ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';

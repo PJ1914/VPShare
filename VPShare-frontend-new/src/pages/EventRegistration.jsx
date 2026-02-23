@@ -1,20 +1,24 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
     CheckCircle, AlertCircle, Loader2, Lock,
     User, Mail, Phone, Hash, BookOpen,
     Sparkles, Star, ArrowRight, Gift,
-    GraduationCap, Building2, MessageCircle
+    GraduationCap, Building2, MessageCircle, Ticket, X, LogIn
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 import { useEventPayment, EVENT_COURSES } from '../hooks/useEventPayment';
 import SEO from '../components/SEO';
 import { getSEOForPage } from '../utils/seo';
 
 const EventRegistration = () => {
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const {
         initiateEventPayment,
         loading,
@@ -33,9 +37,27 @@ const EventRegistration = () => {
         phone: ''
     });
 
+    // Prefill email from Firebase user when logged in
+    useEffect(() => {
+        if (user?.email) {
+            setFormData(prev => ({ ...prev, email: user.email }));
+        }
+    }, [user]);
+
     const [selectedCourse, setSelectedCourse] = useState('combo');
     const [formErrors, setFormErrors] = useState({});
     const [touched, setTouched] = useState({});
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponError, setCouponError] = useState('');
+    const [couponLoading, setCouponLoading] = useState(false);
+
+    // Valid coupon codes
+    const VALID_COUPONS = {
+        'EVENT400': { discount: 400, description: 'Event Special Discount' },
+        'WELCOME400': { discount: 400, description: 'Welcome Offer' },
+        'SAVE400': { discount: 400, description: 'Save ₹400' }
+    };
 
     // Validation
     const validateField = useCallback((name, value) => {
@@ -97,14 +119,52 @@ const EventRegistration = () => {
         setFormErrors((prev) => ({ ...prev, [name]: err }));
     };
 
+    const handleApplyCoupon = () => {
+        if (!couponCode.trim()) {
+            setCouponError('Please enter a coupon code');
+            return;
+        }
+
+        setCouponLoading(true);
+        setCouponError('');
+
+        // Simulate API call
+        setTimeout(() => {
+            const upperCoupon = couponCode.trim().toUpperCase();
+            if (VALID_COUPONS[upperCoupon]) {
+                setAppliedCoupon({ code: upperCoupon, ...VALID_COUPONS[upperCoupon] });
+                setCouponError('');
+            } else {
+                setCouponError('Invalid coupon code');
+                setAppliedCoupon(null);
+            }
+            setCouponLoading(false);
+        }, 500);
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponCode('');
+        setCouponError('');
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!user) {
+            alert('Please login to continue registration');
+            navigate('/login', { state: { from: '/event-registration' } });
+            return;
+        }
         if (!validateAllFields()) return;
         const course = EVENT_COURSES[selectedCourse];
-        initiateEventPayment(formData, course);
+        const couponCode = appliedCoupon ? appliedCoupon.code : null;
+        const discountAmount = appliedCoupon ? appliedCoupon.discount : 0;
+        initiateEventPayment(formData, course, couponCode, discountAmount, user);
     };
 
     const course = EVENT_COURSES[selectedCourse];
+    const couponDiscount = appliedCoupon ? appliedCoupon.discount : 0;
+    const finalPrice = Math.max(0, course.price - couponDiscount);
 
     // Success state
     if (paymentSuccess && registrationData) {
@@ -150,9 +210,23 @@ const EventRegistration = () => {
                                         <div>
                                             <span className="text-gray-500 dark:text-gray-400">Amount Paid</span>
                                             <p className="font-medium text-green-600 dark:text-green-400">
-                                                ₹{registrationData.amountPaid}
+                                                ₹{registrationData.amountPaid?.toLocaleString()}
                                             </p>
                                         </div>
+                                        {registrationData.couponCode && (
+                                            <div className="col-span-2">
+                                                <span className="text-gray-500 dark:text-gray-400">Coupon Applied</span>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded">
+                                                        <Ticket className="w-3 h-3" />
+                                                        {registrationData.couponCode}
+                                                    </span>
+                                                    <span className="text-xs text-green-600 dark:text-green-400">
+                                                        Saved ₹{registrationData.discountApplied}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div>
                                             <span className="text-gray-500 dark:text-gray-400">Payment ID</span>
                                             <p className="font-mono text-xs text-gray-700 dark:text-gray-300">
@@ -183,9 +257,26 @@ const EventRegistration = () => {
                                     <ArrowRight className="w-5 h-5" />
                                 </motion.a>
 
-                                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                                <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
                                     Join the group for updates, class schedules, and study materials.
                                 </p>
+
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => window.location.href = '/dashboard'}
+                                    >
+                                        Go to Dashboard
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="flex-1"
+                                        onClick={reset}
+                                    >
+                                        Register Another
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -338,22 +429,62 @@ const EventRegistration = () => {
                             </div>
                         </motion.div>
 
-                        {/* Registration Form */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25 }}
-                        >
-                            <Card className="overflow-hidden">
-                                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                        <User className="w-5 h-5 text-blue-600" />
-                                        Student Information
-                                    </h2>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                        Fill in your details to complete registration
-                                    </p>
-                                </div>
+                        {/* Login Prompt (if not authenticated) */}
+                        {!authLoading && !user && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.25 }}
+                            >
+                                <Card className="overflow-hidden border-2 border-blue-200 dark:border-blue-800">
+                                    <div className="p-8 text-center">
+                                        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                            Login Required
+                                        </h2>
+                                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                            Please login or create an account to register for the event.<br />
+                                            Your courses will be automatically available in your dashboard.
+                                        </p>
+                                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                            <Button
+                                                onClick={() => navigate('/login', { state: { from: '/event-registration' } })}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <LogIn className="w-4 h-4" />
+                                                Login to Continue
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => navigate('/signup', { state: { from: '/event-registration' } })}
+                                            >
+                                                Create Account
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        )}
+
+                        {/* Registration Form (only show if logged in) */}
+                        {!authLoading && user && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.25 }}
+                            >
+                                <Card className="overflow-hidden">
+                                    <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <User className="w-5 h-5 text-blue-600" />
+                                            Student Information
+                                        </h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            Fill in your details to complete registration
+                                        </p>
+                                    </div>
 
                                 <CardContent className="p-6 pt-6">
                                     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
@@ -473,7 +604,7 @@ const EventRegistration = () => {
                                                 size="lg"
                                             >
                                                 {!loading && <Lock className="w-4 h-4 mr-2" />}
-                                                Pay ₹{course.price.toLocaleString()} Securely
+                                                Pay ₹{finalPrice.toLocaleString()} Securely
                                             </Button>
                                             <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center justify-center gap-1">
                                                 <Lock className="w-3 h-3" />
@@ -484,6 +615,7 @@ const EventRegistration = () => {
                                 </CardContent>
                             </Card>
                         </motion.div>
+                        )}
                     </div>
 
                     {/* Right: Order Summary Sidebar (2 cols) */}
@@ -546,6 +678,69 @@ const EventRegistration = () => {
                                         </ul>
                                     </div>
 
+                                    {/* Coupon Code Section */}
+                                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                                            Have a Coupon Code?
+                                        </h4>
+                                        {!appliedCoupon ? (
+                                            <div className="space-y-2">
+                                                <div className="flex gap-2">
+                                                    <div className="relative flex-1">
+                                                        <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <Input
+                                                            value={couponCode}
+                                                            onChange={(e) => {
+                                                                setCouponCode(e.target.value.toUpperCase());
+                                                                setCouponError('');
+                                                            }}
+                                                            onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                                                            placeholder="Enter code"
+                                                            className="pl-10 uppercase"
+                                                            disabled={couponLoading}
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleApplyCoupon}
+                                                        variant="outline"
+                                                        disabled={couponLoading || !couponCode.trim()}
+                                                        isLoading={couponLoading}
+                                                        className="whitespace-nowrap"
+                                                    >
+                                                        Apply
+                                                    </Button>
+                                                </div>
+                                                {couponError && (
+                                                    <p className="text-xs text-red-600 dark:text-red-400">
+                                                        {couponError}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Ticket className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                                                                {appliedCoupon.code}
+                                                            </p>
+                                                            <p className="text-xs text-green-600 dark:text-green-400">
+                                                                {appliedCoupon.description}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={handleRemoveCoupon}
+                                                        className="text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Pricing */}
                                     <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                                         <div className="flex justify-between items-center mb-2">
@@ -560,9 +755,17 @@ const EventRegistration = () => {
                                                 -₹{(course.originalPrice - course.price).toLocaleString()}
                                             </span>
                                         </div>
+                                        {appliedCoupon && (
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-gray-600 dark:text-gray-400">Coupon Discount</span>
+                                                <span className="font-medium text-green-600 dark:text-green-400">
+                                                    -₹{couponDiscount}
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center text-lg font-bold text-gray-900 dark:text-white pt-4 border-t border-gray-200 dark:border-gray-700">
                                             <span>Total</span>
-                                            <span>₹{course.price.toLocaleString()}</span>
+                                            <span>₹{finalPrice.toLocaleString()}</span>
                                         </div>
                                     </div>
 
@@ -576,7 +779,7 @@ const EventRegistration = () => {
                                             size="lg"
                                         >
                                             {!loading && <Lock className="w-4 h-4 mr-2" />}
-                                            Pay ₹{course.price.toLocaleString()} Securely
+                                            Pay ₹{finalPrice.toLocaleString()} Securely
                                         </Button>
 
                                         <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-3 flex items-center justify-center gap-1">

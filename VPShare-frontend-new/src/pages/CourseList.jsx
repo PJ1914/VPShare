@@ -109,17 +109,10 @@ const CourseList = () => {
                 // USE DIRECT FIREBASE SERVICE INSTEAD OF API
                 // This ensures admin changes are immediately visible
                 const coursesData = await courseService.listCourses();
-                // Filter for published or if admin shows all? Usually users see published.
-                // Assuming listCourses returns all, we filter client side for now.
-                // If you want user to see DRAFTS, remove the filter.
-                // For now, let's show published only for regular users, but we don't have role check easily here without deep context.
-                // Let's show ALL for now as per "appear in /courses page" request usually implies immediately seeing it.
-                // Or filter by status 'published'.
-
-                const publishedCourses = coursesData.filter(c => c.status === 'published');
-
-                // If fallback to empty if no published
-                const displayCourses = publishedCourses.length > 0 ? publishedCourses : [];
+                
+                // Show ALL courses (published + drafts)
+                // If you want to filter by status later, change this line
+                const displayCourses = coursesData;
 
                 setCourses(displayCourses);
 
@@ -327,10 +320,17 @@ const CourseList = () => {
                                                 />
                                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
 
+                                                {/* Status Badge (Draft/Published) */}
+                                                {course.status === 'draft' && (
+                                                    <div className="absolute top-3 left-3 bg-yellow-500 dark:bg-yellow-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow z-10">
+                                                        DRAFT
+                                                    </div>
+                                                )}
+
                                                 {/* Premium Badge */}
                                                 {course.isPremium && (
                                                     <div className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow flex items-center gap-1 z-10">
-                                                        <Shield className="w-3 h-3 fill-current" />
+                                                        <Star className="w-3 h-3 fill-current" />
                                                         PREMIUM
                                                     </div>
                                                 )}

@@ -223,7 +223,8 @@ const useDashboardStore = create(
                         const processedCourses = rawCourses.slice(0, 10).map((course) => {
                             const courseId = stripPrefix(course.SK || course.id);
                             const pData = progressMap[courseId];
-                            const totalLessons = course.modulesCount ? course.modulesCount * 3 : (course.totalLessons || 20);
+                            // Calculate total lessons from syllabus array if available
+                            const totalLessons = course.syllabus?.length || course.modulesCount * 3 || course.totalLessons || 20;
 
                             let progress = 0;
                             let completedLessons = 0;

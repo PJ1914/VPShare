@@ -16,7 +16,8 @@ import {
 import Button from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { db } from '../config/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { courseService } from '../services/courseService';
 
 // Configure axios-retry
 axiosRetry(axios, {
@@ -132,44 +133,65 @@ const CourseDetail = () => {
 
             try {
                 setLoading(true);
-                const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-                setDebugInfo(prev => ({ ...prev, apiUrl }));
-                addLog("Starting fetchCourseData", { courseId, apiUrl });
+                addLog("Starting fetchCourseData from Firebase", { courseId });
 
-                if (!apiUrl) throw new Error("API URL not configured");
+                // 1. Fetch Course Details from Firebase
+                const courseData = await courseService.getCourseById(courseId);
 
-                // 1. Fetch Course Details
-                let courseData = null;
-                try {
-                    const courseRes = await makeAuthenticatedRequest(`${apiUrl}/courses/${courseId}`);
-                    courseData = courseRes.data;
-                } catch (err) {
-                    const allCoursesRes = await makeAuthenticatedRequest(`${apiUrl}/courses`);
-                    const items = allCoursesRes.data.Items || allCoursesRes.data;
-                    courseData = items.find(c => (c.SK && c.SK.includes(courseId)) || c.id === courseId);
+                if (!courseData) {
+                    throw new Error("Course not found");
                 }
 
-                if (!courseData) throw new Error("Course not found");
+                addLog("Course data fetched", courseData);
 
                 setCourse({
                     id: courseId,
                     title: courseData.title || "Untitled Course",
                     description: courseData.description || "",
-                    thumbnail: courseData.thumbnail,
-                    isPremium: courseData.isPremium ?? false // Added
+                    thumbnail: courseData.thumbnailUrl || courseData.thumbnail,
+                    isPremium: courseData.isPremium ?? false,
+                    syllabus: courseData.syllabus || []
                 });
 
-                // 2. Fetch Modules
-                const modulesRes = await makeAuthenticatedRequest(`${apiUrl}/courses/${courseId}/modules`);
-                const modulesData = Array.isArray(modulesRes.data) ? modulesRes.data : modulesRes.data.Items || [];
+                // 2. Convert syllabus to modules format
+                // In Firebase, courses have a "syllabus" array with lessons
+                const syllabusItems = courseData.syllabus || [];
+                
+                if (syllabusItems.length > 0) {
+                    // Fetch lesson details for each syllabus item
+                    const lessonsPromises = syllabusItems.map(async (item) => {
+                        try {
+                            const lessonDoc = await getDoc(doc(db, 'lessons', item.id));
+                            if (lessonDoc.exists()) {
+                                return { id: lessonDoc.id, ...lessonDoc.data(), ...item };
+                            }
+                        } catch (err) {
+                            console.warn(`Failed to fetch lesson ${item.id}:`, err);
+                        }
+                        return { id: item.id, title: item.title, type: item.type || 'text' };
+                    });
 
-                const sortedModules = modulesData.sort((a, b) => (a.order || 0) - (b.order || 0));
-                setModules(sortedModules);
+                    const lessons = await Promise.all(lessonsPromises);
+                    addLog("Lessons fetched", lessons);
 
-                if (sortedModules.length > 0) {
-                    const firstModId = sortedModules[0].id || sortedModules[0].SK;
-                    setExpandedModules({ [firstModId]: true });
-                    setCurrentModule(sortedModules[0]);
+                    // Group lessons into a single module (since Firebase courses don't have modules)
+                    const mainModule = {
+                        id: 'main-module',
+                        title: courseData.title || 'Course Content',
+                        contents: lessons.map((lesson, index) => ({
+                            id: lesson.id,
+                            title: lesson.title,
+                            type: lesson.type || 'text',
+                            order: index + 1,
+                            isFree: lesson.isFree ?? false,
+                            draft_content: lesson.draft_content,
+                            published_content: lesson.published_content
+                        }))
+                    };
+
+                    setModules([mainModule]);
+                    setExpandedModules({ 'main-module': true });
+                    setCurrentModule(mainModule);
                 }
 
                 // 3. Fetch User Progress
@@ -197,73 +219,22 @@ const CourseDetail = () => {
         const fetchContents = async () => {
             if (!currentModule) return;
 
-            // If contents are already loaded for this module, don't re-fetch unless forced
-            if (currentModule.contents && currentModule.contents.length > 0) return;
-
-            try {
-                setContentLoading(true);
-                setContentError(null);
-                const apiUrl = import.meta.env.VITE_COURSES_API_URL;
-
-                // Robust module ID extraction - Prioritize SK as it is the DB key
-                let moduleId;
-                if (currentModule.SK) {
-                    moduleId = stripPrefix(currentModule.SK);
-                } else {
-                    moduleId = currentModule.id;
+            // Contents are already loaded from Firebase in the main fetch
+            // This is kept for compatibility but doesn't need to do anything
+            if (currentModule.contents && currentModule.contents.length > 0) {
+                // Auto-select first content if none selected
+                if (!currentContent && currentModule.contents.length > 0) {
+                    setCurrentContent(currentModule.contents[0]);
                 }
-
-                if (!moduleId) {
-                    console.error("Could not extract module ID from:", currentModule);
-                    addLog("Error: Could not extract module ID", currentModule);
-                    return;
-                }
-
-                addLog(`Fetching contents for module ${moduleId} (SK: ${currentModule.SK}, ID: ${currentModule.id})`, currentModule);
-
-                const url = `${apiUrl}/modules/${moduleId}/content`;
-                const contentsRes = await makeAuthenticatedRequest(url);
-                const rawContents = Array.isArray(contentsRes.data) ? contentsRes.data : contentsRes.data.Items || [];
-
-                addLog(`Fetched ${rawContents.length} contents for module ${moduleId}`);
-
-                // Map and process contents
-                const processedContents = rawContents.map(content => ({
-                    id: stripPrefix(content.SK),
-                    moduleId: stripPrefix(content.PK),
-                    title: content.title,
-                    type: content.type || 'text',
-                    html: content.html || '',
-                    contentBlocks: content.content_blocks || [],
-                    explanationBlocks: content.explanation_blocks || [],
-                    order: content.order || 1,
-                    isFree: content.isFree ?? false, // Added default false
-                    ...content
-                })).sort((a, b) => (a.order || 0) - (b.order || 0));
-
-                setModules(prev => prev.map(m =>
-                    (m.SK && currentModule.SK && m.SK === currentModule.SK) || (m.id && currentModule.id && m.id === currentModule.id)
-                        ? { ...m, contents: processedContents }
-                        : m
-                ));
-
-                setCurrentModule(prev => ({ ...prev, contents: processedContents }));
-
-                if (!currentContent && processedContents.length > 0) {
-                    handleContentSelect(currentModule, processedContents[0]);
-                }
-
-            } catch (err) {
-                console.error("Error fetching contents:", err);
-                setContentError(err.message);
-                addLog("Error fetching contents", err.message);
-            } finally {
-                setContentLoading(false);
+                return;
             }
+
+            // If somehow contents are missing, log it
+            addLog("No contents in current module", currentModule);
         };
 
         fetchContents();
-    }, [currentModule, courseId]);
+    }, [currentModule]);
 
     // Check lock status
     const isContentLocked = (content) => {
@@ -275,20 +246,9 @@ const CourseDetail = () => {
     };
 
     const handleContentSelect = (module, content) => {
-        setCurrentModule(module);
-        setCurrentContent(content);
-
-        // Calculate reading time
-        const textContent = content.contentBlocks
-            ? content.contentBlocks.map(b => b.content).join(' ')
-            : content.html || content.content || '';
-        setReadingTime(calculateReadingTime(textContent));
-
-        if (window.innerWidth < 1024) setSidebarOpen(false);
-        setExpandedModules(prev => ({ ...prev, [module.id || module.SK]: true }));
-
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Navigate to the lesson view page instead of displaying inline
+        // This allows proper rendering of TipTap content
+        navigate(`/courses/${courseId}/learn/${content.id}`);
     };
 
     const navigateModule = (direction) => {
@@ -892,13 +852,39 @@ const CourseDetail = () => {
                                 <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
                                     <BookOpen className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to {course.title}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Welcome to {course?.title}</h2>
                                 <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
-                                    Select a module from the sidebar to start your learning journey.
+                                    {modules.length > 0 && modules[0]?.contents?.length > 0
+                                        ? "Ready to start your learning journey? Click below to begin with the first lesson."
+                                        : "Select a lesson from the sidebar to start your learning journey."}
                                 </p>
-                                <Button onClick={() => setSidebarOpen(true)} className="lg:hidden">
-                                    Open Course Menu
-                                </Button>
+                                {modules.length > 0 && modules[0]?.contents?.length > 0 ? (
+                                    <div className="flex gap-4">
+                                        <Button 
+                                            onClick={() => {
+                                                const firstLesson = modules[0].contents[0];
+                                                navigate(`/courses/${courseId}/learn/${firstLesson.id}`);
+                                            }}
+                                            size="lg"
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                        >
+                                            <PlayCircle className="w-5 h-5 mr-2" />
+                                            Start Learning
+                                        </Button>
+                                        <Button 
+                                            onClick={() => setSidebarOpen(true)} 
+                                            variant="outline"
+                                            size="lg"
+                                            className="lg:hidden"
+                                        >
+                                            View Lessons
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+                                        Open Course Menu
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </div>
