@@ -1,28 +1,37 @@
 # robots.txt for CodeTapasya
 # https://codetapasya.com/robots.txt
 
+# Allow all good bots to crawl everything public
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /dashboard/
-Disallow: /profile/
-Disallow: /settings/
-Disallow: /payment/
+
+# Block only sensitive admin routes (use specific patterns)
+Disallow: /admin
 Disallow: /api/
 
-# Sitemap
+# Sitemap location
 Sitemap: https://codetapasya.com/sitemap.xml
 
-# Crawl-delay for specific bots
+# Optimize crawling for major search engines
 User-agent: Googlebot
-Crawl-delay: 0
+Allow: /
+Disallow: /admin
+Disallow: /api/
 
 User-agent: Bingbot
-Crawl-delay: 1
+Allow: /
+Disallow: /admin
+Disallow: /api/
 
-# Block bad bots
+# Block aggressive bots that don't respect crawl-delay
 User-agent: AhrefsBot
 Disallow: /
 
 User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
 Disallow: /
