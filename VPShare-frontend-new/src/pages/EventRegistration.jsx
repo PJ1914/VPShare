@@ -244,7 +244,7 @@ const EventRegistration = () => {
 
                                 {/* WhatsApp Join Button */}
                                 <motion.a
-                                    href="https://chat.whatsapp.com/YOUR_GROUP_LINK"
+                                    href="https://chat.whatsapp.com/Ll3soLeC4Fa08kO9RyCOLG"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
